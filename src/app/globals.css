@@ -1,0 +1,93 @@
+@import "tailwindcss";
+
+/* Tokens de SaveWise: colores de sistema de iOS. Modo claro y oscuro siguen al iPhone. */
+:root {
+  color-scheme: light dark;
+  --fondo: #f2f2f7;
+  --tarjeta: #ffffff;
+  --texto: #1d1d1f;
+  --texto-2: #6e6e73;
+  --linea: #e5e5ea;
+  --control: #e5e5ea;
+
+  --rojo: #d70015;
+  --rojo-relleno: #ff3b30;
+  --verde: #1e7b34;
+  --verde-relleno: #34c759;
+  --morado: #8944ab;
+  --morado-relleno: #af52de;
+  --azul: #0066cc;
+  --azul-relleno: #0071e3;
+  --negro: #1d1d1f;
+
+  --tinte-morado: #f3e8fa;
+  --barra: rgb(255 255 255 / 0.78);
+  --heroe-desde: #0062d1;
+  --heroe-hasta: #8e3fb8;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --fondo: #000000;
+    --tarjeta: #1c1c1e;
+    --texto: #f5f5f7;
+    --texto-2: #8e8e93;
+    --linea: #2c2c2e;
+    --control: #2c2c2e;
+
+    --rojo: #ff453a;
+    --rojo-relleno: #ff453a;
+    --verde: #30d158;
+    --verde-relleno: #30d158;
+    --morado: #bf5af2;
+    --morado-relleno: #bf5af2;
+    --azul: #0a84ff;
+    --azul-relleno: #0071e3;
+    --negro: #e5e5ea;
+
+    --tinte-morado: #2a1d33;
+    --barra: rgb(28 28 30 / 0.82);
+    --heroe-desde: #0058c9;
+    --heroe-hasta: #7d3bb0;
+  }
+}
+
+@theme inline {
+  --color-fondo: var(--fondo);
+  --color-tarjeta: var(--tarjeta);
+  --color-texto: var(--texto);
+  --color-texto-2: var(--texto-2);
+  --color-linea: var(--linea);
+  --color-control: var(--control);
+  --color-rojo: var(--rojo);
+  --color-rojo-relleno: var(--rojo-relleno);
+  --color-verde: var(--verde);
+  --color-verde-relleno: var(--verde-relleno);
+  --color-morado: var(--morado);
+  --color-morado-relleno: var(--morado-relleno);
+  --color-azul: var(--azul);
+  --color-azul-relleno: var(--azul-relleno);
+  --color-negro: var(--negro);
+  --color-tinte-morado: var(--tinte-morado);
+  --color-barra: var(--barra);
+  --color-heroe-desde: var(--heroe-desde);
+  --color-heroe-hasta: var(--heroe-hasta);
+  /* Fuente del sistema: en el iPhone es SF Pro. */
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+body {
+  background: var(--fondo);
+  color: var(--texto);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* En la capa base para que las clases de Tailwind (text-[52px], etc.) sí puedan sobrescribirlo. */
+@layer base {
+  input,
+  select {
+    font-size: 16px; /* mínimo para evitar el zoom automático de iOS al enfocar */
+  }
+}

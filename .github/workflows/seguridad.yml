@@ -1,0 +1,94 @@
+name: Seguridad y calidad
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: "0 12 * * 1" # cada lunes: revisión semanal de dependencias y secretos
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# Valores ficticios: las pruebas no se conectan al Supabase real.
+env:
+  NEXT_PUBLIC_SUPABASE_URL: https://ejemplo.supabase.co
+  NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: valor-ficticio-solo-para-ci-0000
+
+jobs:
+  calidad:
+    name: Lint, tipos y pruebas
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm test
+      - name: Dependencias de producción sin vulnerabilidades altas
+        run: npm audit --omit=dev --audit-level=high
+
+  secretos:
+    name: Secretos (Gitleaks)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  sast:
+    name: Análisis estático (Semgrep)
+    runs-on: ubuntu-latest
+    container:
+      image: semgrep/semgrep
+    steps:
+      - uses: actions/checkout@v4
+      - run: >
+          semgrep scan --error --metrics=off
+          --config p/javascript --config p/typescript --config p/react --config p/owasp-top-ten
+
+  base-de-datos:
+    name: Permisos de la base (pgTAP + RLS)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+      - run: supabase db start
+      - run: supabase test db
+
+  dast:
+    name: Ataque simulado (OWASP ZAP)
+    runs-on: ubuntu-latest
+    needs: calidad
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - name: Levantar la app
+        run: |
+          npx next start -p 3000 &
+          for i in $(seq 1 60); do curl -sf http://localhost:3000/login > /dev/null && exit 0; sleep 1; done
+          exit 1
+      - uses: zaproxy/action-baseline@v0.14.0
+        with:
+          target: http://localhost:3000/login
+          rules_file_name: .zap/rules.tsv
+          cmd_options: "-I"
+          allow_issue_writing: false

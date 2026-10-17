@@ -1,0 +1,17 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "gradient-text",
+        "value": "*",
+        "files": [
+          "src/app/login/page.tsx"
+        ],
+        "createdAt": "2026-10-17T07:21:24.493Z",
+        "reason": "Claude: wordmark de marca SaveWise, mismo degradado que la portada de la presentación aprobada; el resto de la app usa texto sólido"
+      }
+    ]
+  }
+}
