@@ -3,12 +3,20 @@ import { FormularioPerfil } from "@/components/FormularioPerfil";
 import { Icono } from "@/components/Icono";
 import { Encabezado, Pantalla } from "@/components/ui";
 import { crearRepositorio } from "@/lib/datos/repositorio";
-import { requerirUsuario } from "@/lib/supabase/servidor";
+import { requerirSesion } from "@/lib/supabase/servidor";
+import { headers } from "next/headers";
+import { AtajoSiri } from "./AtajoSiri";
+import { AvisosPush } from "./AvisosPush";
 import { BorrarDatos } from "./BorrarDatos";
 
 export default async function Ajustes() {
-  const { supabase, usuario } = await requerirUsuario();
-  const perfil = await crearRepositorio(supabase).perfil();
+  const { supabase, usuario } = await requerirSesion();
+  const [perfil, token, cabeceras] = await Promise.all([
+    crearRepositorio(supabase).perfil(),
+    supabase.from("tokens_atajo").select("creado").maybeSingle(),
+    headers(),
+  ]);
+  const urlAtajo = `https://${cabeceras.get("host") ?? "savewise-inky.vercel.app"}/api/atajo`;
 
   return (
     <Pantalla>
@@ -30,6 +38,9 @@ export default async function Ajustes() {
         diaPago={perfil.dia_pago}
         textoBoton="Guardar cambios"
       />
+
+      <AvisosPush />
+      <AtajoSiri tieneToken={Boolean(token.data)} url={urlAtajo} />
 
       <BorrarDatos />
 

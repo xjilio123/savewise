@@ -3,7 +3,7 @@ import { generarConsejos } from "@/lib/consejos";
 import { crearRepositorio } from "@/lib/datos/repositorio";
 import { calcularResumen } from "@/lib/dinero";
 import { etiquetaRango, hoyLima, periodoFinanciero } from "@/lib/fechas";
-import { requerirUsuario } from "@/lib/supabase/servidor";
+import { requerirSesion } from "@/lib/supabase/servidor";
 
 const nombreMes = new Intl.DateTimeFormat("es-PE", { month: "short", timeZone: "UTC" });
 
@@ -17,7 +17,7 @@ function ultimos12Meses(hoy: string): string[] {
 }
 
 export default async function Dashboard({ searchParams }: PageProps<"/dashboard">) {
-  const { supabase } = await requerirUsuario();
+  const { supabase } = await requerirSesion();
   const repo = crearRepositorio(supabase);
   const [perfil, parametros] = await Promise.all([repo.perfil(), searchParams]);
   const vista = parametros.vista === "anio" ? "anio" : "mes";

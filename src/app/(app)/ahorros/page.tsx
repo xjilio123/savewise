@@ -4,11 +4,11 @@ import { Encabezado, Pantalla, Tarjeta } from "@/components/ui";
 import { crearRepositorio } from "@/lib/datos/repositorio";
 import { cuotaMensual, formatearDinero, fraccion } from "@/lib/dinero";
 import { hoyLima } from "@/lib/fechas";
-import { requerirUsuario } from "@/lib/supabase/servidor";
+import { requerirSesion } from "@/lib/supabase/servidor";
 import { FormularioMeta } from "./FormularioMeta";
 
 export default async function Ahorros() {
-  const { supabase } = await requerirUsuario();
+  const { supabase } = await requerirSesion();
   const repo = crearRepositorio(supabase);
   const [perfil, metas] = await Promise.all([repo.perfil(), repo.metas()]);
   const hoy = hoyLima();

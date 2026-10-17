@@ -4,6 +4,7 @@ import { useActionState, useState } from "react";
 import { guardarMovimiento, type EstadoFormulario } from "@/app/acciones";
 import { BotonEnviar } from "@/components/BotonEnviar";
 import { MensajeError } from "@/components/ui";
+import { encolarMovimiento } from "@/lib/dispositivo";
 import { FUENTE_TIPO_CAMBIO } from "@/lib/tipoCambio";
 import { MONEDAS } from "@/lib/validacion";
 
@@ -44,6 +45,7 @@ export function FormularioMovimiento(props: {
   const [estado, accion] = useActionState<EstadoFormulario, FormData>(props.accion ?? guardarMovimiento, {});
   const [tipo, setTipo] = useState(inicial.tipo ?? "GASTO");
   const [moneda, setMoneda] = useState(inicial.moneda ?? props.monedaBase);
+  const [encolado, setEncolado] = useState(false);
   const errores = estado.errores ?? {};
   // La bolsa de Para mí solo aparece como opción cuando se edita una.
   const opciones =
@@ -51,8 +53,30 @@ export function FormularioMovimiento(props: {
       ? [...tipos, { valor: "PARA_MI", nombre: "Bolsa", activo: "bg-morado text-white", punto: "bg-morado-relleno" }]
       : tipos;
 
+  // Sin conexión (solo al crear): se guarda en el iPhone y se envía al volver internet.
+  function alEnviar(evento: React.FormEvent<HTMLFormElement>) {
+    if (props.accion || navigator.onLine) return;
+    evento.preventDefault();
+    if (encolarMovimiento(new FormData(evento.currentTarget))) {
+      evento.currentTarget.reset();
+      setEncolado(true);
+    }
+  }
+
+  if (encolado) {
+    return (
+      <div className="flex flex-col items-center gap-4 rounded-[22px] bg-tarjeta px-6 py-8 text-center">
+        <p className="text-[20px] font-bold">Guardado en tu iPhone</p>
+        <p className="text-[17px] text-texto-2">Sin conexión. Se enviará solo cuando vuelva internet.</p>
+        <button type="button" onClick={() => setEncolado(false)} className="text-[17px] font-semibold text-azul">
+          Agregar otro
+        </button>
+      </div>
+    );
+  }
+
   return (
-    <form action={accion} className="flex flex-col gap-5">
+    <form action={accion} onSubmit={alEnviar} className="flex flex-col gap-5">
       <fieldset className="grid grid-cols-2 gap-2.5">
         <legend className="sr-only">Tipo de movimiento</legend>
         {opciones.map((t) => (

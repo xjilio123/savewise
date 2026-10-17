@@ -37,6 +37,17 @@ No abras un issue público. Usa **Security → Report a vulnerability** en este 
 - **Tipo de cambio:** se consulta desde el servidor a un host fijo con códigos validados (sin SSRF)
   y queda congelado en cada movimiento.
 - **Búsqueda:** los comodines de LIKE se escapan; los parámetros de la URL se validan uno por uno.
+- **Notificaciones push:** solo se aceptan endpoints de los servicios oficiales (Apple, Google, Mozilla,
+  Microsoft); cualquier otra URL se rechaza para evitar SSRF. Las claves VAPID privadas viven solo en Vercel.
+- **Atajo de Siri:** token aleatorio de 256 bits que se muestra una sola vez; la base solo guarda su
+  huella SHA-256. Límite de 10 registros por minuto y revocable desde Ajustes.
+- **Funciones con privilegios:** `registrar_por_atajo` y `recordatorios_del_dia` son `SECURITY DEFINER`
+  y las puede llamar `anon`, a propósito: cada una exige su propio secreto (token o secreto del cron,
+  comparados por huella). Es un permiso mínimo frente a usar la clave `service_role`, que salta todo RLS.
+- **Service worker:** no guarda páginas ni datos financieros en el teléfono; solo archivos estáticos
+  y una pantalla sin conexión. Los avisos solo pueden abrir rutas internas de la app.
+- **Cola sin conexión:** los movimientos guardados sin internet llevan un UUID generado en el teléfono,
+  así reintentar nunca los duplica.
 
 ## Límites conocidos
 

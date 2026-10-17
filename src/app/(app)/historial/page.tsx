@@ -2,10 +2,10 @@ import { VistaHistorial } from "@/components/vistas/VistaHistorial";
 import { crearRepositorio } from "@/lib/datos/repositorio";
 import { hoyLima, rangosRapidos } from "@/lib/fechas";
 import { leerFiltros } from "@/lib/filtros";
-import { requerirUsuario } from "@/lib/supabase/servidor";
+import { requerirSesion } from "@/lib/supabase/servidor";
 
 export default async function Historial({ searchParams }: PageProps<"/historial">) {
-  const { supabase } = await requerirUsuario();
+  const { supabase } = await requerirSesion();
   const repo = crearRepositorio(supabase);
   const [perfil, parametros] = await Promise.all([repo.perfil(), searchParams]);
 

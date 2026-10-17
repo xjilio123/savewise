@@ -1,10 +1,10 @@
 import { FormularioPerfil } from "@/components/FormularioPerfil";
 import { Pantalla } from "@/components/ui";
 import { crearRepositorio } from "@/lib/datos/repositorio";
-import { requerirUsuario } from "@/lib/supabase/servidor";
+import { requerirSesion } from "@/lib/supabase/servidor";
 
 export default async function Bienvenida() {
-  const { supabase } = await requerirUsuario();
+  const { supabase } = await requerirSesion();
   const perfil = await crearRepositorio(supabase).perfil();
 
   return (
