@@ -18,6 +18,10 @@ repartes en gastos, ahorros y una bolsa “Para mí”, y siempre ves cuánto qu
 - **Multimoneda:** cada movimiento guarda su tipo de cambio del día
   ([ExchangeRate-API](https://www.exchangerate-api.com)).
 - **Tu mes** empieza el día que cobras.
+- **Planificación:** topes por categoría con aviso al 80 %, cierre de mes, fondo de emergencia
+  y proyección de cada meta al 31 de diciembre.
+- **Deudas y tarjetas:** saldo, cuotas que faltan según la TEA y aviso un día antes de pagar.
+- **Resumen con IA (opcional):** Gemini resume tu mes a partir de totales agregados, nunca de tus conceptos.
 - Modo claro y oscuro automáticos, diseño al estilo iOS.
 
 ## Stack
@@ -54,4 +58,5 @@ Las migraciones están en `supabase/migrations` y las pruebas de RLS en `supabas
 - [x] Fase 2: Historial con páginas y filtros, editar y eliminar, Dashboard, multimoneda, día de pago
 - [x] Fase 3: PWA instalable, offline con cola de envío, avisos push y Atajo de Siri; app en São Paulo junto a la base
 - [x] Fase 4: exportar a CSV (Google Sheets) y gastos recurrentes automáticos
-- [ ] Siguiente: resumen con IA opcional e invitar personas
+- [x] Fase 5: topes, cierre de mes, fondo de emergencia, proyección anual, deudas y resumen con IA
+- [ ] Siguiente: invitar personas

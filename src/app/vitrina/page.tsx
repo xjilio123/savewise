@@ -1,8 +1,10 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { BarraPestanas } from "@/components/BarraPestanas";
+import { ResumenIA } from "@/app/(app)/dashboard/ResumenIA";
 import { CierreMes } from "@/components/CierreMes";
 import { VistaDashboard } from "@/components/vistas/VistaDashboard";
+import { VistaDeudas } from "@/components/vistas/VistaDeudas";
 import { VistaHistorial } from "@/components/vistas/VistaHistorial";
 import { VistaInicio } from "@/components/vistas/VistaInicio";
 import { VistaParaMi } from "@/components/vistas/VistaParaMi";
@@ -79,8 +81,10 @@ export default async function Vitrina({ searchParams }: PageProps<"/vitrina">) {
         resumen={resumen}
         consejos={consejos}
         meses={f.MESES}
+        extra={<ResumenIA />}
       />
     ),
+    deudas: <VistaDeudas deudas={f.DEUDAS} moneda="PEN" />,
     anio: (
       <VistaDashboard
         vista="anio"

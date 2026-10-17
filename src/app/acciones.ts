@@ -2,8 +2,11 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { crearRepositorio } from "@/lib/datos/repositorio";
+import { saldoDeuda } from "@/lib/deudas";
 import { calcularResumen } from "@/lib/dinero";
 import { etiquetaRango, hoyLima, periodoFinanciero, sumarDias } from "@/lib/fechas";
+import { pedirResumen, type ResultadoIA } from "@/lib/ia";
 import { enviarAviso } from "@/lib/notificaciones";
 import { sobranteDelPeriodo, sugerirFondoEmergencia } from "@/lib/planificacion";
 import { esquemaSuscripcion, generarToken, huellaToken } from "@/lib/pwa";
@@ -374,6 +377,55 @@ export async function eliminarDeuda(id: string): Promise<void> {
   }
   revalidatePath("/", "layout");
   redirect("/deudas");
+}
+
+// ---------- Resumen con IA (Fase 5d) ----------
+
+/**
+ * Pide a Gemini un resumen del periodo. Los totales se calculan aquí con la sesión del usuario:
+ * el teléfono no envía datos, y a Google solo llegan cifras agregadas (ver src/lib/ia.ts).
+ */
+export async function pedirResumenIA(): Promise<ResultadoIA> {
+  const clave = process.env.GEMINI_API_KEY;
+  if (!clave) return { error: "El resumen con IA no está activado." };
+
+  const { supabase } = await requerirUsuario();
+  const repo = crearRepositorio(supabase);
+  const perfil = await repo.perfil();
+  const hoy = hoyLima();
+  const periodo = periodoFinanciero(hoy, perfil.dia_pago);
+  const anterior = periodoFinanciero(sumarDias(periodo.desde, -1), perfil.dia_pago);
+
+  const [movimientos, previos, porCategoria, categorias, deudas] = await Promise.all([
+    repo.movimientosEntre(periodo.desde, periodo.hasta),
+    repo.movimientosEntre(anterior.desde, anterior.hasta),
+    repo.gastosPorCategoria(periodo.desde, periodo.hasta),
+    repo.categorias(),
+    repo.deudas(),
+  ]);
+  if (movimientos.length === 0) return { error: "Registra algunos movimientos para tener un resumen." };
+
+  const topes = new Map(categorias.map((c) => [c.id, c.tope]));
+  const abiertas = deudas.filter((d) => !d.cerrada);
+  const previo = calcularResumen(perfil.sueldo_mensual, previos);
+
+  return pedirResumen(
+    {
+      periodo: etiquetaRango(periodo.desde, periodo.hasta),
+      diasTranscurridos: periodo.diasDelMes - periodo.diasRestantes + 1,
+      diasDelPeriodo: periodo.diasDelMes,
+      moneda: perfil.moneda_base,
+      sueldo: perfil.sueldo_mensual,
+      actual: calcularResumen(perfil.sueldo_mensual, movimientos),
+      anterior: { gastos: previo.gastos, ahorros: previo.ahorros, ocio: previo.ocio },
+      categorias: porCategoria.map((c) => ({ nombre: c.nombre, total: c.total, tope: c.id ? topes.get(c.id) : null })),
+      deudas: {
+        pendiente: abiertas.reduce((s, d) => s + saldoDeuda(d.monto_total, d.pagado), 0),
+        cuotasMensuales: abiertas.reduce((s, d) => s + (d.cuota_mensual ?? 0), 0),
+      },
+    },
+    { clave, modelo: process.env.GEMINI_MODELO },
+  );
 }
 
 export async function guardarSuscripcion(suscripcion: unknown): Promise<EstadoFormulario> {

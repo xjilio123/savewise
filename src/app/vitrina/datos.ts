@@ -1,5 +1,5 @@
 import type { MesGrafico } from "@/components/vistas/VistaDashboard";
-import type { FilaHistorial, GastoCategoria } from "@/lib/datos/repositorio";
+import type { DeudaConPagos, FilaHistorial, GastoCategoria } from "@/lib/datos/repositorio";
 import type { TipoMovimiento } from "@/lib/supabase/tipos";
 
 // Datos FICTICIOS: el ejemplo de la propuesta con sueldo de S/ 1,500. Nunca se guardan en ninguna base.
@@ -85,3 +85,21 @@ export const MESES: MesGrafico[] = ["nov", "dic", "ene", "feb", "mar", "abr", "m
     ahorros: [0, 0, 0, 0, 0, 0, 0, 200, 250, 300, 280, 300][i]!,
   }),
 );
+
+const deuda = (d: Partial<DeudaConPagos> & Pick<DeudaConPagos, "id" | "nombre" | "monto_total" | "pagado">): DeudaConPagos => ({
+  user_id: "ficticio",
+  tipo: "tarjeta",
+  cuota_mensual: null,
+  dia_pago: null,
+  tea: null,
+  moneda: "PEN",
+  cerrada: false,
+  creado: "2026-08-01T12:00:00Z",
+  ...d,
+});
+
+export const DEUDAS: DeudaConPagos[] = [
+  deuda({ id: "d1", nombre: "Visa", monto_total: 2500, pagado: 750, cuota_mensual: 250, dia_pago: 5, tea: 65 }),
+  deuda({ id: "d2", nombre: "Préstamo celular", tipo: "prestamo", monto_total: 1200, pagado: 200, cuota_mensual: 40, tea: 60 }),
+  deuda({ id: "d3", nombre: "Préstamo de mamá", tipo: "otro", monto_total: 300, pagado: 300, cerrada: true }),
+];
