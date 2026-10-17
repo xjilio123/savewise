@@ -4,6 +4,7 @@ import { Icono } from "@/components/Icono";
 import { Encabezado, Pantalla } from "@/components/ui";
 import { crearRepositorio } from "@/lib/datos/repositorio";
 import { requerirUsuario } from "@/lib/supabase/servidor";
+import { BorrarDatos } from "./BorrarDatos";
 
 export default async function Ajustes() {
   const { supabase, usuario } = await requerirUsuario();
@@ -29,6 +30,8 @@ export default async function Ajustes() {
         diaPago={perfil.dia_pago}
         textoBoton="Guardar cambios"
       />
+
+      <BorrarDatos />
 
       <form action={cerrarSesion}>
         <button

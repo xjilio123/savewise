@@ -1,0 +1,86 @@
+import type { MesGrafico } from "@/components/vistas/VistaDashboard";
+import type { FilaHistorial, GastoCategoria } from "@/lib/datos/repositorio";
+import type { TipoMovimiento } from "@/lib/supabase/tipos";
+
+// Datos FICTICIOS: el ejemplo de la propuesta con sueldo de S/ 1,500. Nunca se guardan en ninguna base.
+export const HOY = "2026-10-17";
+
+export const CATEGORIAS = [
+  { id: "c1", nombre: "Alimentación" },
+  { id: "c2", nombre: "Transporte" },
+  { id: "c3", nombre: "Suscripciones" },
+  { id: "c4", nombre: "Ocio" },
+  { id: "c5", nombre: "Servicios" },
+];
+
+function fila(
+  id: string,
+  fecha: string,
+  tipo: TipoMovimiento,
+  concepto: string,
+  monto: number,
+  categoria: FilaHistorial["categoria"],
+  extra: Partial<FilaHistorial> = {},
+): FilaHistorial {
+  return {
+    id,
+    user_id: "ficticio",
+    fecha,
+    tipo,
+    concepto,
+    monto,
+    moneda: "PEN",
+    tipo_cambio: 1,
+    monto_base: monto,
+    categoria_id: null,
+    meta_id: null,
+    recurrente: false,
+    nota: "",
+    creado: `${fecha}T12:00:00Z`,
+    categoria,
+    ...extra,
+  };
+}
+
+export const FILAS: FilaHistorial[] = [
+  fila("m1", "2026-10-17", "OCIO", "Café", 12.5, { nombre: "Ocio", color: "morado" }),
+  fila("m2", "2026-10-14", "OCIO", "Libro", 59, { nombre: "Ocio", color: "morado" }),
+  fila("m3", "2026-10-12", "GASTO", "Spotify", 8.22, { nombre: "Suscripciones", color: "negro" }, { recurrente: true }),
+  fila("m4", "2026-10-12", "OCIO", "Cine", 32, { nombre: "Ocio", color: "morado" }),
+  fila("m5", "2026-10-08", "GASTO", "Curso online", 68.68, { nombre: "Educación", color: "azul" }, { moneda: "USD", monto: 20, tipo_cambio: 3.434 }),
+  fila("m6", "2026-10-03", "GASTO", "Claude", 100, { nombre: "Suscripciones", color: "negro" }, { recurrente: true }),
+  fila("m7", "2026-10-02", "AHORRO", "Aporte Navidad", 200, null),
+  fila("m8", "2026-10-02", "PARA_MI", "Bolsa del mes", 250, null),
+  fila("m9", "2026-10-01", "INGRESO", "Bono", 120, null),
+  fila("m10", "2026-10-01", "GASTO", "Mercado", 300, { nombre: "Alimentación", color: "rojo" }),
+];
+
+export const MOVIMIENTOS = [
+  { tipo: "GASTO" as const, monto_base: 300 },
+  { tipo: "GASTO" as const, monto_base: 150 },
+  { tipo: "GASTO" as const, monto_base: 100 },
+  { tipo: "GASTO" as const, monto_base: 39.9 },
+  { tipo: "GASTO" as const, monto_base: 8.22 },
+  { tipo: "AHORRO" as const, monto_base: 200 },
+  { tipo: "AHORRO" as const, monto_base: 100 },
+  { tipo: "PARA_MI" as const, monto_base: 250 },
+  { tipo: "OCIO" as const, monto_base: 12.5 },
+  { tipo: "OCIO" as const, monto_base: 59 },
+  { tipo: "OCIO" as const, monto_base: 32 },
+];
+
+export const POR_CATEGORIA: GastoCategoria[] = [
+  { nombre: "Alimentación", color: "rojo", total: 300 },
+  { nombre: "Transporte", color: "azul", total: 150 },
+  { nombre: "Suscripciones", color: "negro", total: 108.22 },
+  { nombre: "Ocio", color: "morado", total: 103.5 },
+  { nombre: "Servicios", color: "verde", total: 39.9 },
+];
+
+export const MESES: MesGrafico[] = ["nov", "dic", "ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sept", "oct"].map(
+  (etiqueta, i) => ({
+    etiqueta,
+    gastos: [0, 0, 0, 0, 0, 0, 0, 520, 610, 480, 655, 701.62][i]!,
+    ahorros: [0, 0, 0, 0, 0, 0, 0, 200, 250, 300, 280, 300][i]!,
+  }),
+);

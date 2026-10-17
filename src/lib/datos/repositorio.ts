@@ -1,8 +1,12 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Categoria, Database, Meta, Movimiento, Perfil, TipoMovimiento } from "@/lib/supabase/tipos";
+import { escaparLike, TAMANO_PAGINA, type Filtros } from "@/lib/filtros";
+import type { Categoria, ColorApp, Database, Meta, Movimiento, Perfil, TipoMovimiento } from "@/lib/supabase/tipos";
 
 export type MetaConProgreso = Meta & { ahorrado: number };
+export type FilaHistorial = Movimiento & { categoria: { nombre: string; color: ColorApp } | null };
+export type GastoCategoria = { nombre: string; color: ColorApp; total: number };
+export type TotalMes = { mes: string; tipo: TipoMovimiento; total: number };
 
 /**
  * Única puerta de acceso a los datos. Las pantallas no saben que detrás está Supabase:
@@ -31,6 +35,63 @@ export function crearRepositorio(supabase: SupabaseClient<Database>) {
           .order("fecha", { ascending: false })
           .order("creado", { ascending: false }),
       );
+    },
+
+    async movimiento(id: string): Promise<Movimiento | null> {
+      const { data, error } = await supabase.from("movimientos").select("*").eq("id", id).maybeSingle();
+      if (error) throw new Error("No se pudieron leer los datos");
+      return data;
+    },
+
+    /** Una página del Historial con el total de filas que cumplen el filtro. */
+    async historial(f: Filtros): Promise<{ filas: FilaHistorial[]; cantidad: number }> {
+      let consulta = supabase
+        .from("movimientos")
+        .select("*, categoria:categorias(nombre, color)", { count: "exact" })
+        .gte("fecha", f.desde)
+        .lte("fecha", f.hasta);
+      if (f.tipo) consulta = consulta.eq("tipo", f.tipo);
+      if (f.categoria) consulta = consulta.eq("categoria_id", f.categoria);
+      if (f.q) consulta = consulta.ilike("concepto", `%${escaparLike(f.q)}%`);
+
+      const desde = (f.pagina - 1) * TAMANO_PAGINA;
+      const { data, count, error } = await consulta
+        .order("fecha", { ascending: false })
+        .order("creado", { ascending: false })
+        .range(desde, desde + TAMANO_PAGINA - 1);
+
+      // Pedir una página que no existe devuelve error de rango: se trata como vacía.
+      if (error && error.code !== "PGRST103") throw new Error("No se pudieron leer los datos");
+      return { filas: (data ?? []) as FilaHistorial[], cantidad: count ?? 0 };
+    },
+
+    async resumenFiltrado(f: Filtros): Promise<Record<TipoMovimiento, number>> {
+      const filas = await obtener(
+        supabase.rpc("resumen_filtrado", {
+          p_desde: f.desde,
+          p_hasta: f.hasta,
+          p_tipo: f.tipo,
+          p_categoria: f.categoria,
+          p_texto: f.q,
+        }),
+      );
+      const totales: Record<TipoMovimiento, number> = { INGRESO: 0, GASTO: 0, AHORRO: 0, PARA_MI: 0, OCIO: 0 };
+      for (const fila of filas) totales[fila.tipo] = Number(fila.total);
+      return totales;
+    },
+
+    async gastosPorCategoria(desde: string, hasta: string): Promise<GastoCategoria[]> {
+      const filas = await obtener(supabase.rpc("gastos_por_categoria", { p_desde: desde, p_hasta: hasta }));
+      return filas.map((f) => ({ nombre: f.nombre, color: f.color, total: Number(f.total) }));
+    },
+
+    async totalesPorMes(desdeMes: string, hastaMes: string): Promise<TotalMes[]> {
+      const filas = await obtener(
+        supabase.from("resumen_mensual").select("mes, tipo, total").gte("mes", desdeMes).lte("mes", hastaMes),
+      );
+      return filas
+        .filter((f): f is { mes: string; tipo: TipoMovimiento; total: number } => Boolean(f.mes && f.tipo))
+        .map((f) => ({ mes: f.mes, tipo: f.tipo, total: Number(f.total ?? 0) }));
     },
 
     ultimos(tipo: TipoMovimiento, limite: number): Promise<Movimiento[]> {

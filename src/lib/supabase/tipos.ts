@@ -157,7 +157,27 @@ export type Database = {
         Relationships: [];
       };
     };
-    Functions: { [_ in never]: never };
+    Functions: {
+      cambiar_moneda_base: {
+        Args: { p_factor: number; p_nueva: string };
+        Returns: undefined;
+      };
+      gastos_por_categoria: {
+        Args: { p_desde: string; p_hasta: string };
+        Returns: { categoria_id: string; color: ColorApp; nombre: string; total: number }[];
+      };
+      ping: { Args: never; Returns: number };
+      resumen_filtrado: {
+        Args: {
+          p_categoria?: string;
+          p_desde: string;
+          p_hasta: string;
+          p_texto?: string;
+          p_tipo?: TipoMovimiento;
+        };
+        Returns: { cantidad: number; tipo: TipoMovimiento; total: number }[];
+      };
+    };
     Enums: { color_app: ColorApp; tipo_movimiento: TipoMovimiento };
     CompositeTypes: { [_ in never]: never };
   };

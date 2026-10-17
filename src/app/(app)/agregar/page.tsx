@@ -17,8 +17,8 @@ export default async function Agregar({ searchParams }: PageProps<"/agregar">) {
 
   // Los parámetros de la URL solo preseleccionan opciones que ya existen.
   const tipoPedido = typeof params.tipo === "string" ? params.tipo : "";
-  const tipoInicial = (TIPOS_FORMULARIO as readonly string[]).includes(tipoPedido) ? tipoPedido : "GASTO";
-  const metaInicial = metas.find((m) => m.id === params.meta)?.id ?? "";
+  const tipo = (TIPOS_FORMULARIO as readonly string[]).includes(tipoPedido) ? tipoPedido : "GASTO";
+  const metaId = metas.find((m) => m.id === params.meta)?.id ?? "";
 
   return (
     <Pantalla>
@@ -27,9 +27,8 @@ export default async function Agregar({ searchParams }: PageProps<"/agregar">) {
         categorias={categorias.map((c) => ({ id: c.id, nombre: c.nombre }))}
         metas={metas.map((m) => ({ id: m.id, nombre: m.nombre }))}
         hoy={hoyLima()}
-        moneda={perfil.moneda_base}
-        tipoInicial={tipoInicial}
-        metaInicial={metaInicial}
+        monedaBase={perfil.moneda_base}
+        inicial={{ tipo, meta_id: metaId }}
       />
     </Pantalla>
   );
