@@ -5,6 +5,7 @@ import { calcularResumen } from "@/lib/dinero";
 import { etiquetaRango, hoyLima, periodoFinanciero } from "@/lib/fechas";
 import { estadoTopes } from "@/lib/planificacion";
 import { requerirSesion } from "@/lib/supabase/servidor";
+import { ResumenIA } from "./ResumenIA";
 
 const nombreMes = new Intl.DateTimeFormat("es-PE", { month: "short", timeZone: "UTC" });
 
@@ -56,6 +57,7 @@ export default async function Dashboard({ searchParams }: PageProps<"/dashboard"
       resumen={resumen}
       consejos={movimientos.length > 0 ? generarConsejos(resumen, periodo, perfil.moneda_base, topes) : []}
       meses={grafico}
+      extra={vista === "mes" && movimientos.length > 0 && process.env.GEMINI_API_KEY ? <ResumenIA /> : null}
     />
   );
 }

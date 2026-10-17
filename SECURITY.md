@@ -46,6 +46,14 @@ No abras un issue público. Usa **Security → Report a vulnerability** en este 
   comparados por huella). Es un permiso mínimo frente a usar la clave `service_role`, que salta todo RLS.
 - **Service worker:** no guarda páginas ni datos financieros en el teléfono; solo archivos estáticos
   y una pantalla sin conexión. Los avisos solo pueden abrir rutas internas de la app.
+- **Deudas:** cada pago es un gasto con `(deuda_id, user_id)` como llave compuesta: no se puede
+  vincular un pago a la deuda de otra persona. pgTAP lo prueba junto con RLS y los avisos de pago.
+- **Resumen con IA (Gemini):** la llamada sale solo del servidor, con la clave en la cabecera
+  `x-goog-api-key` (nunca en la URL ni en el navegador). Se envían únicamente totales agregados y
+  nombres de categorías; nunca conceptos, notas, fechas ni correos, porque la capa gratuita de Google
+  puede usar los datos para mejorar sus modelos. La respuesta se muestra como texto plano (React la
+  escapa) y se recorta; el nombre del modelo se valida para que no altere la URL. Sin la variable
+  `GEMINI_API_KEY` la función no aparece.
 - **Cola sin conexión:** los movimientos guardados sin internet llevan un UUID generado en el teléfono,
   así reintentar nunca los duplica.
 

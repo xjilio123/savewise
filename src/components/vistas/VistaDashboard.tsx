@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { ReactNode } from "react";
 import { Barra } from "@/components/Anillos";
 import { Dona } from "@/components/Dona";
 import { Icono, type NombreIcono } from "@/components/Icono";
@@ -18,6 +19,8 @@ export type DatosDashboard = {
   resumen: Resumen;
   consejos: Consejo[];
   meses: MesGrafico[];
+  /** Contenido opcional al final (el resumen con IA). */
+  extra?: ReactNode;
 };
 
 const iconoConsejo: Record<Consejo["color"], { icono: NombreIcono; fondo: string }> = {
@@ -72,6 +75,8 @@ export function VistaDashboard(d: DatosDashboard) {
           ))}
         </section>
       )}
+
+      {d.extra}
     </Pantalla>
   );
 }
