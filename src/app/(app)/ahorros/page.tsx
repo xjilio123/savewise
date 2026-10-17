@@ -12,6 +12,7 @@ import { semanaDelReto } from "@/lib/ideas";
 import { FormularioMeta } from "./FormularioMeta";
 import { FormularioReto } from "./FormularioReto";
 import { ListaAportes } from "./ListaAportes";
+import { ConMontos, Monto } from "@/components/Monto";
 
 /** Fecha (AAAA-MM-DD) en Lima de un timestamp: el día en que empezó el reto. */
 const fechaLima = (ts: string) => new Intl.DateTimeFormat("en-CA", { timeZone: "America/Lima" }).format(new Date(ts));
@@ -80,10 +81,10 @@ export default async function Ahorros() {
 
       <Tarjeta className="flex flex-col gap-1">
         <p className="text-[15px] text-texto-2">Total ahorrado</p>
-        <p className="text-[40px] font-extrabold leading-tight tracking-tight tabular-nums">{dinero(total)}</p>
+        <p className="text-[40px] font-extrabold leading-tight tracking-tight tabular-nums"><Monto texto={dinero(total)} /></p>
         {metas.length > 0 && totalAlCierre > total && (
           <p className="text-[15px] text-texto-2">
-            A tu ritmo actual: <span className="monto font-semibold text-verde">{dinero(totalAlCierre)}</span> al 31 de diciembre
+            A tu ritmo actual: <span className="font-semibold text-verde"><Monto texto={dinero(totalAlCierre)} /></span> al 31 de diciembre
           </p>
         )}
       </Tarjeta>
@@ -113,10 +114,11 @@ export default async function Ahorros() {
             <div className="flex min-w-0 flex-1 flex-col">
               <p className="truncate text-[17px] font-bold">{m.nombre}</p>
               <p className="text-[15px] text-texto-2 tabular-nums">
-                {dinero(m.ahorrado)} de {dinero(m.objetivo)}
+                <Monto texto={dinero(m.ahorrado)} /> de <Monto texto={dinero(m.objetivo)} />
               </p>
-              <p className="monto text-[15px] font-semibold text-verde">
-                {falta === 0
+              <p className="text-[15px] font-semibold text-verde">
+                <ConMontos
+                  texto={falta === 0
                   ? "¡Meta cumplida!"
                   : reto
                     ? reto.terminado
@@ -125,6 +127,7 @@ export default async function Ahorros() {
                     : cuota
                       ? `${dinero(cuota)} al mes`
                       : "Sin fecha límite"}
+                />
               </p>
               {proyeccion && (
                 <p className={`text-[13px] ${p?.llegaATiempo === false ? "text-rojo" : "text-texto-2"}`}>{proyeccion}</p>
@@ -145,19 +148,19 @@ export default async function Ahorros() {
       {fondo && (
         <section className="flex flex-col gap-2 rounded-[22px] bg-tinte-morado px-5 py-4">
           <p className="text-[17px] font-semibold">Fondo de emergencia</p>
-          <p className="monto text-[15px] leading-snug">
-            Con tus gastos de ~{dinero(fondo.gastoMensual)} al mes, te conviene guardar entre{" "}
-            <b>{dinero(fondo.minimo)}</b> (3 meses) y <b>{dinero(fondo.ideal)}</b> (6 meses).
+          <p className="text-[15px] leading-snug">
+            Con tus gastos de ~<Monto texto={dinero(fondo.gastoMensual)} /> al mes, te conviene guardar entre{" "}
+            <b><Monto texto={dinero(fondo.minimo)} /></b> (3 meses) y <b><Monto texto={dinero(fondo.ideal)} /></b> (6 meses).
           </p>
           {metaEmergencia ? (
             metaEmergencia.objetivo < fondo.minimo && (
               <p className="text-[15px] text-texto-2">
-                Tu meta “{metaEmergencia.nombre}” es de {dinero(metaEmergencia.objetivo)}: considera subirla.
+                Tu meta “{metaEmergencia.nombre}” es de <Monto texto={dinero(metaEmergencia.objetivo)} />: considera subirla.
               </p>
             )
           ) : (
             <form action={crearMetaEmergencia}>
-              <BotonEnviar texto={`Crear meta de ${dinero(fondo.ideal)}`} textoEnviando="Creando…" clase="bg-morado text-fondo" />
+              <BotonEnviar texto={<>Crear meta de <Monto texto={dinero(fondo.ideal)} /></>} textoEnviando="Creando…" clase="bg-morado text-fondo" />
             </form>
           )}
         </section>

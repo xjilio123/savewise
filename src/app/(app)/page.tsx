@@ -1,4 +1,3 @@
-import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { BotonPrivado } from "@/components/BotonPrivado";
 import { CierreMes } from "@/components/CierreMes";
@@ -9,18 +8,16 @@ import { calcularResumen, formatearDinero } from "@/lib/dinero";
 import { etiquetaRango, fechaLarga, hoyLima, periodoFinanciero, sumarDias } from "@/lib/fechas";
 import { estadoTopes, sobranteDelPeriodo } from "@/lib/planificacion";
 import { requerirSesion } from "@/lib/supabase/servidor";
-import { COOKIE_PRIVADO } from "@/lib/tema";
 
 export default async function Inicio() {
   const { supabase, usuario } = await requerirSesion();
   const repo = crearRepositorio(supabase);
   const hoy = hoyLima();
   // Perfil y movimientos en paralelo. La ventana de -64/+32 días contiene el periodo actual y el anterior.
-  const [perfil, ventana, categorias, galletas] = await Promise.all([
+  const [perfil, ventana, categorias] = await Promise.all([
     repo.perfil(),
     repo.movimientosEntre(sumarDias(hoy, -64), sumarDias(hoy, 32)),
     repo.categorias(),
-    cookies(),
   ]);
   if (perfil.sueldo_mensual <= 0) redirect("/bienvenida");
 
@@ -58,7 +55,7 @@ export default async function Inicio() {
       consejo={generarConsejos(resumen, periodo, perfil.moneda_base, estadoTopes(categorias, movimientos))[0] ?? null}
       sinMovimientos={movimientos.length === 0}
       extra={cierre}
-      privado={<BotonPrivado inicial={galletas.get(COOKIE_PRIVADO)?.value === "1"} />}
+      privado={<BotonPrivado grande />}
     />
   );
 }

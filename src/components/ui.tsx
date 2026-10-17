@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { Icono } from "@/components/Icono";
+import { BotonPrivado } from "@/components/BotonPrivado";
 
 export function Pantalla({ children }: { children: ReactNode }) {
   return (
@@ -30,11 +31,14 @@ export function Encabezado({
         </Link>
       )}
       <div className="flex items-end justify-between gap-3">
-        <div>
+        <div className="min-w-0">
           {subtitulo && <p className="text-[15px] font-semibold text-texto-2">{subtitulo}</p>}
           <h1 className="text-[34px] font-extrabold leading-tight tracking-tight">{titulo}</h1>
         </div>
-        {accion}
+        <div className="flex items-center gap-3 pb-1">
+          {accion}
+          <BotonPrivado />
+        </div>
       </div>
     </header>
   );

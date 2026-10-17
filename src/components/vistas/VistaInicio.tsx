@@ -6,6 +6,7 @@ import { AvisoInstalar } from "@/components/pwa/AvisoInstalar";
 import { Pantalla, Tarjeta } from "@/components/ui";
 import type { Consejo } from "@/lib/consejos";
 import { formatearDinero, fraccion, type Resumen } from "@/lib/dinero";
+import { ConMontos, Monto } from "@/components/Monto";
 
 export type DatosInicio = {
   fecha: string;
@@ -53,9 +54,9 @@ export function VistaInicio({ fecha, periodo, inicial, moneda, resumen: r, conse
 
       <section className="rounded-[28px] bg-gradient-to-br from-heroe-desde to-heroe-hasta p-6 text-white shadow-[0_12px_30px_rgb(0_98_209/0.28)]">
         <p className="text-[15px] font-semibold text-white/85">Sin asignar</p>
-        <p className="text-[44px] font-extrabold leading-tight tracking-tight tabular-nums">{dinero(r.sinAsignar)}</p>
+        <p className="text-[44px] font-extrabold leading-tight tracking-tight tabular-nums"><Monto texto={dinero(r.sinAsignar)} /></p>
         <p className="text-[15px] text-white/85">
-          de <span className="monto">{dinero(r.ingresos)}</span> · {periodo}
+          de <Monto texto={dinero(r.ingresos)} /> · {periodo}
         </p>
       </section>
 
@@ -70,7 +71,7 @@ export function VistaInicio({ fecha, periodo, inicial, moneda, resumen: r, conse
           {partes.map((p) => (
             <div key={p.nombre}>
               <dt className="text-[15px] text-texto-2">{p.nombre}</dt>
-              <dd className={`text-[17px] font-bold tabular-nums ${p.texto}`}>{dinero(p.monto)}</dd>
+              <dd className={`text-[17px] font-bold tabular-nums ${p.texto}`}><Monto texto={dinero(p.monto)} /></dd>
             </div>
           ))}
         </dl>
@@ -80,7 +81,7 @@ export function VistaInicio({ fecha, periodo, inicial, moneda, resumen: r, conse
         {r.paraMi > 0 ? (
           <span>
             <span className="block text-[15px] text-texto-2">Para mí · te quedan</span>
-            <span className="block text-[20px] font-bold tabular-nums text-morado">{dinero(r.paraMiRestante)}</span>
+            <span className="block text-[20px] font-bold tabular-nums text-morado"><Monto texto={dinero(r.paraMiRestante)} /></span>
           </span>
         ) : (
           <span>
@@ -103,7 +104,7 @@ export function VistaInicio({ fecha, periodo, inicial, moneda, resumen: r, conse
           <Link href="/dashboard" className="flex items-start gap-3 rounded-[22px] bg-tinte-morado px-5 py-4">
             <Icono nombre="bombilla" className="mt-0.5 size-6 shrink-0 text-morado" />
             <p className="text-[16px] leading-snug">
-              <span className="font-semibold">{consejo.titulo}:</span> <span className="monto">{consejo.texto}</span>
+              <span className="font-semibold">{consejo.titulo}:</span> <ConMontos texto={consejo.texto} />
             </p>
           </Link>
         )

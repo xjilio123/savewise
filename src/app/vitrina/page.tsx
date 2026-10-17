@@ -36,7 +36,7 @@ export default async function Vitrina({ searchParams }: PageProps<"/vitrina">) {
         resumen={resumen}
         consejo={consejos[0] ?? null}
         sinMovimientos={false}
-        privado={<BotonPrivado inicial={false} />}
+        privado={<BotonPrivado grande />}
         extra={
           <CierreMes
             clave="vitrina"

@@ -7,6 +7,7 @@ import { gastosFrecuentes } from "@/lib/ideas";
 import { requerirSesion } from "@/lib/supabase/servidor";
 import { TIPOS_FORMULARIO } from "@/lib/validacion";
 import { FormularioMovimiento, type ValoresMovimiento } from "./FormularioMovimiento";
+import { Monto } from "@/components/Monto";
 
 const texto = (v: string | string[] | undefined) => (typeof v === "string" ? v : "");
 const MONTO_VALIDO = /^\d{1,9}(\.\d{1,2})?$/;
@@ -61,7 +62,7 @@ export default async function Agregar({ searchParams }: PageProps<"/agregar">) {
                   className="flex shrink-0 flex-col rounded-2xl bg-tarjeta px-4 py-2.5 active:scale-[0.97]"
                 >
                   <span className="max-w-36 truncate text-[15px] font-semibold">{f.concepto}</span>
-                  <span className="text-[13px] text-texto-2 tabular-nums">{formatearDinero(f.monto, f.moneda)}</span>
+                  <span className="text-[13px] text-texto-2 tabular-nums"><Monto texto={formatearDinero(f.monto, f.moneda)} /></span>
                 </Link>
               );
             })}

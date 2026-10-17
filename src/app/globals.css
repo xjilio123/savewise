@@ -129,12 +129,25 @@ body {
 }
 
 /*
- * Ocultar montos: se difuminan las cifras (todas usan tabular-nums o la clase "monto").
- * Los campos de los formularios no se tocan: ahí escribes tú.
+ * Ocultar montos: cada cifra (componente Monto) trae su valor y su versión "S/ ••••".
+ * data-privado en <html> decide cuál se ve; el botón del ojo muestra el ícono que corresponde.
  */
-[data-privado] :is(.tabular-nums, .monto):not(input, select, textarea) {
-  filter: blur(9px);
-  user-select: none;
+.cifra-oculta,
+[data-privado] .cifra-real,
+[data-privado] .ojo-abierto,
+.ojo-cerrado {
+  display: none;
+}
+[data-privado] .cifra-oculta {
+  display: inline;
+  letter-spacing: 0.08em;
+}
+[data-privado] .ojo-cerrado {
+  display: block;
+}
+/* Campos ya rellenos con cifras (sueldo, topes, bolsa): se tapan como una contraseña. */
+[data-privado] .cifra-campo {
+  -webkit-text-security: disc;
 }
 
 /* En la capa base para que las clases de Tailwind (text-[52px], etc.) sí puedan sobrescribirlo. */
