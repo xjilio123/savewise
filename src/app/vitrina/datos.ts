@@ -112,8 +112,9 @@ export const APORTES: Aporte[] = [
 ];
 
 export const PAGOS: PagoCalendario[] = [
-  { fecha: "2026-10-05", concepto: "Visa", monto: 250, moneda: "PEN", origen: "deuda", pagado: true },
-  { fecha: "2026-10-12", concepto: "Spotify", monto: 8.22, moneda: "PEN", origen: "suscripcion", pagado: true },
-  { fecha: "2026-10-20", concepto: "Netflix", monto: 39.9, moneda: "PEN", origen: "suscripcion", pagado: false },
-  { fecha: "2026-10-28", concepto: "Préstamo celular", monto: 40, moneda: "PEN", origen: "deuda", pagado: false },
+  { fecha: "2026-10-01", concepto: "Sueldo", monto: 1500, moneda: "PEN", origen: "recurrente", tipo: "INGRESO", pagado: true, movimientoId: "00000000-0000-0000-0000-0000000000f1" },
+  { fecha: "2026-10-05", concepto: "Visa", monto: 250, moneda: "PEN", origen: "deuda", tipo: null, pagado: true, movimientoId: null },
+  { fecha: "2026-10-12", concepto: "Spotify", monto: 8.22, moneda: "PEN", origen: "recurrente", tipo: "GASTO", pagado: true, movimientoId: "00000000-0000-0000-0000-0000000000f2" },
+  { fecha: "2026-10-20", concepto: "Netflix", monto: 39.9, moneda: "PEN", origen: "recurrente", tipo: "GASTO", pagado: false, movimientoId: "00000000-0000-0000-0000-0000000000f3" },
+  { fecha: "2026-10-28", concepto: "Préstamo celular", monto: 40, moneda: "PEN", origen: "deuda", tipo: null, pagado: false, movimientoId: null },
 ];

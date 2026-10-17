@@ -56,6 +56,8 @@ describe("unMesDespues", () => {
 describe("calendarioDePagos", () => {
   const base = { desde: "2026-10-01", hasta: "2026-10-31" };
   const m = (concepto: string, fecha: string, recurrente: boolean, deuda_id: string | null = null) => ({
+    id: `id-${concepto}-${fecha}`,
+    tipo: "GASTO" as const,
     concepto,
     monto: 30,
     moneda: "PEN",
@@ -73,6 +75,14 @@ describe("calendarioDePagos", () => {
     expect(pagos.map((p) => [p.fecha, p.concepto, p.pagado])).toEqual([
       ["2026-10-05", "Netflix", true],
       ["2026-10-20", "Spotify", false],
+    ]);
+  });
+
+  it("cada fila lleva el último movimiento de la serie y su tipo (para dejar de repetirla)", () => {
+    const ingreso = { ...m("Sueldo", "2026-09-30", true), tipo: "INGRESO" as const };
+    const pagos = calendarioDePagos({ ...base, movimientos: [ingreso], deudas: [] });
+    expect(pagos).toEqual([
+      expect.objectContaining({ fecha: "2026-10-30", tipo: "INGRESO", origen: "recurrente", movimientoId: "id-Sueldo-2026-09-30", pagado: false }),
     ]);
   });
 

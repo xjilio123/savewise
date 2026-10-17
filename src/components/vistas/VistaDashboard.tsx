@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { Barra } from "@/components/Anillos";
+import { CalendarioPagos } from "@/components/CalendarioPagos";
 import { Dona } from "@/components/Dona";
 import { Icono, type NombreIcono } from "@/components/Icono";
 import { Encabezado, Pantalla, Tarjeta } from "@/components/ui";
@@ -8,7 +9,6 @@ import { CLASES_COLOR } from "@/lib/colores";
 import type { Consejo } from "@/lib/consejos";
 import type { GastoCategoria } from "@/lib/datos/repositorio";
 import { formatearDinero, fraccion, type Resumen } from "@/lib/dinero";
-import { fechaCorta } from "@/lib/fechas";
 import type { PagoCalendario } from "@/lib/ideas";
 import { ConMontos, Monto } from "@/components/Monto";
 
@@ -160,37 +160,6 @@ function VistaMes({ categorias, resumen: r, dinero }: DatosDashboard & { dinero:
         ))}
       </div>
     </>
-  );
-}
-
-function CalendarioPagos({ pagos }: { pagos: PagoCalendario[] }) {
-  const pendientes = pagos.filter((p) => !p.pagado).length;
-  return (
-    <section className="flex flex-col gap-2">
-      <h2 className="px-1 text-[13px] font-semibold uppercase tracking-wide text-texto-2">
-        Calendario de pagos{pendientes > 0 ? ` · ${pendientes} pendiente${pendientes === 1 ? "" : "s"}` : ""}
-      </h2>
-      <ul className="divide-y divide-linea rounded-[22px] bg-tarjeta px-4">
-        {pagos.map((p) => (
-          <li key={`${p.origen}-${p.concepto}-${p.fecha}`} className="flex items-center gap-3 py-3">
-            <span className={`w-14 shrink-0 text-[15px] font-semibold ${p.pagado ? "text-texto-2" : "text-texto"}`}>
-              {fechaCorta(p.fecha)}
-            </span>
-            <span className="min-w-0 flex-1">
-              <span className={`block truncate text-[17px] ${p.pagado ? "text-texto-2 line-through" : ""}`}>{p.concepto}</span>
-              <span className="block text-[13px] text-texto-2">
-                {p.origen === "deuda" ? "Cuota" : "Suscripción"} · {p.pagado ? "pagado" : "pendiente"}
-              </span>
-            </span>
-            {p.monto !== null && (
-              <span className={`shrink-0 text-[17px] font-semibold tabular-nums ${p.pagado ? "text-texto-2" : ""}`}>
-                <Monto texto={formatearDinero(p.monto, p.moneda)} />
-              </span>
-            )}
-          </li>
-        ))}
-      </ul>
-    </section>
   );
 }
 
