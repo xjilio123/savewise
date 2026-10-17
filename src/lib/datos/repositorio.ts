@@ -1,9 +1,10 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { escaparLike, TAMANO_PAGINA, type Filtros } from "@/lib/filtros";
-import type { Categoria, ColorApp, Database, Meta, Movimiento, Perfil, TipoMovimiento } from "@/lib/supabase/tipos";
+import type { Categoria, ColorApp, Database, Deuda, Meta, Movimiento, Perfil, TipoMovimiento } from "@/lib/supabase/tipos";
 
 export type MetaConProgreso = Meta & { ahorrado: number };
+export type DeudaConPagos = Deuda & { pagado: number };
 export type FilaHistorial = Movimiento & { categoria: { nombre: string; color: ColorApp } | null };
 export type GastoCategoria = { id: string | null; nombre: string; color: ColorApp; total: number; tope?: number | null };
 export type TotalMes = { mes: string; tipo: TipoMovimiento; total: number };
@@ -128,6 +129,20 @@ export function crearRepositorio(supabase: SupabaseClient<Database>) {
         porMeta.set(a.meta_id, (porMeta.get(a.meta_id) ?? 0) + Math.round((a.monto_base ?? 0) * 100));
       }
       return metas.map((m) => ({ ...m, ahorrado: (porMeta.get(m.id) ?? 0) / 100 }));
+    },
+
+    /** Deudas con lo pagado: la suma de los gastos vinculados a cada una. */
+    async deudas(): Promise<DeudaConPagos[]> {
+      const [deudas, pagos] = await Promise.all([
+        obtener(supabase.from("deudas").select("*").order("cerrada").order("creado")),
+        obtener(supabase.from("movimientos").select("deuda_id, monto_base").not("deuda_id", "is", null)),
+      ]);
+      const porDeuda = new Map<string, number>();
+      for (const p of pagos) {
+        if (!p.deuda_id) continue;
+        porDeuda.set(p.deuda_id, (porDeuda.get(p.deuda_id) ?? 0) + Math.round((p.monto_base ?? 0) * 100));
+      }
+      return deudas.map((d) => ({ ...d, pagado: (porDeuda.get(d.id) ?? 0) / 100 }));
     },
   };
 }

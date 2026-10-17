@@ -30,6 +30,7 @@ export const esquemaMovimiento = z
     moneda: z.enum(MONEDAS, { error: "Moneda no soportada" }).optional(),
     categoria_id: uuidOpcional,
     meta_id: uuidOpcional,
+    deuda_id: uuidOpcional.optional(),
     recurrente: z.boolean(),
   })
   .refine((d) => d.tipo !== "AHORRO" || d.meta_id !== null, {
@@ -56,6 +57,19 @@ export const esquemaMeta = z.object({
 export const esquemaId = z.uuid({ error: "Movimiento no encontrado" });
 
 export const esquemaTope = monto;
+
+/** Convierte "" en null antes de validar un campo numérico opcional. */
+const opcional = <T extends z.ZodType>(esquema: T) =>
+  z.preprocess((v) => (v === "" || v === undefined ? null : v), esquema.nullable());
+
+export const esquemaDeuda = z.object({
+  nombre: z.string().trim().min(1, { error: "Ponle un nombre" }).max(60, { error: "Máximo 60 caracteres" }),
+  tipo: z.enum(["tarjeta", "prestamo", "otro"], { error: "Tipo inválido" }),
+  monto_total: monto,
+  cuota_mensual: opcional(monto),
+  dia_pago: opcional(z.coerce.number().int().min(1, { error: "Entre 1 y 31" }).max(31, { error: "Entre 1 y 31" })),
+  tea: opcional(z.coerce.number({ error: "TEA inválida" }).min(0).max(1000, { error: "TEA demasiado alta" })),
+});
 
 export type ErroresCampo = Record<string, string>;
 
