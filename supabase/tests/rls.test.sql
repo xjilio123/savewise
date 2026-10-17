@@ -50,12 +50,8 @@ select is_empty($$select * from public.movimientos$$, 'B no ve los movimientos d
 -- 10. B no ve el perfil de A (solo el suyo)
 select is((select count(*) from public.perfiles), 1::bigint, 'B solo ve su propio perfil');
 
--- 11. B no puede modificar movimientos de A (la actualización no toca ninguna fila)
-select is(
-  (with cambio as (update public.movimientos set monto = 1 returning 1) select count(*) from cambio),
-  0::bigint,
-  'B no puede modificar movimientos de A'
-);
+-- 11. B intenta modificar todos los movimientos; RLS hace que no toque ninguno (se verifica más abajo)
+update public.movimientos set monto = 1;
 
 -- 12. B no puede crear movimientos a nombre de A
 select throws_ok(
@@ -75,6 +71,13 @@ select throws_ok(
 );
 
 reset role;
+
+-- 11 (verificación). Como superusuario: el movimiento de A sigue intacto
+select is(
+  (select monto from public.movimientos where user_id = '00000000-0000-0000-0000-00000000000a'),
+  8.22::numeric(14, 2),
+  'B no pudo modificar el movimiento de A'
+);
 
 -- 14. B no puede usar una categoría de A. Como superusuario se toma el id; B intenta usarlo y falla la FK compuesta.
 select set_config('pruebas.categoria_a',

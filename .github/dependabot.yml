@@ -4,6 +4,10 @@ updates:
     directory: /
     schedule:
       interval: weekly
+    # Esperar 7 días antes de proponer una versión nueva: los paquetes maliciosos
+    # suelen detectarse y retirarse en sus primeros días.
+    cooldown:
+      default-days: 7
     open-pull-requests-limit: 5
     groups:
       dependencias-menores:
@@ -12,3 +16,5 @@ updates:
     directory: /
     schedule:
       interval: weekly
+    cooldown:
+      default-days: 7
