@@ -10,6 +10,7 @@ import type { GastoCategoria } from "@/lib/datos/repositorio";
 import { formatearDinero, fraccion, type Resumen } from "@/lib/dinero";
 import { fechaCorta } from "@/lib/fechas";
 import type { PagoCalendario } from "@/lib/ideas";
+import { ConMontos, Monto } from "@/components/Monto";
 
 export type MesGrafico = { etiqueta: string; gastos: number; ahorros: number };
 
@@ -75,7 +76,7 @@ export function VistaDashboard(d: DatosDashboard) {
               </span>
               <span>
                 <span className="block text-[17px] font-bold">{c.titulo}</span>
-                <span className="monto block text-[15px] leading-snug text-texto-2">{c.texto}</span>
+                <span className="block text-[15px] leading-snug text-texto-2"><ConMontos texto={c.texto} /></span>
               </span>
             </div>
           ))}
@@ -107,7 +108,7 @@ function VistaMes({ categorias, resumen: r, dinero }: DatosDashboard & { dinero:
         >
           <span>
             <span className="block text-[15px] text-texto-2">Gastado</span>
-            <span className="block text-[26px] font-extrabold tracking-tight tabular-nums">{dinero(total)}</span>
+            <span className="block text-[26px] font-extrabold tracking-tight tabular-nums"><Monto texto={dinero(total)} /></span>
           </span>
         </Dona>
         {categorias.length === 0 ? (
@@ -122,7 +123,7 @@ function VistaMes({ categorias, resumen: r, dinero }: DatosDashboard & { dinero:
                     <span className={`size-3.5 shrink-0 rounded-full ${CLASES_COLOR[c.color].punto}`} aria-hidden="true" />
                     <span className="flex-1 truncate text-[17px]">{c.nombre}</span>
                     <span className="text-[15px] tabular-nums text-texto-2">{Math.round(fraccion(c.total, total) * 100)}%</span>
-                    <span className="w-28 text-right text-[17px] font-semibold tabular-nums">{dinero(c.total)}</span>
+                    <span className="w-28 text-right text-[17px] font-semibold tabular-nums"><Monto texto={dinero(c.total)} /></span>
                   </div>
                   {c.variacion != null && c.variacion !== 0 && (
                     <span className={`pl-6 text-[13px] ${c.variacion > 0 ? "text-rojo" : "text-verde"}`}>
@@ -136,7 +137,7 @@ function VistaMes({ categorias, resumen: r, dinero }: DatosDashboard & { dinero:
                         clase={usoTope >= 1 ? "text-rojo-relleno" : usoTope >= 0.8 ? "text-morado-relleno" : "text-verde-relleno"}
                       />
                       <span className={`text-[13px] ${usoTope >= 1 ? "font-semibold text-rojo" : "text-texto-2"}`}>
-                        {Math.round(usoTope * 100)}% de tu tope de <span className="monto">{dinero(c.tope)}</span>
+                        {Math.round(usoTope * 100)}% de tu tope de <Monto texto={dinero(c.tope)} />
                       </span>
                     </div>
                   )}
@@ -154,7 +155,7 @@ function VistaMes({ categorias, resumen: r, dinero }: DatosDashboard & { dinero:
         {totales.map((t) => (
           <div key={t.nombre} className="rounded-[20px] bg-tarjeta px-4 py-3">
             <p className="text-[13px] text-texto-2">{t.nombre}</p>
-            <p className={`text-[19px] font-bold tabular-nums ${t.clase}`}>{dinero(t.monto)}</p>
+            <p className={`text-[19px] font-bold tabular-nums ${t.clase}`}><Monto texto={dinero(t.monto)} /></p>
           </div>
         ))}
       </div>
@@ -183,7 +184,7 @@ function CalendarioPagos({ pagos }: { pagos: PagoCalendario[] }) {
             </span>
             {p.monto !== null && (
               <span className={`shrink-0 text-[17px] font-semibold tabular-nums ${p.pagado ? "text-texto-2" : ""}`}>
-                {formatearDinero(p.monto, p.moneda)}
+                <Monto texto={formatearDinero(p.monto, p.moneda)} />
               </span>
             )}
           </li>
@@ -230,16 +231,16 @@ function VistaAnio({ meses, dinero }: { meses: MesGrafico[]; dinero: (n: number)
       <div className="grid grid-cols-2 gap-3">
         <div className="rounded-[20px] bg-tarjeta px-4 py-3">
           <p className="text-[13px] text-texto-2">Gasto promedio al mes</p>
-          <p className="text-[19px] font-bold tabular-nums text-rojo">{dinero(promedio)}</p>
+          <p className="text-[19px] font-bold tabular-nums text-rojo"><Monto texto={dinero(promedio)} /></p>
         </div>
         <div className="rounded-[20px] bg-tarjeta px-4 py-3">
           <p className="text-[13px] text-texto-2">Ahorrado en 12 meses</p>
-          <p className="text-[19px] font-bold tabular-nums text-verde">{dinero(ahorrado)}</p>
+          <p className="text-[19px] font-bold tabular-nums text-verde"><Monto texto={dinero(ahorrado)} /></p>
         </div>
       </div>
       {mayor && (
         <p className="px-1 text-[15px] text-texto-2">
-          Tu mes con más gastos fue <span className="font-semibold text-texto">{mayor.etiqueta}</span>, con <span className="monto">{dinero(mayor.gastos)}</span>.
+          Tu mes con más gastos fue <span className="font-semibold text-texto">{mayor.etiqueta}</span>, con <Monto texto={dinero(mayor.gastos)} />.
         </p>
       )}
     </>

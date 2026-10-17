@@ -5,6 +5,7 @@ import { useActionState, useSyncExternalStore } from "react";
 import { cerrarPeriodo, type EstadoFormulario } from "@/app/acciones";
 import { BotonEnviar } from "@/components/BotonEnviar";
 import { MensajeError } from "@/components/ui";
+import { Monto } from "@/components/Monto";
 
 const EVENTO = "savewise:cierre";
 const suscribir = (avisar: () => void) => {
@@ -50,7 +51,7 @@ export function CierreMes({
   return (
     <section className="flex flex-col gap-3 rounded-[22px] bg-verde-relleno/12 px-5 py-4">
       <p className="text-[16px] leading-snug">
-        <span className="font-semibold">Cierre de {periodo}:</span> te sobraron <b className="monto">{sobrante}</b> sin asignar. ¿Los mandas a
+        <span className="font-semibold">Cierre de {periodo}:</span> te sobraron <b><Monto texto={sobrante} /></b> sin asignar. ¿Los mandas a
         una meta?
       </p>
       {metas.length === 0 ? (

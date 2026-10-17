@@ -1,9 +1,10 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { useFormStatus } from "react-dom";
 
 export function BotonEnviar({ texto, textoEnviando = "Guardando…", clase = "bg-texto text-fondo" }: {
-  texto: string;
+  texto: ReactNode;
   textoEnviando?: string;
   clase?: string;
 }) {

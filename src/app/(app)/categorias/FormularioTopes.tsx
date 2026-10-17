@@ -4,6 +4,7 @@ import { useActionState, type ReactNode } from "react";
 import { guardarTopes, type EstadoFormulario } from "@/app/acciones";
 import { BotonEnviar } from "@/components/BotonEnviar";
 import { MensajeError } from "@/components/ui";
+import { ConMontos } from "@/components/Monto";
 
 type Fila = { id: string; nombre: string; punto: string; tope: number | null; detalle: string | null; barra: ReactNode };
 
@@ -25,13 +26,13 @@ export function FormularioTopes({ categorias, moneda }: { categorias: Fila[]; mo
                 defaultValue={c.tope ? c.tope.toFixed(2) : ""}
                 placeholder="Sin tope"
                 aria-label={`Tope de ${c.nombre}`}
-                className="w-28 rounded-xl bg-fondo px-3 py-2 text-right tabular-nums outline-none"
+                className="w-28 rounded-xl bg-fondo px-3 py-2 text-right tabular-nums outline-none cifra-campo"
               />
             </label>
             {c.barra && (
               <div className="flex flex-col gap-1 pl-6">
                 {c.barra}
-                <span className="text-[13px] text-texto-2">{c.detalle}</span>
+                <span className="text-[13px] text-texto-2"><ConMontos texto={c.detalle ?? ""} /></span>
               </div>
             )}
           </li>

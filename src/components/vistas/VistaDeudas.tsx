@@ -6,6 +6,7 @@ import type { DeudaConPagos } from "@/lib/datos/repositorio";
 import { formatearDinero, fraccion } from "@/lib/dinero";
 import { planDeuda, saldoDeuda } from "@/lib/deudas";
 import { FormularioDeuda } from "@/app/(app)/deudas/FormularioDeuda";
+import { ConMontos, Monto } from "@/components/Monto";
 
 const tipos = { tarjeta: "Tarjeta", prestamo: "Préstamo", otro: "Deuda" } as const;
 
@@ -37,10 +38,10 @@ export function VistaDeudas({ deudas, moneda }: { deudas: DeudaConPagos[]; moned
 
       <Tarjeta className="flex flex-col gap-1">
         <p className="text-[15px] text-texto-2">Debes en total (aprox.)</p>
-        <p className="text-[40px] font-extrabold leading-tight tracking-tight tabular-nums">{dinero(totalDebido)}</p>
+        <p className="text-[40px] font-extrabold leading-tight tracking-tight tabular-nums"><Monto texto={dinero(totalDebido)} /></p>
         {cuotasDelMes > 0 && (
           <p className="text-[15px] text-texto-2">
-            Cuotas al mes: <span className="monto font-semibold text-rojo">{dinero(cuotasDelMes)}</span>
+            Cuotas al mes: <span className="font-semibold text-rojo"><Monto texto={dinero(cuotasDelMes)} /></span>
           </p>
         )}
       </Tarjeta>
@@ -60,7 +61,7 @@ export function VistaDeudas({ deudas, moneda }: { deudas: DeudaConPagos[]; moned
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
                 <p className="truncate text-[17px] font-bold">{d.nombre}</p>
-                <p className="monto text-[13px] text-texto-2">{detalles.join(" · ")}</p>
+                <p className="text-[13px] text-texto-2"><ConMontos texto={detalles.join(" · ")} /></p>
               </div>
               <Link
                 href={`/agregar?tipo=GASTO&deuda=${d.id}`}
@@ -71,7 +72,7 @@ export function VistaDeudas({ deudas, moneda }: { deudas: DeudaConPagos[]; moned
             </div>
             <Barra fraccion={fraccion(d.pagado, d.monto_total)} clase="text-verde" />
             <p className="text-[15px] tabular-nums">
-              Pagado {dinero(d.pagado)} de {dinero(d.monto_total)} · <b>falta {dinero(saldo)}</b>
+              Pagado <Monto texto={dinero(d.pagado)} /> de <Monto texto={dinero(d.monto_total)} /> · <b>falta <Monto texto={dinero(saldo)} /></b>
             </p>
             {plazo && <p className={`text-[13px] ${plan.sinFin ? "text-rojo" : "text-texto-2"}`}>{plazo}</p>}
             <div className="flex gap-4 text-[15px] font-semibold">

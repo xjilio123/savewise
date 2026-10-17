@@ -2,6 +2,7 @@ import { crearReto } from "@/app/acciones";
 import { BotonEnviar } from "@/components/BotonEnviar";
 import { formatearDinero } from "@/lib/dinero";
 import { objetivoReto } from "@/lib/ideas";
+import { Monto } from "@/components/Monto";
 
 const BASES = [1, 2, 5, 10];
 
@@ -25,8 +26,8 @@ export function FormularioReto({ moneda }: { moneda: string }) {
               className="flex cursor-pointer flex-col rounded-2xl bg-tarjeta px-3 py-2.5 has-[:checked]:ring-2 has-[:checked]:ring-morado"
             >
               <input type="radio" name="base" value={b} defaultChecked={i === 1} className="sr-only" />
-              <span className="text-[17px] font-bold tabular-nums">{formatearDinero(objetivoReto(b), moneda)}</span>
-              <span className="text-[13px] text-texto-2 tabular-nums">desde {formatearDinero(b, moneda)} por semana</span>
+              <span className="text-[17px] font-bold tabular-nums"><Monto texto={formatearDinero(objetivoReto(b), moneda)} /></span>
+              <span className="text-[13px] text-texto-2 tabular-nums">desde <Monto texto={formatearDinero(b, moneda)} /> por semana</span>
             </label>
           ))}
         </fieldset>

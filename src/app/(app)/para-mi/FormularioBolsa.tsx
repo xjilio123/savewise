@@ -24,7 +24,7 @@ export function FormularioBolsa({ hoy, actual }: { hoy: string; actual: number }
           required
           placeholder="Monto"
           aria-label="Monto para la bolsa"
-          className="min-w-0 flex-1 rounded-2xl bg-fondo px-4 py-3 text-[17px] tabular-nums outline-none"
+          className="min-w-0 flex-1 rounded-2xl bg-fondo px-4 py-3 text-[17px] tabular-nums outline-none cifra-campo"
         />
         <div className="w-32">
           <BotonEnviar texto="Asignar" textoEnviando="…" clase="bg-morado text-fondo" />

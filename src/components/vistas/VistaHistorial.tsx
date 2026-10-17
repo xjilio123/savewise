@@ -7,6 +7,7 @@ import { formatearDinero } from "@/lib/dinero";
 import { etiquetaRango, fechaDiaSemana } from "@/lib/fechas";
 import { paginasVisibles, TIPOS, totalPaginas, urlHistorial, type Filtros } from "@/lib/filtros";
 import type { TipoMovimiento } from "@/lib/supabase/tipos";
+import { Monto } from "@/components/Monto";
 
 type Rango = { desde: string; hasta: string };
 
@@ -125,7 +126,7 @@ export function VistaHistorial({ filtros, filas, cantidad, totales, categorias, 
         <p className="text-[15px] text-texto-2">
           {cantidad} {cantidad === 1 ? "movimiento" : "movimientos"}
         </p>
-        {gastado > 0 && <p className="text-[15px] font-bold tabular-nums text-rojo">−{dinero(gastado)} gastado</p>}
+        {gastado > 0 && <p className="text-[15px] font-bold tabular-nums text-rojo">−<Monto texto={dinero(gastado)} /> gastado</p>}
       </div>
 
       {filas.length === 0 ? (
@@ -163,10 +164,10 @@ export function VistaHistorial({ filtros, filas, cantidad, totales, categorias, 
                       <span className="text-right">
                         <span className={`block text-[17px] font-semibold tabular-nums ${colorMonto}`}>
                           {SIGNO_TIPO[m.tipo]}
-                          {dinero(m.monto_base ?? m.monto)}
+                          <Monto texto={dinero(m.monto_base ?? m.monto)} />
                         </span>
                         {m.moneda !== moneda && (
-                          <span className="block text-[13px] tabular-nums text-texto-2">{dinero(m.monto, m.moneda)}</span>
+                          <span className="block text-[13px] tabular-nums text-texto-2"><Monto texto={dinero(m.monto, m.moneda)} /></span>
                         )}
                       </span>
                     </Link>

@@ -4,6 +4,7 @@ import { Icono } from "@/components/Icono";
 import type { Aporte } from "@/lib/datos/repositorio";
 import { formatearDinero } from "@/lib/dinero";
 import { fechaCorta } from "@/lib/fechas";
+import { Monto } from "@/components/Monto";
 
 /** Últimos aportes. Tocar uno muestra sus acciones (editar o eliminar), como en las listas de iOS. */
 export function ListaAportes({ aportes }: { aportes: Aporte[] }) {
@@ -29,7 +30,7 @@ export function ListaAportes({ aportes }: { aportes: Aporte[] }) {
                   </span>
                 </span>
                 <span className="shrink-0 text-[17px] font-semibold text-verde tabular-nums">
-                  {formatearDinero(a.monto, a.moneda)}
+                  <Monto texto={formatearDinero(a.monto, a.moneda)} />
                 </span>
                 <Icono nombre="atras" className="size-4 shrink-0 -rotate-90 text-texto-2 transition group-open:rotate-90" />
               </summary>

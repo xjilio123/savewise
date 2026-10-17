@@ -44,7 +44,7 @@ export function FormularioPerfil({
           defaultValue={sueldo > 0 ? sueldo.toFixed(2) : ""}
           placeholder="1500.00"
           aria-invalid={Boolean(errores.sueldo_mensual)}
-          className="w-full bg-transparent text-center text-[52px] font-extrabold tracking-tight tabular-nums outline-none placeholder:text-texto-2/40"
+          className="w-full bg-transparent text-center text-[52px] font-extrabold tracking-tight tabular-nums outline-none cifra-campo placeholder:text-texto-2/40"
         />
         <MensajeError texto={errores.sueldo_mensual} />
       </div>
