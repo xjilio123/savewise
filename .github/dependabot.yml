@@ -12,6 +12,16 @@ updates:
     groups:
       dependencias-menores:
         update-types: [minor, patch]
+    ignore:
+      # Los tipos de Node deben coincidir con el runtime (Node 24).
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]
+      # typescript-eslint aún no soporta TypeScript 7.
+      - dependency-name: "typescript"
+        update-types: ["version-update:semver-major"]
+      # eslint-plugin-react, jsx-a11y e import (de eslint-config-next) aún no soportan ESLint 10.
+      - dependency-name: "eslint"
+        update-types: ["version-update:semver-major"]
   - package-ecosystem: github-actions
     directory: /
     schedule:
