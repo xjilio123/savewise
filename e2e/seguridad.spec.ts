@@ -12,6 +12,7 @@ const RUTAS_PRIVADAS = [
   "/dashboard?vista=anio",
   "/ajustes",
   "/bienvenida",
+  "/categorias",
   "/api/exportar",
 ];
 

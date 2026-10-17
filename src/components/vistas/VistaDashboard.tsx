@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Barra } from "@/components/Anillos";
 import { Dona } from "@/components/Dona";
 import { Icono, type NombreIcono } from "@/components/Icono";
 import { Encabezado, Pantalla, Tarjeta } from "@/components/ui";
@@ -102,16 +103,35 @@ function VistaMes({ categorias, resumen: r, dinero }: DatosDashboard & { dinero:
           <p className="text-center text-[15px] text-texto-2">Aún no hay gastos en este periodo.</p>
         ) : (
           <ul className="flex w-full flex-col gap-2.5">
-            {categorias.map((c) => (
-              <li key={c.nombre} className="flex items-center gap-3">
-                <span className={`size-3.5 shrink-0 rounded-full ${CLASES_COLOR[c.color].punto}`} aria-hidden="true" />
-                <span className="flex-1 truncate text-[17px]">{c.nombre}</span>
-                <span className="text-[15px] tabular-nums text-texto-2">{Math.round(fraccion(c.total, total) * 100)}%</span>
-                <span className="w-28 text-right text-[17px] font-semibold tabular-nums">{dinero(c.total)}</span>
-              </li>
-            ))}
+            {categorias.map((c) => {
+              const usoTope = c.tope ? c.total / c.tope : null;
+              return (
+                <li key={c.nombre} className="flex flex-col gap-1.5">
+                  <div className="flex items-center gap-3">
+                    <span className={`size-3.5 shrink-0 rounded-full ${CLASES_COLOR[c.color].punto}`} aria-hidden="true" />
+                    <span className="flex-1 truncate text-[17px]">{c.nombre}</span>
+                    <span className="text-[15px] tabular-nums text-texto-2">{Math.round(fraccion(c.total, total) * 100)}%</span>
+                    <span className="w-28 text-right text-[17px] font-semibold tabular-nums">{dinero(c.total)}</span>
+                  </div>
+                  {usoTope !== null && c.tope && (
+                    <div className="flex flex-col gap-1 pl-6">
+                      <Barra
+                        fraccion={usoTope}
+                        clase={usoTope >= 1 ? "text-rojo-relleno" : usoTope >= 0.8 ? "text-morado-relleno" : "text-verde-relleno"}
+                      />
+                      <span className={`text-[13px] ${usoTope >= 1 ? "font-semibold text-rojo" : "text-texto-2"}`}>
+                        {Math.round(usoTope * 100)}% de tu tope de {dinero(c.tope)}
+                      </span>
+                    </div>
+                  )}
+                </li>
+              );
+            })}
           </ul>
         )}
+        <Link href="/categorias" className="text-[15px] font-semibold text-azul">
+          Ajustar topes por categoría ›
+        </Link>
       </Tarjeta>
 
       <div className="grid grid-cols-2 gap-3">

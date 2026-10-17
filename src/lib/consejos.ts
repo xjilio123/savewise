@@ -1,5 +1,6 @@
 import { formatearDinero, fraccion, type Resumen } from "@/lib/dinero";
 import type { RangoMes } from "@/lib/fechas";
+import type { EstadoTope } from "@/lib/planificacion";
 
 export type Consejo = {
   id: string;
@@ -9,10 +10,24 @@ export type Consejo = {
 };
 
 /** Motor de reglas: cada regla mira los totales del mes y devuelve un consejo con la cifra exacta. */
-export function generarConsejos(r: Resumen, mes: RangoMes, moneda = "PEN"): Consejo[] {
+export function generarConsejos(r: Resumen, mes: RangoMes, moneda = "PEN", topes: EstadoTope[] = []): Consejo[] {
   const consejos: Consejo[] = [];
   const dinero = (n: number) => formatearDinero(n, moneda);
   const pct = (n: number) => `${Math.round(n * 100)}%`;
+
+  // Topes por categoría: primero los superados, luego los que pasan el 80%.
+  for (const t of [...topes].sort((a, b) => b.fraccion - a.fraccion)) {
+    if (t.fraccion < 0.8) continue;
+    consejos.push({
+      id: `tope-${t.nombre}`,
+      color: t.fraccion >= 1 ? "rojo" : "morado",
+      titulo: t.nombre,
+      texto:
+        t.fraccion >= 1
+          ? `Superaste tu tope: ${dinero(t.gastado)} de ${dinero(t.tope)}.`
+          : `Vas al ${pct(t.fraccion)} de tu tope: quedan ${dinero(t.tope - t.gastado)}.`,
+    });
+  }
 
   if (r.ingresos > 0 && r.gastos / r.ingresos > 0.5) {
     consejos.push({

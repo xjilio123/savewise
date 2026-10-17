@@ -55,6 +55,8 @@ export const esquemaMeta = z.object({
 
 export const esquemaId = z.uuid({ error: "Movimiento no encontrado" });
 
+export const esquemaTope = monto;
+
 export type ErroresCampo = Record<string, string>;
 
 /** Primer mensaje de error por campo, listo para mostrar en el formulario. */

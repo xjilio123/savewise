@@ -5,7 +5,7 @@ import type { Categoria, ColorApp, Database, Meta, Movimiento, Perfil, TipoMovim
 
 export type MetaConProgreso = Meta & { ahorrado: number };
 export type FilaHistorial = Movimiento & { categoria: { nombre: string; color: ColorApp } | null };
-export type GastoCategoria = { nombre: string; color: ColorApp; total: number };
+export type GastoCategoria = { id: string | null; nombre: string; color: ColorApp; total: number; tope?: number | null };
 export type TotalMes = { mes: string; tipo: TipoMovimiento; total: number };
 
 /**
@@ -82,7 +82,7 @@ export function crearRepositorio(supabase: SupabaseClient<Database>) {
 
     async gastosPorCategoria(desde: string, hasta: string): Promise<GastoCategoria[]> {
       const filas = await obtener(supabase.rpc("gastos_por_categoria", { p_desde: desde, p_hasta: hasta }));
-      return filas.map((f) => ({ nombre: f.nombre, color: f.color, total: Number(f.total) }));
+      return filas.map((f) => ({ id: f.categoria_id, nombre: f.nombre, color: f.color, total: Number(f.total) }));
     },
 
     async totalesPorMes(desdeMes: string, hastaMes: string): Promise<TotalMes[]> {

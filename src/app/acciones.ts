@@ -15,6 +15,7 @@ import {
   esquemaMeta,
   esquemaMovimiento,
   esquemaPerfil,
+  esquemaTope,
   texto,
   type ErroresCampo,
 } from "@/lib/validacion";
@@ -296,6 +297,25 @@ export async function cerrarPeriodo(_: EstadoFormulario, formData: FormData): Pr
   });
   if (error) return { error: ERROR_GENERICO };
 
+  revalidatePath("/", "layout");
+  return { ok: true };
+}
+
+/** Guarda los topes de las categorías propias. Campo vacío = sin tope. */
+export async function guardarTopes(_: EstadoFormulario, formData: FormData): Promise<EstadoFormulario> {
+  const { supabase } = await requerirUsuario();
+  // Solo se aceptan las categorías que RLS devuelve (las tuyas); cualquier otro campo se ignora.
+  const { data: categorias } = await supabase.from("categorias").select("id, nombre");
+  for (const categoria of categorias ?? []) {
+    const crudo = texto(formData, `tope_${categoria.id}`).trim().replace(",", ".");
+    const tope = crudo === "" ? null : esquemaTope.safeParse(crudo);
+    if (tope && !tope.success) return { error: `Tope inválido en ${categoria.nombre}` };
+    const { error } = await supabase
+      .from("categorias")
+      .update({ tope: tope ? tope.data : null })
+      .eq("id", categoria.id);
+    if (error) return { error: ERROR_GENERICO };
+  }
   revalidatePath("/", "layout");
   return { ok: true };
 }

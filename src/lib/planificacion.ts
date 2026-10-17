@@ -70,6 +70,24 @@ export function proyectarMeta(opciones: {
   };
 }
 
+export type EstadoTope = { id: string; nombre: string; gastado: number; tope: number; fraccion: number };
+
+/** Cuánto lleva gastado cada categoría con tope en el periodo (gastos y ocio de Para mí). */
+export function estadoTopes(
+  categorias: { id: string; nombre: string; tope: number | null }[],
+  movimientos: { tipo: string; categoria_id: string | null; monto_base: number | null }[],
+): EstadoTope[] {
+  return categorias
+    .filter((cat): cat is { id: string; nombre: string; tope: number } => cat.tope !== null && cat.tope > 0)
+    .map((cat) => {
+      const gastado =
+        movimientos
+          .filter((m) => m.categoria_id === cat.id && (m.tipo === "GASTO" || m.tipo === "OCIO"))
+          .reduce((s, m) => s + c(m.monto_base ?? 0), 0) / 100;
+      return { id: cat.id, nombre: cat.nombre, gastado, tope: cat.tope, fraccion: gastado / cat.tope };
+    });
+}
+
 /**
  * Cierre de mes: lo que quedó sin asignar en el periodo anterior y se puede mandar a una meta.
  * Solo se ofrece si ese periodo tuvo movimientos (si no usabas la app, no hay nada que cerrar).

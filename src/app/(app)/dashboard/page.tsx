@@ -3,6 +3,7 @@ import { generarConsejos } from "@/lib/consejos";
 import { crearRepositorio } from "@/lib/datos/repositorio";
 import { calcularResumen } from "@/lib/dinero";
 import { etiquetaRango, hoyLima, periodoFinanciero } from "@/lib/fechas";
+import { estadoTopes } from "@/lib/planificacion";
 import { requerirSesion } from "@/lib/supabase/servidor";
 
 const nombreMes = new Intl.DateTimeFormat("es-PE", { month: "short", timeZone: "UTC" });
@@ -26,12 +27,15 @@ export default async function Dashboard({ searchParams }: PageProps<"/dashboard"
   const periodo = periodoFinanciero(hoy, perfil.dia_pago);
   const meses = ultimos12Meses(hoy);
 
-  const [movimientos, categorias, totales] = await Promise.all([
+  const [movimientos, porCategoria, categorias, totales] = await Promise.all([
     repo.movimientosEntre(periodo.desde, periodo.hasta),
     repo.gastosPorCategoria(periodo.desde, periodo.hasta),
+    repo.categorias(),
     vista === "anio" ? repo.totalesPorMes(meses[0]!, meses[11]!) : Promise.resolve([]),
   ]);
   const resumen = calcularResumen(perfil.sueldo_mensual, movimientos);
+  const topePorId = new Map(categorias.map((c) => [c.id, c.tope]));
+  const topes = estadoTopes(categorias, movimientos);
 
   const grafico: MesGrafico[] = meses.map((mes) => {
     const delMes = totales.filter((t) => t.mes === mes);
@@ -48,9 +52,9 @@ export default async function Dashboard({ searchParams }: PageProps<"/dashboard"
       vista={vista}
       moneda={perfil.moneda_base}
       etiquetaPeriodo={etiquetaRango(periodo.desde, periodo.hasta)}
-      categorias={categorias}
+      categorias={porCategoria.map((c) => ({ ...c, tope: c.id ? topePorId.get(c.id) : null }))}
       resumen={resumen}
-      consejos={movimientos.length > 0 ? generarConsejos(resumen, periodo, perfil.moneda_base) : []}
+      consejos={movimientos.length > 0 ? generarConsejos(resumen, periodo, perfil.moneda_base, topes) : []}
       meses={grafico}
     />
   );

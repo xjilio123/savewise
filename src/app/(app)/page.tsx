@@ -5,7 +5,7 @@ import { generarConsejos } from "@/lib/consejos";
 import { crearRepositorio } from "@/lib/datos/repositorio";
 import { calcularResumen, formatearDinero } from "@/lib/dinero";
 import { etiquetaRango, fechaLarga, hoyLima, periodoFinanciero, sumarDias } from "@/lib/fechas";
-import { sobranteDelPeriodo } from "@/lib/planificacion";
+import { estadoTopes, sobranteDelPeriodo } from "@/lib/planificacion";
 import { requerirSesion } from "@/lib/supabase/servidor";
 
 export default async function Inicio() {
@@ -13,9 +13,10 @@ export default async function Inicio() {
   const repo = crearRepositorio(supabase);
   const hoy = hoyLima();
   // Perfil y movimientos en paralelo. La ventana de -64/+32 días contiene el periodo actual y el anterior.
-  const [perfil, ventana] = await Promise.all([
+  const [perfil, ventana, categorias] = await Promise.all([
     repo.perfil(),
     repo.movimientosEntre(sumarDias(hoy, -64), sumarDias(hoy, 32)),
+    repo.categorias(),
   ]);
   if (perfil.sueldo_mensual <= 0) redirect("/bienvenida");
 
@@ -50,7 +51,7 @@ export default async function Inicio() {
       inicial={(perfil.nombre || usuario.email || "?").charAt(0).toUpperCase()}
       moneda={perfil.moneda_base}
       resumen={resumen}
-      consejo={generarConsejos(resumen, periodo, perfil.moneda_base)[0] ?? null}
+      consejo={generarConsejos(resumen, periodo, perfil.moneda_base, estadoTopes(categorias, movimientos))[0] ?? null}
       sinMovimientos={movimientos.length === 0}
       extra={cierre}
     />
