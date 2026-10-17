@@ -34,6 +34,7 @@ function fila(
     monto_base: monto,
     categoria_id: null,
     meta_id: null,
+    deuda_id: null,
     recurrente: false,
     nota: "",
     creado: `${fecha}T12:00:00Z`,

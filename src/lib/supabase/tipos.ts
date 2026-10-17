@@ -3,6 +3,7 @@
 
 export type TipoMovimiento = "INGRESO" | "GASTO" | "AHORRO" | "PARA_MI" | "OCIO";
 export type ColorApp = "rojo" | "azul" | "verde" | "morado" | "negro";
+export type TipoDeuda = "tarjeta" | "prestamo" | "otro";
 
 export type Database = {
   __InternalSupabase: {
@@ -23,6 +24,43 @@ export type Database = {
         };
         Insert: { color: ColorApp; creado?: string; icono?: string; id?: string; nombre: string; user_id?: string; tope?: number | null };
         Update: { color?: ColorApp; icono?: string; nombre?: string; tope?: number | null };
+        Relationships: [];
+      };
+      deudas: {
+        Row: {
+          cerrada: boolean;
+          creado: string;
+          cuota_mensual: number | null;
+          dia_pago: number | null;
+          id: string;
+          moneda: string;
+          monto_total: number;
+          nombre: string;
+          tea: number | null;
+          tipo: TipoDeuda;
+          user_id: string;
+        };
+        Insert: {
+          cerrada?: boolean;
+          cuota_mensual?: number | null;
+          dia_pago?: number | null;
+          id?: string;
+          moneda?: string;
+          monto_total: number;
+          nombre: string;
+          tea?: number | null;
+          tipo?: TipoDeuda;
+          user_id?: string;
+        };
+        Update: {
+          cerrada?: boolean;
+          cuota_mensual?: number | null;
+          dia_pago?: number | null;
+          monto_total?: number;
+          nombre?: string;
+          tea?: number | null;
+          tipo?: TipoDeuda;
+        };
         Relationships: [];
       };
       metas: {
@@ -63,6 +101,7 @@ export type Database = {
           categoria_id: string | null;
           concepto: string;
           creado: string;
+          deuda_id: string | null;
           fecha: string;
           id: string;
           meta_id: string | null;
@@ -79,6 +118,7 @@ export type Database = {
           categoria_id?: string | null;
           concepto: string;
           creado?: string;
+          deuda_id?: string | null;
           fecha?: string;
           id?: string;
           meta_id?: string | null;
@@ -93,6 +133,7 @@ export type Database = {
         Update: {
           categoria_id?: string | null;
           concepto?: string;
+          deuda_id?: string | null;
           fecha?: string;
           meta_id?: string | null;
           moneda?: string;
@@ -115,6 +156,13 @@ export type Database = {
             columns: ["meta_id", "user_id"];
             isOneToOne: false;
             referencedRelation: "metas";
+            referencedColumns: ["id", "user_id"];
+          },
+          {
+            foreignKeyName: "movimientos_deuda_id_user_id_fkey";
+            columns: ["deuda_id", "user_id"];
+            isOneToOne: false;
+            referencedRelation: "deudas";
             referencedColumns: ["id", "user_id"];
           },
         ];
@@ -219,7 +267,7 @@ export type Database = {
         Returns: { cantidad: number; tipo: TipoMovimiento; total: number }[];
       };
     };
-    Enums: { color_app: ColorApp; tipo_movimiento: TipoMovimiento };
+    Enums: { color_app: ColorApp; tipo_deuda: TipoDeuda; tipo_movimiento: TipoMovimiento };
     CompositeTypes: { [_ in never]: never };
   };
 };
@@ -227,4 +275,5 @@ export type Database = {
 export type Perfil = Database["public"]["Tables"]["perfiles"]["Row"];
 export type Categoria = Database["public"]["Tables"]["categorias"]["Row"];
 export type Meta = Database["public"]["Tables"]["metas"]["Row"];
+export type Deuda = Database["public"]["Tables"]["deudas"]["Row"];
 export type Movimiento = Database["public"]["Tables"]["movimientos"]["Row"];

@@ -18,6 +18,7 @@ export type ValoresMovimiento = {
   moneda: string;
   categoria_id: string;
   meta_id: string;
+  deuda_id: string;
   recurrente: boolean;
 };
 
@@ -35,6 +36,7 @@ const simbolos: Record<string, string> = { PEN: "S/", USD: "US$", EUR: "€", MX
 export function FormularioMovimiento(props: {
   categorias: Opcion[];
   metas: Opcion[];
+  deudas?: Opcion[];
   hoy: string;
   monedaBase: string;
   inicial?: Partial<ValoresMovimiento>;
@@ -186,6 +188,23 @@ export function FormularioMovimiento(props: {
             </select>
           </label>
         )}
+        {tipo === "GASTO" && (props.deudas?.length ?? 0) > 0 && (
+          <label className="flex items-center justify-between gap-4 py-3.5">
+            <span className="text-[17px]">Pago de deuda</span>
+            <select
+              name="deuda_id"
+              defaultValue={inicial.deuda_id ?? ""}
+              className="bg-transparent text-right text-[17px] text-texto-2 outline-none"
+            >
+              <option value="">Ninguna</option>
+              {props.deudas?.map((d) => (
+                <option key={d.id} value={d.id}>
+                  {d.nombre}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
         <label className="flex items-center justify-between gap-4 py-3.5">
           <span className="text-[17px]">Fecha</span>
           <input
@@ -209,7 +228,7 @@ export function FormularioMovimiento(props: {
         </label>
       </div>
 
-      <MensajeError texto={errores.concepto ?? errores.meta_id ?? errores.fecha ?? errores.tipo ?? estado.error} />
+      <MensajeError texto={errores.concepto ?? errores.meta_id ?? errores.deuda_id ?? errores.fecha ?? errores.tipo ?? estado.error} />
       {tipo === "AHORRO" && props.metas.length === 0 && (
         <p className="text-[15px] text-texto-2">Primero crea una meta en la pestaña Ahorros.</p>
       )}

@@ -14,11 +14,12 @@ export default async function EditarMovimiento({ params }: PageProps<"/historial
   const { supabase } = await requerirSesion();
   const repo = crearRepositorio(supabase);
   // RLS: si el movimiento es de otra persona, la consulta no lo devuelve y se responde 404.
-  const [movimiento, perfil, categorias, metas] = await Promise.all([
+  const [movimiento, perfil, categorias, metas, deudas] = await Promise.all([
     repo.movimiento(id),
     repo.perfil(),
     repo.categorias(),
     repo.metas(),
+    repo.deudas(),
   ]);
   if (!movimiento) notFound();
 
@@ -30,6 +31,9 @@ export default async function EditarMovimiento({ params }: PageProps<"/historial
         textoBoton="Guardar cambios"
         categorias={categorias.map((c) => ({ id: c.id, nombre: c.nombre }))}
         metas={metas.map((m) => ({ id: m.id, nombre: m.nombre }))}
+        deudas={deudas
+          .filter((d) => !d.cerrada || d.id === movimiento.deuda_id)
+          .map((d) => ({ id: d.id, nombre: d.nombre }))}
         hoy={hoyLima()}
         monedaBase={perfil.moneda_base}
         inicial={{
@@ -40,6 +44,7 @@ export default async function EditarMovimiento({ params }: PageProps<"/historial
           moneda: movimiento.moneda,
           categoria_id: movimiento.categoria_id ?? "",
           meta_id: movimiento.meta_id ?? "",
+          deuda_id: movimiento.deuda_id ?? "",
           recurrente: movimiento.recurrente,
         }}
       />

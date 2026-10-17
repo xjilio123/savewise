@@ -11,6 +11,7 @@ import { requerirUsuario } from "@/lib/supabase/servidor";
 import { obtenerTipoCambio } from "@/lib/tipoCambio";
 import {
   erroresPorCampo,
+  esquemaDeuda,
   esquemaId,
   esquemaMeta,
   esquemaMovimiento,
@@ -37,6 +38,7 @@ function leerMovimiento(campo: (nombre: string) => string) {
     moneda: campo("moneda") || undefined,
     categoria_id: campo("categoria_id"),
     meta_id: campo("meta_id"),
+    deuda_id: campo("deuda_id"),
     recurrente: campo("recurrente") === "on",
   });
 }
@@ -71,6 +73,7 @@ async function insertarMovimiento(
     ...(id ? { id } : {}),
     ...datos.data,
     meta_id: datos.data.tipo === "AHORRO" ? datos.data.meta_id : null,
+    deuda_id: datos.data.tipo === "GASTO" ? (datos.data.deuda_id ?? null) : null,
     moneda,
     tipo_cambio: tipoCambio,
     user_id: usuario.id,
@@ -135,6 +138,7 @@ export async function actualizarMovimiento(
     .update({
       ...datos.data,
       meta_id: datos.data.tipo === "AHORRO" ? datos.data.meta_id : null,
+      deuda_id: datos.data.tipo === "GASTO" ? (datos.data.deuda_id ?? null) : null,
       moneda,
       tipo_cambio: tipoCambio,
     })
@@ -161,10 +165,13 @@ export async function borrarMisDatos(_: EstadoFormulario, formData: FormData): P
     return { errores: { confirmacion: "Escribe BORRAR para confirmar" } };
   }
 
-  // Primero los movimientos (referencian metas), luego las metas. RLS limita todo a tus filas.
+  // Primero los movimientos (referencian metas y deudas), luego el resto. RLS limita todo a tus filas.
   const movimientos = await supabase.from("movimientos").delete().eq("user_id", usuario.id);
-  const metas = await supabase.from("metas").delete().eq("user_id", usuario.id);
-  if (movimientos.error || metas.error) return { error: "No se pudo borrar todo. Intenta de nuevo." };
+  const [metas, deudas] = await Promise.all([
+    supabase.from("metas").delete().eq("user_id", usuario.id),
+    supabase.from("deudas").delete().eq("user_id", usuario.id),
+  ]);
+  if (movimientos.error || metas.error || deudas.error) return { error: "No se pudo borrar todo. Intenta de nuevo." };
 
   revalidatePath("/", "layout");
   redirect("/");
@@ -321,6 +328,53 @@ export async function guardarTopes(_: EstadoFormulario, formData: FormData): Pro
 }
 
 // ---------- Notificaciones push ----------
+
+// ---------- Deudas y tarjetas (Fase 5c) ----------
+
+export async function crearDeuda(_: EstadoFormulario, formData: FormData): Promise<EstadoFormulario> {
+  const { supabase, usuario } = await requerirUsuario();
+
+  const datos = esquemaDeuda.safeParse({
+    nombre: texto(formData, "nombre"),
+    tipo: texto(formData, "tipo"),
+    monto_total: texto(formData, "monto_total"),
+    cuota_mensual: texto(formData, "cuota_mensual"),
+    dia_pago: texto(formData, "dia_pago"),
+    tea: texto(formData, "tea"),
+  });
+  if (!datos.success) return { errores: erroresPorCampo(datos.error) };
+
+  const { data: perfil } = await supabase.from("perfiles").select("moneda_base").single();
+  const { error } = await supabase
+    .from("deudas")
+    .insert({ ...datos.data, moneda: perfil?.moneda_base ?? "PEN", user_id: usuario.id });
+  if (error) {
+    return error.code === "23505" ? { errores: { nombre: "Ya tienes una deuda con ese nombre" } } : { error: ERROR_GENERICO };
+  }
+
+  revalidatePath("/deudas");
+  redirect("/deudas");
+}
+
+/** Marca una deuda como pagada (o la reabre). Sus pagos recurrentes dejan de generarse. */
+export async function alternarDeudaCerrada(id: string, cerrada: boolean): Promise<void> {
+  const { supabase } = await requerirUsuario();
+  if (esquemaId.safeParse(id).success) {
+    await supabase.from("deudas").update({ cerrada }).eq("id", id);
+  }
+  revalidatePath("/", "layout");
+  redirect("/deudas");
+}
+
+/** Elimina la deuda. Sus pagos se conservan como gastos normales (deuda_id pasa a null). */
+export async function eliminarDeuda(id: string): Promise<void> {
+  const { supabase } = await requerirUsuario();
+  if (esquemaId.safeParse(id).success) {
+    await supabase.from("deudas").delete().eq("id", id);
+  }
+  revalidatePath("/", "layout");
+  redirect("/deudas");
+}
 
 export async function guardarSuscripcion(suscripcion: unknown): Promise<EstadoFormulario> {
   const { supabase, usuario } = await requerirUsuario();

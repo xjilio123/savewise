@@ -64,6 +64,11 @@ export default async function Ahorros() {
       <Encabezado
         titulo="Ahorros"
         subtitulo={metas.length === 1 ? "1 meta activa" : `${metas.length} metas activas`}
+        accion={
+          <Link href="/deudas" className="pb-1.5 text-[17px] font-semibold text-azul">
+            Deudas ›
+          </Link>
+        }
       />
 
       <Tarjeta className="flex flex-col gap-1">
