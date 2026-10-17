@@ -128,6 +128,15 @@ body {
   -webkit-tap-highlight-color: transparent;
 }
 
+/*
+ * Ocultar montos: se difuminan las cifras (todas usan tabular-nums o la clase "monto").
+ * Los campos de los formularios no se tocan: ahí escribes tú.
+ */
+[data-privado] :is(.tabular-nums, .monto):not(input, select, textarea) {
+  filter: blur(9px);
+  user-select: none;
+}
+
 /* En la capa base para que las clases de Tailwind (text-[52px], etc.) sí puedan sobrescribirlo. */
 @layer base {
   input,

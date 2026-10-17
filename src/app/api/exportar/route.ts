@@ -18,7 +18,7 @@ export async function GET() {
   for (let desde = 0; ; desde += LOTE) {
     const { data, error } = await supabase
       .from("movimientos")
-      .select("fecha, tipo, concepto, monto, moneda, tipo_cambio, monto_base, recurrente, categoria:categorias(nombre), meta:metas(nombre)")
+      .select("fecha, tipo, concepto, nota, monto, moneda, tipo_cambio, monto_base, recurrente, categoria:categorias(nombre), meta:metas(nombre)")
       .order("fecha", { ascending: true })
       .order("creado", { ascending: true })
       .range(desde, desde + LOTE - 1);
@@ -29,6 +29,7 @@ export async function GET() {
         m.fecha,
         NOMBRE_TIPO[m.tipo as TipoMovimiento],
         m.concepto,
+        m.nota,
         m.categoria?.nombre ?? "",
         m.meta?.nombre ?? "",
         Number(m.monto),
@@ -42,7 +43,7 @@ export async function GET() {
   }
 
   const csv = aCsv(
-    ["fecha", "tipo", "concepto", "categoria", "meta", "monto", "moneda", "tipo_cambio", "monto_base", "se_repite"],
+    ["fecha", "tipo", "concepto", "nota", "categoria", "meta", "monto", "moneda", "tipo_cambio", "monto_base", "se_repite"],
     filas,
   );
 

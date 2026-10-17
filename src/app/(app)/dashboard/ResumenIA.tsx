@@ -17,7 +17,7 @@ export function ResumenIA() {
         </p>
       </div>
       {/* Texto plano: React lo escapa, la respuesta nunca se interpreta como HTML. */}
-      {estado.texto && <p className="whitespace-pre-line text-[15px] leading-relaxed">{estado.texto}</p>}
+      {estado.texto && <p className="monto whitespace-pre-line text-[15px] leading-relaxed">{estado.texto}</p>}
       {estado.error && <p className="text-[15px] text-rojo">{estado.error}</p>}
       <form action={accion}>
         <BotonEnviar

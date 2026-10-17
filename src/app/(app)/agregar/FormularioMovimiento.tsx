@@ -19,6 +19,7 @@ export type ValoresMovimiento = {
   categoria_id: string;
   meta_id: string;
   deuda_id: string;
+  nota: string;
   recurrente: boolean;
 };
 
@@ -216,6 +217,17 @@ export function FormularioMovimiento(props: {
             className="bg-transparent text-right text-[17px] text-texto-2 outline-none"
           />
         </label>
+        <label className="flex items-center justify-between gap-4 py-3.5">
+          <span className="text-[17px]">Nota</span>
+          <input
+            name="nota"
+            maxLength={280}
+            defaultValue={inicial.nota}
+            placeholder="Opcional"
+            autoComplete="off"
+            className="min-w-0 flex-1 bg-transparent text-right text-[17px] text-texto-2 outline-none"
+          />
+        </label>
         <label className="flex items-center justify-between gap-4 py-3">
           <span className="text-[17px]">Se repite cada mes</span>
           <input type="checkbox" name="recurrente" defaultChecked={inicial.recurrente} className="peer sr-only" />
@@ -228,7 +240,7 @@ export function FormularioMovimiento(props: {
         </label>
       </div>
 
-      <MensajeError texto={errores.concepto ?? errores.meta_id ?? errores.deuda_id ?? errores.fecha ?? errores.tipo ?? estado.error} />
+      <MensajeError texto={errores.concepto ?? errores.meta_id ?? errores.deuda_id ?? errores.nota ?? errores.fecha ?? errores.tipo ?? estado.error} />
       {tipo === "AHORRO" && props.metas.length === 0 && (
         <p className="text-[15px] text-texto-2">Primero crea una meta en la pestaña Ahorros.</p>
       )}

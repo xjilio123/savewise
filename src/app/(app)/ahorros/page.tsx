@@ -8,8 +8,13 @@ import { cuotaMensual, formatearDinero, fraccion } from "@/lib/dinero";
 import { hoyLima } from "@/lib/fechas";
 import { proyectarMeta, sugerirFondoEmergencia } from "@/lib/planificacion";
 import { requerirSesion } from "@/lib/supabase/servidor";
+import { semanaDelReto } from "@/lib/ideas";
 import { FormularioMeta } from "./FormularioMeta";
+import { FormularioReto } from "./FormularioReto";
 import { ListaAportes } from "./ListaAportes";
+
+/** Fecha (AAAA-MM-DD) en Lima de un timestamp: el día en que empezó el reto. */
+const fechaLima = (ts: string) => new Intl.DateTimeFormat("en-CA", { timeZone: "America/Lima" }).format(new Date(ts));
 
 const nombreMes = new Intl.DateTimeFormat("es-PE", { month: "short", year: "numeric", timeZone: "UTC" });
 const etiquetaMes = (aaaamm: string) => nombreMes.format(new Date(`${aaaamm}-15T12:00:00Z`)).replace(".", "");
@@ -78,7 +83,7 @@ export default async function Ahorros() {
         <p className="text-[40px] font-extrabold leading-tight tracking-tight tabular-nums">{dinero(total)}</p>
         {metas.length > 0 && totalAlCierre > total && (
           <p className="text-[15px] text-texto-2">
-            A tu ritmo actual: <span className="font-semibold text-verde">{dinero(totalAlCierre)}</span> al 31 de diciembre
+            A tu ritmo actual: <span className="monto font-semibold text-verde">{dinero(totalAlCierre)}</span> al 31 de diciembre
           </p>
         )}
       </Tarjeta>
@@ -88,6 +93,12 @@ export default async function Ahorros() {
         const cuota = cuotaMensual(falta, hoy, m.fecha_objetivo);
         const avance = fraccion(m.ahorrado, m.objetivo);
         const p = proyecciones.get(m.id);
+        const reto = m.reto_base ? semanaDelReto(m.reto_base, fechaLima(m.creado), hoy) : null;
+        const aportar = new URLSearchParams({ tipo: "AHORRO", meta: m.id });
+        if (reto && !reto.terminado) {
+          aportar.set("monto", reto.monto.toFixed(2));
+          aportar.set("concepto", `Reto semana ${reto.semana}`);
+        }
         const proyeccion =
           falta === 0
             ? null
@@ -104,8 +115,16 @@ export default async function Ahorros() {
               <p className="text-[15px] text-texto-2 tabular-nums">
                 {dinero(m.ahorrado)} de {dinero(m.objetivo)}
               </p>
-              <p className="text-[15px] font-semibold text-verde">
-                {falta === 0 ? "¡Meta cumplida!" : cuota ? `${dinero(cuota)} al mes` : "Sin fecha límite"}
+              <p className="monto text-[15px] font-semibold text-verde">
+                {falta === 0
+                  ? "¡Meta cumplida!"
+                  : reto
+                    ? reto.terminado
+                      ? "Reto terminado"
+                      : `Semana ${reto.semana} de 52: aporta ${dinero(reto.monto)}`
+                    : cuota
+                      ? `${dinero(cuota)} al mes`
+                      : "Sin fecha límite"}
               </p>
               {proyeccion && (
                 <p className={`text-[13px] ${p?.llegaATiempo === false ? "text-rojo" : "text-texto-2"}`}>{proyeccion}</p>
@@ -113,7 +132,7 @@ export default async function Ahorros() {
             </div>
             {falta > 0 && (
               <Link
-                href={`/agregar?tipo=AHORRO&meta=${m.id}`}
+                href={`/agregar?${aportar}`}
                 className="rounded-full bg-verde-relleno/15 px-4 py-2 text-[15px] font-semibold text-verde"
               >
                 Aportar
@@ -126,7 +145,7 @@ export default async function Ahorros() {
       {fondo && (
         <section className="flex flex-col gap-2 rounded-[22px] bg-tinte-morado px-5 py-4">
           <p className="text-[17px] font-semibold">Fondo de emergencia</p>
-          <p className="text-[15px] leading-snug">
+          <p className="monto text-[15px] leading-snug">
             Con tus gastos de ~{dinero(fondo.gastoMensual)} al mes, te conviene guardar entre{" "}
             <b>{dinero(fondo.minimo)}</b> (3 meses) y <b>{dinero(fondo.ideal)}</b> (6 meses).
           </p>
@@ -145,6 +164,8 @@ export default async function Ahorros() {
       )}
 
       <ListaAportes aportes={recientes} />
+
+      {!metas.some((m) => m.reto_base) && <FormularioReto moneda={perfil.moneda_base} />}
 
       <FormularioMeta />
     </Pantalla>

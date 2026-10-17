@@ -2,7 +2,8 @@ import { VistaDashboard, type MesGrafico } from "@/components/vistas/VistaDashbo
 import { generarConsejos } from "@/lib/consejos";
 import { crearRepositorio } from "@/lib/datos/repositorio";
 import { calcularResumen } from "@/lib/dinero";
-import { etiquetaRango, hoyLima, periodoFinanciero } from "@/lib/fechas";
+import { etiquetaRango, hoyLima, periodoFinanciero, sumarDias } from "@/lib/fechas";
+import { calendarioDePagos, variacion } from "@/lib/ideas";
 import { estadoTopes } from "@/lib/planificacion";
 import { requerirSesion } from "@/lib/supabase/servidor";
 import { ResumenIA } from "./ResumenIA";
@@ -28,12 +29,21 @@ export default async function Dashboard({ searchParams }: PageProps<"/dashboard"
   const periodo = periodoFinanciero(hoy, perfil.dia_pago);
   const meses = ultimos12Meses(hoy);
 
-  const [movimientos, porCategoria, categorias, totales] = await Promise.all([
+  const anterior = periodoFinanciero(sumarDias(periodo.desde, -1), perfil.dia_pago);
+  const esMes = vista === "mes";
+
+  const [movimientos, porCategoria, categorias, totales, porCategoriaAnterior, recientes, deudas] = await Promise.all([
     repo.movimientosEntre(periodo.desde, periodo.hasta),
     repo.gastosPorCategoria(periodo.desde, periodo.hasta),
     repo.categorias(),
-    vista === "anio" ? repo.totalesPorMes(meses[0]!, meses[11]!) : Promise.resolve([]),
+    esMes ? Promise.resolve([]) : repo.totalesPorMes(meses[0]!, meses[11]!),
+    esMes ? repo.gastosPorCategoria(anterior.desde, anterior.hasta) : Promise.resolve([]),
+    // Para el calendario: lo del periodo y lo de antes (una suscripción pagada el mes pasado vence en este).
+    esMes ? repo.movimientosEntre(sumarDias(periodo.desde, -45), periodo.hasta) : Promise.resolve([]),
+    esMes ? repo.deudas() : Promise.resolve([]),
   ]);
+  const totalAnterior = new Map(porCategoriaAnterior.map((c) => [c.id ?? "sin", c.total]));
+  const pagos = esMes ? calendarioDePagos({ movimientos: recientes, deudas, desde: periodo.desde, hasta: periodo.hasta }) : [];
   const resumen = calcularResumen(perfil.sueldo_mensual, movimientos);
   const topePorId = new Map(categorias.map((c) => [c.id, c.tope]));
   const topes = estadoTopes(categorias, movimientos);
@@ -53,7 +63,12 @@ export default async function Dashboard({ searchParams }: PageProps<"/dashboard"
       vista={vista}
       moneda={perfil.moneda_base}
       etiquetaPeriodo={etiquetaRango(periodo.desde, periodo.hasta)}
-      categorias={porCategoria.map((c) => ({ ...c, tope: c.id ? topePorId.get(c.id) : null }))}
+      categorias={porCategoria.map((c) => ({
+        ...c,
+        tope: c.id ? topePorId.get(c.id) : null,
+        variacion: variacion(c.total, totalAnterior.get(c.id ?? "sin")),
+      }))}
+      pagos={pagos}
       resumen={resumen}
       consejos={movimientos.length > 0 ? generarConsejos(resumen, periodo, perfil.moneda_base, topes) : []}
       meses={grafico}

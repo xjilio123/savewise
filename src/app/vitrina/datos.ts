@@ -1,5 +1,6 @@
 import type { MesGrafico } from "@/components/vistas/VistaDashboard";
 import type { Aporte, DeudaConPagos, FilaHistorial, GastoCategoria } from "@/lib/datos/repositorio";
+import type { PagoCalendario } from "@/lib/ideas";
 import type { TipoMovimiento } from "@/lib/supabase/tipos";
 
 // Datos FICTICIOS: el ejemplo de la propuesta con sueldo de S/ 1,500. Nunca se guardan en ninguna base.
@@ -71,8 +72,8 @@ export const MOVIMIENTOS = [
 ];
 
 export const POR_CATEGORIA: GastoCategoria[] = [
-  { id: "c1", nombre: "Alimentación", color: "rojo", total: 300, tope: 350 },
-  { id: "c2", nombre: "Transporte", color: "azul", total: 150, tope: 120 },
+  { id: "c1", nombre: "Alimentación", color: "rojo", total: 300, tope: 350, variacion: -12 },
+  { id: "c2", nombre: "Transporte", color: "azul", total: 150, tope: 120, variacion: 25 },
   { id: "c3", nombre: "Suscripciones", color: "negro", total: 108.22 },
   { id: "c4", nombre: "Ocio", color: "morado", total: 103.5 },
   { id: "c5", nombre: "Servicios", color: "verde", total: 39.9 },
@@ -108,4 +109,11 @@ export const APORTES: Aporte[] = [
   { id: "a1", fecha: "2026-10-15", concepto: "Ahorro quincena", monto: 200, moneda: "PEN", meta: { nombre: "Navidad" } },
   { id: "a2", fecha: "2026-10-01", concepto: "Ahorro de sueldo", monto: 100, moneda: "PEN", meta: { nombre: "Fondo de emergencia" } },
   { id: "a3", fecha: "2026-09-30", concepto: "Vuelto del mes", monto: 51.88, moneda: "PEN", meta: { nombre: "Navidad" } },
+];
+
+export const PAGOS: PagoCalendario[] = [
+  { fecha: "2026-10-05", concepto: "Visa", monto: 250, moneda: "PEN", origen: "deuda", pagado: true },
+  { fecha: "2026-10-12", concepto: "Spotify", monto: 8.22, moneda: "PEN", origen: "suscripcion", pagado: true },
+  { fecha: "2026-10-20", concepto: "Netflix", monto: 39.9, moneda: "PEN", origen: "suscripcion", pagado: false },
+  { fecha: "2026-10-28", concepto: "Préstamo celular", monto: 40, moneda: "PEN", origen: "deuda", pagado: false },
 ];

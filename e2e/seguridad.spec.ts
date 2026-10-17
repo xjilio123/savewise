@@ -94,3 +94,17 @@ test.describe("Tema claro / oscuro", () => {
     expect(await page.locator("img[src=x]").count()).toBe(0);
   });
 });
+
+test.describe("Ocultar montos", () => {
+  test("la cookie llega al servidor y la página ya viene oculta", async ({ page, context }) => {
+    await context.addCookies([{ name: "privado", value: "1", url: "http://localhost:3000" }]);
+    await page.goto("/login");
+    await expect(page.locator("html")).toHaveAttribute("data-privado", "");
+  });
+
+  test("cualquier otro valor no activa el modo oculto", async ({ page, context }) => {
+    await context.addCookies([{ name: "privado", value: "si", url: "http://localhost:3000" }]);
+    await page.goto("/login");
+    await expect(page.locator("html")).not.toHaveAttribute("data-privado", /.*/);
+  });
+});

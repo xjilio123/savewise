@@ -23,12 +23,12 @@ export function VistaParaMi({ moneda, resumen: r, periodo, etiquetaPeriodo, hoy,
       <section className="flex flex-col gap-1.5 rounded-[28px] bg-gradient-to-br from-morado to-[#5b2a94] p-6 text-white">
         <p className="text-[15px] font-semibold text-white/85">Te quedan</p>
         <p className="text-[44px] font-extrabold leading-tight tracking-tight tabular-nums">{dinero(r.paraMiRestante)}</p>
-        <p className="text-[15px] text-white/85">de {dinero(r.paraMi)} en este periodo</p>
+        <p className="text-[15px] text-white/85">de <span className="monto">{dinero(r.paraMi)}</span> en este periodo</p>
         <div className="py-1">
           <Barra fraccion={fraccion(r.ocio, r.paraMi)} clase="text-white" />
         </div>
         <p className="text-[17px] font-bold">
-          {dinero(paraMiPorDia(r.paraMiRestante, periodo))} por día · {periodo.diasRestantes}{" "}
+          <span className="monto">{dinero(paraMiPorDia(r.paraMiRestante, periodo))}</span> por día · {periodo.diasRestantes}{" "}
           {periodo.diasRestantes === 1 ? "día" : "días"}
         </p>
       </section>

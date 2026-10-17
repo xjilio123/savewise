@@ -31,6 +31,7 @@ export const esquemaMovimiento = z
     categoria_id: uuidOpcional,
     meta_id: uuidOpcional,
     deuda_id: uuidOpcional.optional(),
+    nota: z.string().trim().max(280, { error: "Máximo 280 caracteres" }).optional(),
     recurrente: z.boolean(),
   })
   .refine((d) => d.tipo !== "AHORRO" || d.meta_id !== null, {
