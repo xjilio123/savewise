@@ -159,7 +159,20 @@ export async function actualizarMovimiento(
 }
 
 /** Pantallas a las que se puede volver tras eliminar (lista cerrada: evita redirecciones abiertas). */
-const VOLVER_TRAS_ELIMINAR = ["/historial", "/ahorros"] as const;
+const VOLVER_TRAS_ELIMINAR = ["/historial", "/ahorros", "/dashboard"] as const;
+
+/**
+ * Deja de repetir una serie (suscripción cancelada, cambio de servicio…). Se marca el último
+ * movimiento como "no se repite": el cron ya no lo copia ni avisa, y el historial queda intacto.
+ */
+export async function dejarDeRepetir(id: string): Promise<void> {
+  const { supabase } = await requerirUsuario();
+  if (esquemaId.safeParse(id).success) {
+    await supabase.from("movimientos").update({ recurrente: false }).eq("id", id);
+  }
+  revalidatePath("/", "layout");
+  redirect("/dashboard");
+}
 
 export async function eliminarMovimiento(id: string, volver: string = "/historial"): Promise<void> {
   const { supabase } = await requerirUsuario();
