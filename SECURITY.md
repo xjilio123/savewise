@@ -54,6 +54,9 @@ No abras un issue público. Usa **Security → Report a vulnerability** en este 
   puede usar los datos para mejorar sus modelos. La respuesta se muestra como texto plano (React la
   escapa) y se recorta; el nombre del modelo se valida para que no altere la URL. Sin la variable
   `GEMINI_API_KEY` la función no aparece.
+- **Respaldo:** el plan gratis de Supabase no ofrece copias descargables, así que la app genera un
+  respaldo JSON completo (`/api/respaldo`, sesión verificada con `getUser` y RLS). No incluye correo,
+  suscripciones push ni el token del Atajo. Un aviso push el día 1 de cada mes recuerda descargarlo.
 - **Cola sin conexión:** los movimientos guardados sin internet llevan un UUID generado en el teléfono,
   así reintentar nunca los duplica.
 

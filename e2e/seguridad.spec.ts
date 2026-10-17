@@ -16,6 +16,7 @@ const RUTAS_PRIVADAS = [
   "/deudas",
   "/agregar?tipo=GASTO&deuda=00000000-0000-0000-0000-000000000000",
   "/api/exportar",
+  "/api/respaldo",
 ];
 
 test.describe("Sin sesión no se ve nada privado", () => {

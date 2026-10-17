@@ -1,6 +1,9 @@
 import { Icono } from "@/components/Icono";
 
-/** Descarga todos los movimientos en CSV. En el iPhone se abre la hoja para guardarlo o enviarlo a Sheets. */
+/**
+ * Respaldo y exportación. El JSON es la copia de seguridad completa (movimientos, metas, deudas,
+ * categorías y perfil) para restaurar si algo se pierde; el CSV es para abrir los movimientos en Sheets.
+ */
 export function Exportar() {
   return (
     <section className="flex flex-col gap-3 rounded-[22px] bg-tarjeta p-4">
@@ -9,12 +12,24 @@ export function Exportar() {
           <Icono nombre="dashboard" className="size-5" />
         </span>
         <div className="flex-1">
-          <h2 className="text-[17px] font-semibold">Exportar mis datos</h2>
-          <p className="text-[13px] text-texto-2">Todos tus movimientos en un archivo CSV</p>
+          <h2 className="text-[17px] font-semibold">Respaldo y exportación</h2>
+          <p className="text-[13px] text-texto-2">Tus datos, siempre en tus manos</p>
         </div>
       </div>
       <p className="text-[15px] leading-snug text-texto-2">
-        Ábrelo en Google Sheets con <b>Archivo › Importar</b>, o en el iPhone compártelo a la app de Sheets o Numbers.
+        <b>Respaldo completo:</b> guárdalo una vez al mes en Archivos o iCloud Drive (te avisamos el día 1). Sirve para
+        recuperar todo si algo se borra.
+      </p>
+      <a
+        href="/api/respaldo"
+        download
+        className="rounded-[16px] bg-verde py-3 text-center text-[17px] font-semibold text-fondo active:scale-[0.98]"
+      >
+        Descargar respaldo completo
+      </a>
+      <p className="text-[15px] leading-snug text-texto-2">
+        <b>CSV de movimientos:</b> ábrelo en Google Sheets con <b>Archivo › Importar</b>, o en el iPhone compártelo a Sheets
+        o Numbers.
       </p>
       <a
         href="/api/exportar"

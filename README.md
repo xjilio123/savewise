@@ -21,6 +21,7 @@ repartes en gastos, ahorros y una bolsa “Para mí”, y siempre ves cuánto qu
 - **Planificación:** topes por categoría con aviso al 80 %, cierre de mes, fondo de emergencia
   y proyección de cada meta al 31 de diciembre.
 - **Deudas y tarjetas:** saldo, cuotas que faltan según la TEA y aviso un día antes de pagar.
+- **Respaldo completo** en JSON y exportación CSV para Google Sheets, con recordatorio mensual.
 - **Resumen con IA (opcional):** Gemini resume tu mes a partir de totales agregados, nunca de tus conceptos.
 - Modo claro y oscuro automáticos, diseño al estilo iOS.
 
