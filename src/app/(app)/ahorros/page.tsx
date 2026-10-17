@@ -9,6 +9,7 @@ import { hoyLima } from "@/lib/fechas";
 import { proyectarMeta, sugerirFondoEmergencia } from "@/lib/planificacion";
 import { requerirSesion } from "@/lib/supabase/servidor";
 import { FormularioMeta } from "./FormularioMeta";
+import { ListaAportes } from "./ListaAportes";
 
 const nombreMes = new Intl.DateTimeFormat("es-PE", { month: "short", year: "numeric", timeZone: "UTC" });
 const etiquetaMes = (aaaamm: string) => nombreMes.format(new Date(`${aaaamm}-15T12:00:00Z`)).replace(".", "");
@@ -24,11 +25,12 @@ export default async function Ahorros() {
   const repo = crearRepositorio(supabase);
   const hoy = hoyLima();
   const meses = ultimos3Meses(hoy);
-  const [perfil, metas, aportes, totales] = await Promise.all([
+  const [perfil, metas, aportes, totales, recientes] = await Promise.all([
     repo.perfil(),
     repo.metas(),
     repo.aportesDesde(meses[0]!),
     repo.totalesPorMes(meses[0]!, meses[2]!),
+    repo.aportesRecientes(8),
   ]);
   const dinero = (n: number) => formatearDinero(n, perfil.moneda_base);
   const total = metas.reduce((suma, m) => suma + Math.round(m.ahorrado * 100), 0) / 100;
@@ -141,6 +143,8 @@ export default async function Ahorros() {
           )}
         </section>
       )}
+
+      <ListaAportes aportes={recientes} />
 
       <FormularioMeta />
     </Pantalla>

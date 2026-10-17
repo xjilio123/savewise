@@ -23,7 +23,7 @@ repartes en gastos, ahorros y una bolsa “Para mí”, y siempre ves cuánto qu
 - **Deudas y tarjetas:** saldo, cuotas que faltan según la TEA y aviso un día antes de pagar.
 - **Respaldo completo** en JSON y exportación CSV para Google Sheets, con recordatorio mensual.
 - **Resumen con IA (opcional):** Gemini resume tu mes a partir de totales agregados, nunca de tus conceptos.
-- Modo claro y oscuro automáticos, diseño al estilo iOS.
+- Modo claro, oscuro o automático (elegible en Ajustes), diseño al estilo iOS.
 
 ## Stack
 

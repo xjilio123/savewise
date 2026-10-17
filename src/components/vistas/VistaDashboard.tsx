@@ -49,7 +49,7 @@ export function VistaDashboard(d: DatosDashboard) {
             href={v.href}
             aria-current={d.vista === v.valor ? "page" : undefined}
             className={`flex-1 rounded-[10px] py-1.5 text-center text-[15px] font-semibold ${
-              d.vista === v.valor ? "bg-tarjeta shadow-sm" : "text-texto-2"
+              d.vista === v.valor ? "bg-tarjeta shadow-sm" : "text-texto"
             }`}
           >
             {v.nombre}

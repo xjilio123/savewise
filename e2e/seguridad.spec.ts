@@ -79,3 +79,18 @@ test.describe("Cron diario", () => {
     expect(respuesta.status()).toBe(401);
   });
 });
+
+test.describe("Tema claro / oscuro", () => {
+  test("la cookie del tema fija la apariencia", async ({ page, context }) => {
+    await context.addCookies([{ name: "tema", value: "oscuro", url: "http://localhost:3000" }]);
+    await page.goto("/login");
+    await expect(page.locator("html")).toHaveAttribute("data-tema", "oscuro");
+  });
+
+  test("un valor manipulado se ignora y no se inyecta en la página", async ({ page, context }) => {
+    await context.addCookies([{ name: "tema", value: 'oscuro"><img/src=x/onerror=alert(1)>', url: "http://localhost:3000" }]);
+    await page.goto("/login");
+    await expect(page.locator("html")).not.toHaveAttribute("data-tema", /.*/);
+    expect(await page.locator("img[src=x]").count()).toBe(0);
+  });
+});

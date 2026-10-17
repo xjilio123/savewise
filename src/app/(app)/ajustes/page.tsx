@@ -5,18 +5,21 @@ import { Icono } from "@/components/Icono";
 import { Encabezado, Pantalla } from "@/components/ui";
 import { crearRepositorio } from "@/lib/datos/repositorio";
 import { requerirSesion } from "@/lib/supabase/servidor";
-import { headers } from "next/headers";
+import { COOKIE_TEMA, leerTema } from "@/lib/tema";
+import { cookies, headers } from "next/headers";
 import { AtajoSiri } from "./AtajoSiri";
 import { AvisosPush } from "./AvisosPush";
 import { BorrarDatos } from "./BorrarDatos";
 import { Exportar } from "./Exportar";
+import { SelectorTema } from "./SelectorTema";
 
 export default async function Ajustes() {
   const { supabase, usuario } = await requerirSesion();
-  const [perfil, token, cabeceras] = await Promise.all([
+  const [perfil, token, cabeceras, galletas] = await Promise.all([
     crearRepositorio(supabase).perfil(),
     supabase.from("tokens_atajo").select("creado").maybeSingle(),
     headers(),
+    cookies(),
   ]);
   const urlAtajo = `https://${cabeceras.get("host") ?? "savewise-inky.vercel.app"}/api/atajo`;
 
@@ -40,6 +43,8 @@ export default async function Ajustes() {
         diaPago={perfil.dia_pago}
         textoBoton="Guardar cambios"
       />
+
+      <SelectorTema actual={leerTema(galletas.get(COOKIE_TEMA)?.value)} />
 
       <AvisosPush />
       <AtajoSiri tieneToken={Boolean(token.data)} url={urlAtajo} />
