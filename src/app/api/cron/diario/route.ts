@@ -5,8 +5,9 @@ import { obtenerTipoCambio } from "@/lib/tipoCambio";
 
 // Lo llama Vercel Cron una vez al día (9:00 de Lima) con "Authorization: Bearer $CRON_SECRET".
 // 1) Mantiene activo el proyecto de Supabase (el plan gratis se pausa tras 7 días sin uso).
-// 2) Envía los avisos del día: renovaciones en 3 días y "hoy cobras".
-// 3) Precalienta la caché del tipo de cambio.
+// 2) Registra los movimientos marcados "se repite cada mes" que vencen hoy.
+// 3) Envía los avisos del día: renovaciones en 3 días y "hoy cobras".
+// 4) Precalienta la caché del tipo de cambio.
 
 function secretoValido(cabecera: string | null): string | null {
   const secreto = process.env.CRON_SECRET;
@@ -22,6 +23,9 @@ export async function GET(request: Request) {
 
   const supabase = crearClienteAnonimo();
   const ping = await supabase.rpc("ping");
+
+  // Primero registra los gastos recurrentes del día; luego avisa de las próximas renovaciones.
+  const recurrentes = await supabase.rpc("generar_recurrentes", { p_token: secreto });
 
   // La base solo devuelve los avisos si el secreto coincide con su huella guardada.
   const { data: avisos, error } = await supabase.rpc("recordatorios_del_dia", { p_token: secreto });
@@ -45,7 +49,12 @@ export async function GET(request: Request) {
   );
 
   return Response.json(
-    { supabase: !ping.error, avisos: error ? "error" : { enviados, vencidas }, tipoCambio },
+    {
+      supabase: !ping.error,
+      recurrentes: recurrentes.error ? "error" : recurrentes.data,
+      avisos: error ? "error" : { enviados, vencidas },
+      tipoCambio,
+    },
     { status: ping.error ? 502 : 200 },
   );
 }

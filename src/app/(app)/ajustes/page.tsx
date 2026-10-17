@@ -8,6 +8,7 @@ import { headers } from "next/headers";
 import { AtajoSiri } from "./AtajoSiri";
 import { AvisosPush } from "./AvisosPush";
 import { BorrarDatos } from "./BorrarDatos";
+import { Exportar } from "./Exportar";
 
 export default async function Ajustes() {
   const { supabase, usuario } = await requerirSesion();
@@ -41,6 +42,7 @@ export default async function Ajustes() {
 
       <AvisosPush />
       <AtajoSiri tieneToken={Boolean(token.data)} url={urlAtajo} />
+      <Exportar />
 
       <BorrarDatos />
 
