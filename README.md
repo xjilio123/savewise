@@ -53,4 +53,5 @@ Las migraciones están en `supabase/migrations` y las pruebas de RLS en `supabas
 - [x] Fase 1: sueldo, gastos, ahorros, Para mí, Inicio en claro y oscuro
 - [x] Fase 2: Historial con páginas y filtros, editar y eliminar, Dashboard, multimoneda, día de pago
 - [x] Fase 3: PWA instalable, offline con cola de envío, avisos push y Atajo de Siri; app en São Paulo junto a la base
-- [ ] Fase 4: exportar a Sheets, IA opcional, invitar personas
+- [x] Fase 4: exportar a CSV (Google Sheets) y gastos recurrentes automáticos
+- [ ] Siguiente: resumen con IA opcional e invitar personas

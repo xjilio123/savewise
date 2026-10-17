@@ -186,6 +186,7 @@ export type Database = {
         Returns: { categoria_id: string; color: ColorApp; nombre: string; total: number }[];
       };
       ping: { Args: never; Returns: number };
+      generar_recurrentes: { Args: { p_token: string }; Returns: number };
       recordatorios_del_dia: {
         Args: { p_token: string };
         Returns: { r_auth: string; r_cuerpo: string; r_endpoint: string; r_p256dh: string; r_titulo: string; r_url: string }[];

@@ -12,6 +12,7 @@ const RUTAS_PRIVADAS = [
   "/dashboard?vista=anio",
   "/ajustes",
   "/bienvenida",
+  "/api/exportar",
 ];
 
 test.describe("Sin sesión no se ve nada privado", () => {
