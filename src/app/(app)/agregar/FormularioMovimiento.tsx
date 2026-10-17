@@ -24,9 +24,9 @@ export type ValoresMovimiento = {
 type Accion = (estado: EstadoFormulario, formData: FormData) => Promise<EstadoFormulario>;
 
 const tipos = [
-  { valor: "GASTO", nombre: "Gasto", activo: "bg-rojo text-white", punto: "bg-rojo-relleno" },
-  { valor: "OCIO", nombre: "Para mí", activo: "bg-morado text-white", punto: "bg-morado-relleno" },
-  { valor: "AHORRO", nombre: "Ahorro", activo: "bg-verde text-white", punto: "bg-verde-relleno" },
+  { valor: "GASTO", nombre: "Gasto", activo: "bg-rojo text-fondo", punto: "bg-rojo-relleno" },
+  { valor: "OCIO", nombre: "Para mí", activo: "bg-morado text-fondo", punto: "bg-morado-relleno" },
+  { valor: "AHORRO", nombre: "Ahorro", activo: "bg-verde text-fondo", punto: "bg-verde-relleno" },
   { valor: "INGRESO", nombre: "Ingreso", activo: "bg-azul-relleno text-white", punto: "bg-azul-relleno" },
 ];
 
@@ -50,7 +50,7 @@ export function FormularioMovimiento(props: {
   // La bolsa de Para mí solo aparece como opción cuando se edita una.
   const opciones =
     inicial.tipo === "PARA_MI"
-      ? [...tipos, { valor: "PARA_MI", nombre: "Bolsa", activo: "bg-morado text-white", punto: "bg-morado-relleno" }]
+      ? [...tipos, { valor: "PARA_MI", nombre: "Bolsa", activo: "bg-morado text-fondo", punto: "bg-morado-relleno" }]
       : tipos;
 
   // Sin conexión (solo al crear): se guarda en el iPhone y se envía al volver internet.

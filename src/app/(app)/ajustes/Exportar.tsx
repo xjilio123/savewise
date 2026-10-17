@@ -5,7 +5,7 @@ export function Exportar() {
   return (
     <section className="flex flex-col gap-3 rounded-[22px] bg-tarjeta p-4">
       <div className="flex items-center gap-3">
-        <span className="grid size-9 place-items-center rounded-[10px] bg-verde text-white">
+        <span className="grid size-9 place-items-center rounded-[10px] bg-verde text-fondo">
           <Icono nombre="dashboard" className="size-5" />
         </span>
         <div className="flex-1">

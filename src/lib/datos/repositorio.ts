@@ -106,6 +106,13 @@ export function crearRepositorio(supabase: SupabaseClient<Database>) {
       );
     },
 
+    /** Aportes a metas desde una fecha, para calcular el ritmo de ahorro. */
+    aportesDesde(desde: string): Promise<{ meta_id: string | null; fecha: string; monto_base: number | null }[]> {
+      return obtener(
+        supabase.from("movimientos").select("meta_id, fecha, monto_base").eq("tipo", "AHORRO").gte("fecha", desde),
+      );
+    },
+
     categorias(): Promise<Categoria[]> {
       return obtener(supabase.from("categorias").select("*").order("nombre"));
     },

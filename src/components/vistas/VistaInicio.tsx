@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { ReactNode } from "react";
 import { Anillos } from "@/components/Anillos";
 import { Icono } from "@/components/Icono";
 import { AvisoInstalar } from "@/components/pwa/AvisoInstalar";
@@ -14,9 +15,11 @@ export type DatosInicio = {
   resumen: Resumen;
   consejo: Consejo | null;
   sinMovimientos: boolean;
+  /** Tarjetas adicionales bajo el resumen (por ejemplo, el cierre de mes). */
+  extra?: ReactNode;
 };
 
-export function VistaInicio({ fecha, periodo, inicial, moneda, resumen: r, consejo, sinMovimientos }: DatosInicio) {
+export function VistaInicio({ fecha, periodo, inicial, moneda, resumen: r, consejo, sinMovimientos, extra }: DatosInicio) {
   const dinero = (n: number) => formatearDinero(n, moneda);
   const partes = [
     { nombre: "Gastos", monto: r.gastos, texto: "text-rojo", anillo: "text-rojo-relleno" },
@@ -50,6 +53,8 @@ export function VistaInicio({ fecha, periodo, inicial, moneda, resumen: r, conse
           de {dinero(r.ingresos)} · {periodo}
         </p>
       </section>
+
+      {extra}
 
       <Tarjeta className="flex items-center gap-5">
         <Anillos

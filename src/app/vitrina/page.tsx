@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { BarraPestanas } from "@/components/BarraPestanas";
+import { CierreMes } from "@/components/CierreMes";
 import { VistaDashboard } from "@/components/vistas/VistaDashboard";
 import { VistaHistorial } from "@/components/vistas/VistaHistorial";
 import { VistaInicio } from "@/components/vistas/VistaInicio";
@@ -30,6 +31,17 @@ export default async function Vitrina({ searchParams }: PageProps<"/vitrina">) {
         resumen={resumen}
         consejo={consejos[0] ?? null}
         sinMovimientos={false}
+        extra={
+          <CierreMes
+            clave="vitrina"
+            periodo="1 sept – 30 sept"
+            sobrante="S/ 351.88"
+            metas={[
+              { id: "00000000-0000-0000-0000-000000000001", nombre: "Navidad" },
+              { id: "00000000-0000-0000-0000-000000000002", nombre: "Fondo de emergencia" },
+            ]}
+          />
+        }
       />
     ),
     "para-mi": (

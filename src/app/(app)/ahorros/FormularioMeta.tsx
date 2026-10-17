@@ -36,7 +36,7 @@ export function FormularioMeta() {
           <input type="date" name="fecha_objetivo" className="bg-transparent text-right text-texto-2 outline-none" />
         </label>
         <MensajeError texto={errores.fecha_objetivo ?? estado.error} />
-        <BotonEnviar texto="Crear meta" clase="bg-verde text-white" />
+        <BotonEnviar texto="Crear meta" clase="bg-verde text-fondo" />
       </form>
     </details>
   );

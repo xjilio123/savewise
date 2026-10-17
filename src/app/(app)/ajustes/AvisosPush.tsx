@@ -75,7 +75,7 @@ export function AvisosPush() {
   return (
     <section className="flex flex-col gap-3 rounded-[22px] bg-tarjeta p-4">
       <div className="flex items-center gap-3">
-        <span className="grid size-9 place-items-center rounded-[10px] bg-rojo text-white">
+        <span className="grid size-9 place-items-center rounded-[10px] bg-rojo text-fondo">
           <Icono nombre="campana" className="size-5" />
         </span>
         <div className="flex-1">

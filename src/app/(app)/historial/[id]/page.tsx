@@ -50,7 +50,7 @@ export default async function EditarMovimiento({ params }: PageProps<"/historial
         </summary>
         <form action={eliminarMovimiento.bind(null, id)} className="flex flex-col gap-3 px-4 pb-4">
           <p className="text-center text-[15px] text-texto-2">Esto no se puede deshacer.</p>
-          <button type="submit" className="rounded-[18px] bg-rojo py-3.5 text-[17px] font-bold text-white">
+          <button type="submit" className="rounded-[18px] bg-rojo py-3.5 text-[17px] font-bold text-fondo">
             Sí, eliminar
           </button>
         </form>
