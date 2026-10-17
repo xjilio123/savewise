@@ -73,7 +73,7 @@ export function FormularioPerfil({
       </div>
       <MensajeError texto={errores.moneda_base ?? errores.dia_pago ?? estado.error} />
       <p className="px-1 text-[13px] text-texto-2">
-        Soles por defecto. Por ahora los movimientos se registran en tu moneda base; la conversión automática entre monedas llega en la Fase 2.
+        Soles por defecto. Si cambias la moneda, tus montos y metas se convierten con el tipo de cambio de hoy. El día de pago define tu mes: si cobras el 15, va del 15 al 14.
       </p>
       <BotonEnviar texto={textoBoton} clase="bg-azul-relleno text-white" />
     </form>

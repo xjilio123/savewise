@@ -4,8 +4,23 @@ import { useActionState, useState } from "react";
 import { guardarMovimiento, type EstadoFormulario } from "@/app/acciones";
 import { BotonEnviar } from "@/components/BotonEnviar";
 import { MensajeError } from "@/components/ui";
+import { FUENTE_TIPO_CAMBIO } from "@/lib/tipoCambio";
+import { MONEDAS } from "@/lib/validacion";
 
 type Opcion = { id: string; nombre: string };
+
+export type ValoresMovimiento = {
+  tipo: string;
+  monto: string;
+  concepto: string;
+  fecha: string;
+  moneda: string;
+  categoria_id: string;
+  meta_id: string;
+  recurrente: boolean;
+};
+
+type Accion = (estado: EstadoFormulario, formData: FormData) => Promise<EstadoFormulario>;
 
 const tipos = [
   { valor: "GASTO", nombre: "Gasto", activo: "bg-rojo text-white", punto: "bg-rojo-relleno" },
@@ -20,22 +35,30 @@ export function FormularioMovimiento(props: {
   categorias: Opcion[];
   metas: Opcion[];
   hoy: string;
-  moneda: string;
-  tipoInicial: string;
-  metaInicial: string;
+  monedaBase: string;
+  inicial?: Partial<ValoresMovimiento>;
+  accion?: Accion;
+  textoBoton?: string;
 }) {
-  const [estado, accion] = useActionState<EstadoFormulario, FormData>(guardarMovimiento, {});
-  const [tipo, setTipo] = useState(props.tipoInicial);
+  const inicial = props.inicial ?? {};
+  const [estado, accion] = useActionState<EstadoFormulario, FormData>(props.accion ?? guardarMovimiento, {});
+  const [tipo, setTipo] = useState(inicial.tipo ?? "GASTO");
+  const [moneda, setMoneda] = useState(inicial.moneda ?? props.monedaBase);
   const errores = estado.errores ?? {};
+  // La bolsa de Para mí solo aparece como opción cuando se edita una.
+  const opciones =
+    inicial.tipo === "PARA_MI"
+      ? [...tipos, { valor: "PARA_MI", nombre: "Bolsa", activo: "bg-morado text-white", punto: "bg-morado-relleno" }]
+      : tipos;
 
   return (
     <form action={accion} className="flex flex-col gap-5">
       <fieldset className="grid grid-cols-2 gap-2.5">
         <legend className="sr-only">Tipo de movimiento</legend>
-        {tipos.map((t) => (
+        {opciones.map((t) => (
           <label
             key={t.valor}
-            className={`flex cursor-pointer items-center gap-2.5 rounded-2xl px-4 py-3 text-[17px] font-semibold transition ${
+            className={`flex cursor-pointer items-center gap-2.5 rounded-2xl px-4 py-3 text-[17px] font-semibold transition has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-azul ${
               tipo === t.valor ? t.activo : "bg-tarjeta"
             }`}
           >
@@ -53,12 +76,12 @@ export function FormularioMovimiento(props: {
         ))}
       </fieldset>
 
-      <div className="flex flex-col items-center gap-2">
+      <div className="flex flex-col items-center gap-3">
         <label htmlFor="monto" className="sr-only">
           Monto
         </label>
         <div className="flex items-baseline justify-center gap-2">
-          <span className="text-[32px] font-semibold text-texto-2">{simbolos[props.moneda] ?? props.moneda}</span>
+          <span className="text-[32px] font-semibold text-texto-2">{simbolos[moneda] ?? moneda}</span>
           <input
             id="monto"
             name="monto"
@@ -66,11 +89,36 @@ export function FormularioMovimiento(props: {
             autoComplete="off"
             placeholder="0.00"
             required
+            defaultValue={inicial.monto}
             aria-invalid={Boolean(errores.monto)}
             className="w-56 bg-transparent text-center text-[64px] font-extrabold tracking-tight tabular-nums outline-none placeholder:text-texto-2/40"
           />
         </div>
-        <MensajeError texto={errores.monto} />
+        <label className="flex items-center gap-2 rounded-full bg-control px-4 py-1.5">
+          <span className="sr-only">Moneda</span>
+          <select
+            name="moneda"
+            value={moneda}
+            onChange={(e) => setMoneda(e.target.value)}
+            className="bg-transparent text-[15px] font-bold outline-none"
+          >
+            {MONEDAS.map((m) => (
+              <option key={m} value={m}>
+                {m}
+              </option>
+            ))}
+          </select>
+        </label>
+        {moneda !== props.monedaBase && (
+          <p className="px-4 text-center text-[13px] text-texto-2">
+            Se convierte a {props.monedaBase} con el tipo de cambio de hoy y queda guardado así. Fuente:{" "}
+            <a href={FUENTE_TIPO_CAMBIO.url} target="_blank" rel="noopener noreferrer" className="underline">
+              {FUENTE_TIPO_CAMBIO.nombre}
+            </a>
+            .
+          </p>
+        )}
+        <MensajeError texto={errores.monto ?? errores.moneda} />
       </div>
 
       <div className="divide-y divide-linea rounded-[22px] bg-tarjeta px-4">
@@ -80,35 +128,35 @@ export function FormularioMovimiento(props: {
             name="concepto"
             maxLength={80}
             required
+            defaultValue={inicial.concepto}
             placeholder="Ej. Spotify"
             className="min-w-0 flex-1 bg-transparent text-right text-[17px] text-texto-2 outline-none"
           />
         </label>
-        {tipo !== "AHORRO" && (
-          <label className="flex items-center justify-between gap-4 py-3.5">
-            <span className="text-[17px]">Categoría</span>
-            <select name="categoria_id" defaultValue="" className="bg-transparent text-right text-[17px] text-texto-2 outline-none">
-              <option value="">Sin categoría</option>
-              {props.categorias.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.nombre}
-                </option>
-              ))}
-            </select>
-          </label>
-        )}
-        {tipo === "AHORRO" && (
+        {tipo === "AHORRO" ? (
           <label className="flex items-center justify-between gap-4 py-3.5">
             <span className="text-[17px]">Meta</span>
-            <select
-              name="meta_id"
-              defaultValue={props.metaInicial}
-              className="bg-transparent text-right text-[17px] text-texto-2 outline-none"
-            >
+            <select name="meta_id" defaultValue={inicial.meta_id ?? ""} className="bg-transparent text-right text-[17px] text-texto-2 outline-none">
               <option value="">Elige una meta</option>
               {props.metas.map((m) => (
                 <option key={m.id} value={m.id}>
                   {m.nombre}
+                </option>
+              ))}
+            </select>
+          </label>
+        ) : (
+          <label className="flex items-center justify-between gap-4 py-3.5">
+            <span className="text-[17px]">Categoría</span>
+            <select
+              name="categoria_id"
+              defaultValue={inicial.categoria_id ?? ""}
+              className="bg-transparent text-right text-[17px] text-texto-2 outline-none"
+            >
+              <option value="">Sin categoría</option>
+              {props.categorias.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.nombre}
                 </option>
               ))}
             </select>
@@ -119,7 +167,7 @@ export function FormularioMovimiento(props: {
           <input
             type="date"
             name="fecha"
-            defaultValue={props.hoy}
+            defaultValue={inicial.fecha ?? props.hoy}
             max={props.hoy}
             required
             className="bg-transparent text-right text-[17px] text-texto-2 outline-none"
@@ -127,7 +175,7 @@ export function FormularioMovimiento(props: {
         </label>
         <label className="flex items-center justify-between gap-4 py-3">
           <span className="text-[17px]">Se repite cada mes</span>
-          <input type="checkbox" name="recurrente" className="peer sr-only" />
+          <input type="checkbox" name="recurrente" defaultChecked={inicial.recurrente} className="peer sr-only" />
           <span
             aria-hidden="true"
             className="flex h-[31px] w-[51px] items-center rounded-full bg-control p-0.5 transition peer-checked:justify-end peer-checked:bg-verde-relleno peer-focus-visible:ring-2 peer-focus-visible:ring-azul"
@@ -142,7 +190,7 @@ export function FormularioMovimiento(props: {
         <p className="text-[15px] text-texto-2">Primero crea una meta en la pestaña Ahorros.</p>
       )}
 
-      <BotonEnviar texto="Guardar" />
+      <BotonEnviar texto={props.textoBoton ?? "Guardar"} />
     </form>
   );
 }

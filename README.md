@@ -13,6 +13,11 @@ repartes en gastos, ahorros y una bolsa “Para mí”, y siempre ves cuánto qu
 - **Metas de ahorro** con anillo de progreso y cuota mensual sugerida.
 - **Para mí:** bolsa de ocio con lo que puedes gastar por día.
 - **Consejos** calculados con reglas (50/30/20, ritmo de gasto, dinero sin destino).
+- **Historial** con páginas de 20 y filtros por fechas, tipo, categoría y texto; editar y eliminar.
+- **Dashboard** con dona por categoría y vista anual.
+- **Multimoneda:** cada movimiento guarda su tipo de cambio del día
+  ([ExchangeRate-API](https://www.exchangerate-api.com)).
+- **Tu mes** empieza el día que cobras.
 - Modo claro y oscuro automáticos, diseño al estilo iOS.
 
 ## Stack
@@ -46,6 +51,6 @@ Las migraciones están en `supabase/migrations` y las pruebas de RLS en `supabas
 
 - [x] Fase 0: base segura (Supabase + RLS, CSP, pipeline de seguridad)
 - [x] Fase 1: sueldo, gastos, ahorros, Para mí, Inicio en claro y oscuro
-- [ ] Fase 2: Historial con páginas y filtros, Dashboard, multimoneda
+- [x] Fase 2: Historial con páginas y filtros, editar y eliminar, Dashboard, multimoneda, día de pago
 - [ ] Fase 3: PWA instalable, offline, avisos y Atajo de Siri
 - [ ] Fase 4: exportar a Sheets, IA opcional, invitar personas

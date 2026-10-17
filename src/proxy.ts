@@ -3,7 +3,13 @@ import { NextResponse, type NextRequest } from "next/server";
 import { env } from "@/lib/env";
 import { construirCsp, generarNonce } from "@/lib/seguridad/csp";
 
-const RUTAS_PUBLICAS = ["/login", "/auth/callback"];
+// /api/cron se protege con su propio secreto. /vitrina (datos ficticios) solo existe en desarrollo.
+const RUTAS_PUBLICAS = [
+  "/login",
+  "/auth/callback",
+  "/api/cron",
+  ...(process.env.NODE_ENV === "development" ? ["/vitrina"] : []),
+];
 
 const esPublica = (ruta: string) => RUTAS_PUBLICAS.some((r) => ruta === r || ruta.startsWith(`${r}/`));
 

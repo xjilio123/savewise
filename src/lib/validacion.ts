@@ -27,6 +27,7 @@ export const esquemaMovimiento = z
       .min(1, { error: "Escribe un concepto" })
       .max(80, { error: "Máximo 80 caracteres" }),
     fecha: z.iso.date({ error: "Fecha inválida" }),
+    moneda: z.enum(MONEDAS, { error: "Moneda no soportada" }).optional(),
     categoria_id: uuidOpcional,
     meta_id: uuidOpcional,
     recurrente: z.boolean(),
@@ -51,6 +52,8 @@ export const esquemaMeta = z.object({
   objetivo: monto,
   fecha_objetivo: fechaOpcional,
 });
+
+export const esquemaId = z.uuid({ error: "Movimiento no encontrado" });
 
 export type ErroresCampo = Record<string, string>;
 

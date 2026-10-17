@@ -1,0 +1,37 @@
+import type { ColorApp, TipoMovimiento } from "@/lib/supabase/tipos";
+
+type Clases = { texto: string; trazo: string; suave: string; punto: string };
+
+// Clases completas (Tailwind solo genera las que aparecen escritas tal cual).
+export const CLASES_COLOR: Record<ColorApp, Clases> = {
+  rojo: { texto: "text-rojo", trazo: "text-rojo-relleno", suave: "bg-rojo-relleno/15", punto: "bg-rojo-relleno" },
+  azul: { texto: "text-azul", trazo: "text-azul", suave: "bg-azul-relleno/15", punto: "bg-azul" },
+  verde: { texto: "text-verde", trazo: "text-verde-relleno", suave: "bg-verde-relleno/15", punto: "bg-verde-relleno" },
+  morado: { texto: "text-morado", trazo: "text-morado-relleno", suave: "bg-morado-relleno/15", punto: "bg-morado-relleno" },
+  negro: { texto: "text-negro", trazo: "text-negro", suave: "bg-negro/10", punto: "bg-negro" },
+};
+
+export const COLOR_TIPO: Record<TipoMovimiento, ColorApp> = {
+  GASTO: "rojo",
+  OCIO: "morado",
+  PARA_MI: "morado",
+  AHORRO: "verde",
+  INGRESO: "azul",
+};
+
+export const NOMBRE_TIPO: Record<TipoMovimiento, string> = {
+  GASTO: "Gasto",
+  OCIO: "Para mí",
+  PARA_MI: "Bolsa Para mí",
+  AHORRO: "Ahorro",
+  INGRESO: "Ingreso",
+};
+
+/** Signo con el que se muestra cada tipo en las listas. */
+export const SIGNO_TIPO: Record<TipoMovimiento, string> = {
+  GASTO: "−",
+  OCIO: "−",
+  PARA_MI: "",
+  AHORRO: "",
+  INGRESO: "+",
+};

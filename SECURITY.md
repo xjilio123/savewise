@@ -25,6 +25,18 @@ No abras un issue público. Usa **Security → Report a vulnerability** en este 
 - **Análisis estático:** Semgrep (JavaScript, TypeScript, React, OWASP Top 10).
 - **Base de datos:** pgTAP prueba las políticas RLS en un Supabase local.
 - **Ataque simulado:** escaneo base de OWASP ZAP contra la app compilada.
+- **E2E (Playwright):** ninguna ruta privada responde sin sesión, CSP y cabeceras presentes,
+  nonce distinto por request, cron rechaza llamadas sin secreto, la vitrina no existe en producción.
+
+## Otras medidas
+
+- **Cadena de suministro:** las acciones de GitHub se fijan por SHA verificado contra el tag oficial;
+  Dependabot espera 7 días antes de proponer versiones nuevas; las versiones mayores que el ecosistema
+  aún no soporta (TypeScript 7, ESLint 10) se bloquean a propósito.
+- **Cron diario:** protegido con un secreto aleatorio de 256 bits comparado en tiempo constante.
+- **Tipo de cambio:** se consulta desde el servidor a un host fijo con códigos validados (sin SSRF)
+  y queda congelado en cada movimiento.
+- **Búsqueda:** los comodines de LIKE se escapan; los parámetros de la URL se validan uno por uno.
 
 ## Límites conocidos
 
