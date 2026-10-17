@@ -30,7 +30,7 @@ export function BorrarDatos() {
           />
         </label>
         <MensajeError texto={estado.errores?.confirmacion ?? estado.error} />
-        <BotonEnviar texto="Borrar todo" textoEnviando="Borrando…" clase="bg-rojo text-white" />
+        <BotonEnviar texto="Borrar todo" textoEnviando="Borrando…" clase="bg-rojo text-fondo" />
       </form>
     </details>
   );

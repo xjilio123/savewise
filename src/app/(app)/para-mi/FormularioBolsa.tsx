@@ -27,7 +27,7 @@ export function FormularioBolsa({ hoy, actual }: { hoy: string; actual: number }
           className="min-w-0 flex-1 rounded-2xl bg-fondo px-4 py-3 text-[17px] tabular-nums outline-none"
         />
         <div className="w-32">
-          <BotonEnviar texto="Asignar" textoEnviando="…" clase="bg-morado text-white" />
+          <BotonEnviar texto="Asignar" textoEnviando="…" clase="bg-morado text-fondo" />
         </div>
       </div>
       <MensajeError texto={estado.errores?.monto ?? estado.error} />

@@ -2,7 +2,10 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { calcularResumen } from "@/lib/dinero";
+import { etiquetaRango, hoyLima, periodoFinanciero, sumarDias } from "@/lib/fechas";
 import { enviarAviso } from "@/lib/notificaciones";
+import { sobranteDelPeriodo, sugerirFondoEmergencia } from "@/lib/planificacion";
 import { esquemaSuscripcion, generarToken, huellaToken } from "@/lib/pwa";
 import { requerirUsuario } from "@/lib/supabase/servidor";
 import { obtenerTipoCambio } from "@/lib/tipoCambio";
@@ -225,6 +228,76 @@ export async function crearMeta(_: EstadoFormulario, formData: FormData): Promis
 
   revalidatePath("/ahorros");
   redirect("/ahorros");
+}
+
+// ---------- Planificación (Fase 5) ----------
+
+/** Crea la meta "Fondo de emergencia" con 6 meses de gastos. El monto se calcula aquí, no viene del teléfono. */
+export async function crearMetaEmergencia(): Promise<void> {
+  const { supabase, usuario } = await requerirUsuario();
+  const hoy = hoyLima();
+  const [a, m] = hoy.split("-").map(Number) as [number, number];
+  const desde = new Date(Date.UTC(a, m - 3, 1)).toISOString().slice(0, 10);
+
+  const [{ data: totales }, { data: perfil }] = await Promise.all([
+    supabase.from("resumen_mensual").select("mes, total").eq("tipo", "GASTO").gte("mes", desde),
+    supabase.from("perfiles").select("moneda_base").single(),
+  ]);
+  const meses = [0, 1, 2].map((i) => new Date(Date.UTC(a, m - 3 + i, 1)).toISOString().slice(0, 10));
+  const sugerencia = sugerirFondoEmergencia(
+    meses.map((mes) => (totales ?? []).filter((t) => t.mes === mes).reduce((s, t) => s + Number(t.total ?? 0), 0)),
+  );
+  if (!sugerencia) redirect("/ahorros");
+
+  await supabase.from("metas").insert({
+    nombre: "Fondo de emergencia",
+    objetivo: sugerencia.ideal,
+    moneda: perfil?.moneda_base ?? "PEN",
+    user_id: usuario.id,
+  });
+  revalidatePath("/ahorros");
+  redirect("/ahorros");
+}
+
+/**
+ * Cierre de mes: manda lo que quedó sin asignar en el periodo anterior a una meta.
+ * El sobrante se recalcula en el servidor; el aporte se fecha en el último día de ese periodo.
+ */
+export async function cerrarPeriodo(_: EstadoFormulario, formData: FormData): Promise<EstadoFormulario> {
+  const { supabase, usuario } = await requerirUsuario();
+  const metaId = texto(formData, "meta_id");
+  if (!esquemaId.safeParse(metaId).success) return { error: "Elige una meta" };
+
+  const { data: perfil } = await supabase.from("perfiles").select("sueldo_mensual, dia_pago, moneda_base").single();
+  if (!perfil) return { error: ERROR_GENERICO };
+  const actual = periodoFinanciero(hoyLima(), perfil.dia_pago);
+  const anterior = periodoFinanciero(sumarDias(actual.desde, -1), perfil.dia_pago);
+
+  const { data: movimientos } = await supabase
+    .from("movimientos")
+    .select("tipo, monto_base")
+    .gte("fecha", anterior.desde)
+    .lte("fecha", anterior.hasta);
+  const sobrante = sobranteDelPeriodo(
+    calcularResumen(perfil.sueldo_mensual, movimientos ?? []).sinAsignar,
+    movimientos?.length ?? 0,
+  );
+  if (sobrante <= 0) return { error: "No hay nada que cerrar en el periodo anterior." };
+
+  const { error } = await supabase.from("movimientos").insert({
+    tipo: "AHORRO",
+    concepto: `Cierre ${etiquetaRango(anterior.desde, anterior.hasta)}`,
+    monto: sobrante,
+    moneda: perfil.moneda_base,
+    tipo_cambio: 1,
+    fecha: anterior.hasta,
+    meta_id: metaId,
+    user_id: usuario.id,
+  });
+  if (error) return { error: ERROR_GENERICO };
+
+  revalidatePath("/", "layout");
+  return { ok: true };
 }
 
 // ---------- Notificaciones push ----------
