@@ -2,6 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { enviarAviso } from "@/lib/notificaciones";
+import { esquemaSuscripcion, generarToken, huellaToken } from "@/lib/pwa";
 import { requerirUsuario } from "@/lib/supabase/servidor";
 import { obtenerTipoCambio } from "@/lib/tipoCambio";
 import {
@@ -22,26 +24,32 @@ const ERROR_CAMBIO = "No se pudo obtener el tipo de cambio. Revisa tu conexión 
 // Patrón de cada acción: 1) verificar la sesión con el servidor, 2) validar con Zod,
 // 3) el user_id sale de la sesión, nunca del formulario. Los errores de la base no se muestran tal cual.
 
-function leerMovimiento(formData: FormData) {
+function leerMovimiento(campo: (nombre: string) => string) {
   return esquemaMovimiento.safeParse({
-    tipo: texto(formData, "tipo"),
-    monto: texto(formData, "monto"),
-    concepto: texto(formData, "concepto"),
-    fecha: texto(formData, "fecha"),
-    moneda: texto(formData, "moneda") || undefined,
-    categoria_id: texto(formData, "categoria_id"),
-    meta_id: texto(formData, "meta_id"),
-    recurrente: texto(formData, "recurrente") === "on",
+    tipo: campo("tipo"),
+    monto: campo("monto"),
+    concepto: campo("concepto"),
+    fecha: campo("fecha"),
+    moneda: campo("moneda") || undefined,
+    categoria_id: campo("categoria_id"),
+    meta_id: campo("meta_id"),
+    recurrente: campo("recurrente") === "on",
   });
 }
 
 const destinoPorTipo = (tipo: string) =>
   ({ OCIO: "/para-mi", PARA_MI: "/para-mi", AHORRO: "/ahorros" })[tipo] ?? "/";
 
-export async function guardarMovimiento(_: EstadoFormulario, formData: FormData): Promise<EstadoFormulario> {
-  const { supabase, usuario } = await requerirUsuario();
-  const datos = leerMovimiento(formData);
-  if (!datos.success) return { errores: erroresPorCampo(datos.error) };
+type Sesion = Awaited<ReturnType<typeof requerirUsuario>>;
+
+/** Valida e inserta un movimiento. Devuelve el estado de error o null si se guardó. */
+async function insertarMovimiento(
+  { supabase, usuario }: Sesion,
+  campo: (nombre: string) => string,
+  id?: string,
+): Promise<{ estado: EstadoFormulario; tipo?: string } | null> {
+  const datos = leerMovimiento(campo);
+  if (!datos.success) return { estado: { errores: erroresPorCampo(datos.error) } };
 
   const { data: perfil } = await supabase.from("perfiles").select("moneda_base").single();
   const base = perfil?.moneda_base ?? "PEN";
@@ -52,20 +60,42 @@ export async function guardarMovimiento(_: EstadoFormulario, formData: FormData)
   try {
     tipoCambio = await obtenerTipoCambio(moneda, base);
   } catch {
-    return { error: ERROR_CAMBIO };
+    return { estado: { error: ERROR_CAMBIO } };
   }
 
   const { error } = await supabase.from("movimientos").insert({
+    ...(id ? { id } : {}),
     ...datos.data,
     meta_id: datos.data.tipo === "AHORRO" ? datos.data.meta_id : null,
     moneda,
     tipo_cambio: tipoCambio,
     user_id: usuario.id,
   });
-  if (error) return { error: ERROR_GENERICO };
+  // Con un id del cliente, "ya existe" significa que una sincronización anterior sí llegó.
+  if (error && !(id && error.code === "23505")) return { estado: { error: ERROR_GENERICO } };
+  return null;
+}
+
+export async function guardarMovimiento(_: EstadoFormulario, formData: FormData): Promise<EstadoFormulario> {
+  const sesion = await requerirUsuario();
+  const fallo = await insertarMovimiento(sesion, (c) => texto(formData, c));
+  if (fallo) return fallo.estado;
 
   revalidatePath("/", "layout");
-  redirect(destinoPorTipo(datos.data.tipo));
+  redirect(destinoPorTipo(texto(formData, "tipo")));
+}
+
+/**
+ * Envía un movimiento que se guardó en el iPhone sin conexión. El id lo genera el teléfono
+ * (crypto.randomUUID) para que reintentar nunca duplique el registro.
+ */
+export async function sincronizarMovimiento(id: string, datos: Record<string, string>): Promise<EstadoFormulario> {
+  const sesion = await requerirUsuario();
+  if (!esquemaId.safeParse(id).success) return { error: "Registro inválido" };
+  const fallo = await insertarMovimiento(sesion, (c) => (typeof datos[c] === "string" ? datos[c] : ""), id);
+  if (fallo) return fallo.estado;
+  revalidatePath("/", "layout");
+  return { ok: true };
 }
 
 export async function actualizarMovimiento(
@@ -75,7 +105,7 @@ export async function actualizarMovimiento(
 ): Promise<EstadoFormulario> {
   const { supabase } = await requerirUsuario();
   if (!esquemaId.safeParse(id).success) return { error: "Movimiento no encontrado" };
-  const datos = leerMovimiento(formData);
+  const datos = leerMovimiento((c) => texto(formData, c));
   if (!datos.success) return { errores: erroresPorCampo(datos.error) };
 
   const [{ data: actual }, { data: perfil }] = await Promise.all([
@@ -195,6 +225,64 @@ export async function crearMeta(_: EstadoFormulario, formData: FormData): Promis
 
   revalidatePath("/ahorros");
   redirect("/ahorros");
+}
+
+// ---------- Notificaciones push ----------
+
+export async function guardarSuscripcion(suscripcion: unknown): Promise<EstadoFormulario> {
+  const { supabase, usuario } = await requerirUsuario();
+  const datos = esquemaSuscripcion.safeParse(suscripcion);
+  if (!datos.success) return { error: "No se pudo activar los avisos en este dispositivo." };
+
+  // Reemplaza la suscripción previa de este dispositivo (RLS: solo las propias).
+  await supabase.from("push_suscripciones").delete().eq("endpoint", datos.data.endpoint);
+  const { error } = await supabase.from("push_suscripciones").insert({
+    endpoint: datos.data.endpoint,
+    p256dh: datos.data.keys.p256dh,
+    auth: datos.data.keys.auth,
+    user_id: usuario.id,
+  });
+  return error ? { error: "No se pudo activar los avisos." } : { ok: true };
+}
+
+export async function quitarSuscripcion(endpoint: string): Promise<EstadoFormulario> {
+  const { supabase } = await requerirUsuario();
+  if (typeof endpoint !== "string" || endpoint.length > 1000) return { error: "Dispositivo inválido" };
+  await supabase.from("push_suscripciones").delete().eq("endpoint", endpoint);
+  return { ok: true };
+}
+
+export async function enviarAvisoPrueba(): Promise<EstadoFormulario> {
+  const { supabase } = await requerirUsuario();
+  const { data: suscripciones } = await supabase.from("push_suscripciones").select("endpoint, p256dh, auth");
+  if (!suscripciones?.length) return { error: "Activa los avisos primero." };
+
+  const resultados = await Promise.all(
+    suscripciones.map((s) =>
+      enviarAviso(s, { titulo: "SaveWise", cuerpo: "Los avisos funcionan. Te avisaremos antes de cada renovación.", url: "/ajustes" }),
+    ),
+  );
+  return resultados.includes("ok") ? { ok: true } : { error: "No se pudo enviar el aviso de prueba." };
+}
+
+// ---------- Atajo de Siri ----------
+
+/** Crea (o reemplaza) el token del Atajo. Se devuelve una sola vez; en la base solo queda su huella. */
+export async function crearTokenAtajo(): Promise<{ token?: string; error?: string }> {
+  const { supabase, usuario } = await requerirUsuario();
+  const token = generarToken();
+  await supabase.from("tokens_atajo").delete().eq("user_id", usuario.id);
+  const { error } = await supabase.from("tokens_atajo").insert({ hash_token: huellaToken(token), user_id: usuario.id });
+  if (error) return { error: "No se pudo crear el token." };
+  revalidatePath("/ajustes");
+  return { token };
+}
+
+export async function revocarTokenAtajo(): Promise<EstadoFormulario> {
+  const { supabase, usuario } = await requerirUsuario();
+  await supabase.from("tokens_atajo").delete().eq("user_id", usuario.id);
+  revalidatePath("/ajustes");
+  return { ok: true };
 }
 
 export async function cerrarSesion() {

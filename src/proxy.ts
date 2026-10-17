@@ -8,6 +8,8 @@ const RUTAS_PUBLICAS = [
   "/login",
   "/auth/callback",
   "/api/cron",
+  "/api/atajo",
+  "/offline",
   ...(process.env.NODE_ENV === "development" ? ["/vitrina"] : []),
 ];
 
@@ -71,7 +73,7 @@ export async function proxy(request: NextRequest) {
 export const config = {
   matcher: [
     {
-      source: "/((?!_next/static|_next/image|favicon.ico|icon.svg|apple-icon.png|manifest.webmanifest).*)",
+      source: "/((?!_next/static|_next/image|icon.png|apple-icon.png|manifest.webmanifest|sw.js|iconos/).*)",
       missing: [
         { type: "header", key: "next-router-prefetch" },
         { type: "header", key: "purpose", value: "prefetch" },

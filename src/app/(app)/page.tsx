@@ -3,18 +3,22 @@ import { VistaInicio } from "@/components/vistas/VistaInicio";
 import { generarConsejos } from "@/lib/consejos";
 import { crearRepositorio } from "@/lib/datos/repositorio";
 import { calcularResumen } from "@/lib/dinero";
-import { etiquetaRango, fechaLarga, hoyLima, periodoFinanciero } from "@/lib/fechas";
-import { requerirUsuario } from "@/lib/supabase/servidor";
+import { etiquetaRango, fechaLarga, hoyLima, periodoFinanciero, sumarDias } from "@/lib/fechas";
+import { requerirSesion } from "@/lib/supabase/servidor";
 
 export default async function Inicio() {
-  const { supabase, usuario } = await requerirUsuario();
+  const { supabase, usuario } = await requerirSesion();
   const repo = crearRepositorio(supabase);
-  const perfil = await repo.perfil();
+  const hoy = hoyLima();
+  // Perfil y movimientos en paralelo: la ventana de ±32 días siempre contiene el periodo financiero.
+  const [perfil, ventana] = await Promise.all([
+    repo.perfil(),
+    repo.movimientosEntre(sumarDias(hoy, -32), sumarDias(hoy, 32)),
+  ]);
   if (perfil.sueldo_mensual <= 0) redirect("/bienvenida");
 
-  const hoy = hoyLima();
   const periodo = periodoFinanciero(hoy, perfil.dia_pago);
-  const movimientos = await repo.movimientosEntre(periodo.desde, periodo.hasta);
+  const movimientos = ventana.filter((m) => m.fecha >= periodo.desde && m.fecha <= periodo.hasta);
   const resumen = calcularResumen(perfil.sueldo_mensual, movimientos);
 
   return (

@@ -1,35 +1,51 @@
 import { timingSafeEqual } from "node:crypto";
-import { env } from "@/lib/env";
+import { enviarAviso } from "@/lib/notificaciones";
+import { crearClienteAnonimo } from "@/lib/supabase/anonimo";
 import { obtenerTipoCambio } from "@/lib/tipoCambio";
 
-// Lo llama Vercel Cron una vez al día con "Authorization: Bearer $CRON_SECRET".
+// Lo llama Vercel Cron una vez al día (9:00 de Lima) con "Authorization: Bearer $CRON_SECRET".
 // 1) Mantiene activo el proyecto de Supabase (el plan gratis se pausa tras 7 días sin uso).
-// 2) Precalienta la caché del tipo de cambio para que guardar en otra moneda sea rápido.
+// 2) Envía los avisos del día: renovaciones en 3 días y "hoy cobras".
+// 3) Precalienta la caché del tipo de cambio.
 
-function autorizado(cabecera: string | null): boolean {
+function secretoValido(cabecera: string | null): string | null {
   const secreto = process.env.CRON_SECRET;
-  if (!secreto || !cabecera) return false;
+  if (!secreto || !cabecera) return null;
   const esperado = Buffer.from(`Bearer ${secreto}`);
   const recibido = Buffer.from(cabecera);
-  return esperado.length === recibido.length && timingSafeEqual(esperado, recibido);
+  return esperado.length === recibido.length && timingSafeEqual(esperado, recibido) ? secreto : null;
 }
 
 export async function GET(request: Request) {
-  if (!autorizado(request.headers.get("authorization"))) {
-    return new Response("No autorizado", { status: 401 });
-  }
+  const secreto = secretoValido(request.headers.get("authorization"));
+  if (!secreto) return new Response("No autorizado", { status: 401 });
 
-  const ping = await fetch(`${env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/rpc/ping`, {
-    method: "POST",
-    headers: { apikey: env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY, "Content-Type": "application/json" },
-    body: "{}",
-    cache: "no-store",
-  });
+  const supabase = crearClienteAnonimo();
+  const ping = await supabase.rpc("ping");
+
+  // La base solo devuelve los avisos si el secreto coincide con su huella guardada.
+  const { data: avisos, error } = await supabase.rpc("recordatorios_del_dia", { p_token: secreto });
+  let enviados = 0;
+  let vencidas = 0;
+  for (const a of avisos ?? []) {
+    const resultado = await enviarAviso(
+      { endpoint: a.r_endpoint, p256dh: a.r_p256dh, auth: a.r_auth },
+      { titulo: a.r_titulo, cuerpo: a.r_cuerpo, url: a.r_url },
+    );
+    if (resultado === "ok") enviados++;
+    if (resultado === "vencida") {
+      vencidas++;
+      await supabase.rpc("eliminar_suscripcion_vencida", { p_token: secreto, p_endpoint: a.r_endpoint });
+    }
+  }
 
   const tipoCambio = await obtenerTipoCambio("USD", "PEN").then(
     () => true,
     () => false,
   );
 
-  return Response.json({ supabase: ping.ok, tipoCambio }, { status: ping.ok ? 200 : 502 });
+  return Response.json(
+    { supabase: !ping.error, avisos: error ? "error" : { enviados, vencidas }, tipoCambio },
+    { status: ping.error ? 502 : 200 },
+  );
 }

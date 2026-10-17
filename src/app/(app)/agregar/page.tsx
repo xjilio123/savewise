@@ -1,12 +1,12 @@
 import { Encabezado, Pantalla } from "@/components/ui";
 import { crearRepositorio } from "@/lib/datos/repositorio";
 import { hoyLima } from "@/lib/fechas";
-import { requerirUsuario } from "@/lib/supabase/servidor";
+import { requerirSesion } from "@/lib/supabase/servidor";
 import { TIPOS_FORMULARIO } from "@/lib/validacion";
 import { FormularioMovimiento } from "./FormularioMovimiento";
 
 export default async function Agregar({ searchParams }: PageProps<"/agregar">) {
-  const { supabase } = await requerirUsuario();
+  const { supabase } = await requerirSesion();
   const repo = crearRepositorio(supabase);
   const [perfil, categorias, metas, params] = await Promise.all([
     repo.perfil(),

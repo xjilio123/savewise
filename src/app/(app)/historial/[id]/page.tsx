@@ -4,14 +4,14 @@ import { FormularioMovimiento } from "@/app/(app)/agregar/FormularioMovimiento";
 import { Encabezado, Pantalla } from "@/components/ui";
 import { crearRepositorio } from "@/lib/datos/repositorio";
 import { hoyLima } from "@/lib/fechas";
-import { requerirUsuario } from "@/lib/supabase/servidor";
+import { requerirSesion } from "@/lib/supabase/servidor";
 import { esquemaId } from "@/lib/validacion";
 
 export default async function EditarMovimiento({ params }: PageProps<"/historial/[id]">) {
   const { id } = await params;
   if (!esquemaId.safeParse(id).success) notFound();
 
-  const { supabase } = await requerirUsuario();
+  const { supabase } = await requerirSesion();
   const repo = crearRepositorio(supabase);
   // RLS: si el movimiento es de otra persona, la consulta no lo devuelve y se responde 404.
   const [movimiento, perfil, categorias, metas] = await Promise.all([

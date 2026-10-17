@@ -138,6 +138,25 @@ export type Database = {
         };
         Relationships: [];
       };
+      push_suscripciones: {
+        Row: { auth: string; creado: string; endpoint: string; id: string; p256dh: string; user_id: string };
+        Insert: { auth: string; endpoint: string; p256dh: string; user_id?: string };
+        Update: { [_ in never]: never };
+        Relationships: [];
+      };
+      tokens_atajo: {
+        Row: {
+          creado: string;
+          hash_token: string;
+          ultimo_uso: string | null;
+          user_id: string;
+          usos_ventana: number;
+          ventana_inicio: string | null;
+        };
+        Insert: { hash_token: string; user_id?: string };
+        Update: { [_ in never]: never };
+        Relationships: [];
+      };
       tipos_cambio: {
         Row: { fecha: string; moneda: string; valor_pen: number };
         Insert: { fecha: string; moneda: string; valor_pen: number };
@@ -167,6 +186,18 @@ export type Database = {
         Returns: { categoria_id: string; color: ColorApp; nombre: string; total: number }[];
       };
       ping: { Args: never; Returns: number };
+      recordatorios_del_dia: {
+        Args: { p_token: string };
+        Returns: { r_auth: string; r_cuerpo: string; r_endpoint: string; r_p256dh: string; r_titulo: string; r_url: string }[];
+      };
+      eliminar_suscripcion_vencida: {
+        Args: { p_token: string; p_endpoint: string };
+        Returns: undefined;
+      };
+      registrar_por_atajo: {
+        Args: { p_categoria?: string; p_concepto: string; p_monto: number; p_tipo?: string; p_token: string };
+        Returns: { concepto: string; monto: number; moneda: string };
+      };
       resumen_filtrado: {
         Args: {
           p_categoria?: string;

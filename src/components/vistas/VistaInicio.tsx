@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Anillos } from "@/components/Anillos";
 import { Icono } from "@/components/Icono";
+import { AvisoInstalar } from "@/components/pwa/AvisoInstalar";
 import { Pantalla, Tarjeta } from "@/components/ui";
 import type { Consejo } from "@/lib/consejos";
 import { formatearDinero, fraccion, type Resumen } from "@/lib/dinero";
@@ -39,6 +40,8 @@ export function VistaInicio({ fecha, periodo, inicial, moneda, resumen: r, conse
           {inicial}
         </Link>
       </header>
+
+      <AvisoInstalar />
 
       <section className="rounded-[28px] bg-gradient-to-br from-heroe-desde to-heroe-hasta p-6 text-white shadow-[0_12px_30px_rgb(0_98_209/0.28)]">
         <p className="text-[15px] font-semibold text-white/85">Sin asignar</p>
