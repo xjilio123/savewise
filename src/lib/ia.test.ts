@@ -1,5 +1,13 @@
 import { describe, expect, it, vi } from "vitest";
-import { cuerpoPeticion, extraerTexto, MODELO_POR_DEFECTO, modeloValido, pedirResumen, type DatosIA } from "./ia";
+import {
+  cuerpoPeticion,
+  extraerTexto,
+  MODELO_POR_DEFECTO,
+  modeloValido,
+  pedirResumen,
+  simboloMoneda,
+  type DatosIA,
+} from "./ia";
 
 const datos: DatosIA = {
   periodo: "1 oct – 31 oct",
@@ -18,11 +26,29 @@ describe("cuerpoPeticion", () => {
     const cuerpo = cuerpoPeticion(datos);
     const enviado = JSON.parse(cuerpo.contents[0]!.parts[0]!.text);
     expect(Object.keys(enviado).sort()).toEqual(
-      ["deudas", "dias", "gastos_por_categoria", "moneda", "periodo", "periodo_anterior", "sueldo", "este_periodo"].sort(),
+      [
+        "deudas",
+        "dias",
+        "gastos_por_categoria",
+        "moneda",
+        "periodo",
+        "periodo_anterior",
+        "simbolo",
+        "sueldo",
+        "este_periodo",
+      ].sort(),
     );
     expect(enviado.este_periodo.gastos).toBe(612.35);
     expect(enviado.gastos_por_categoria[0]).toEqual({ categoria: "Alimentación", total: 320.5, tope: 400 });
     expect(enviado.gastos_por_categoria[1]).not.toHaveProperty("tope");
+  });
+
+  it("sin historial no manda periodo anterior y usa el símbolo local", () => {
+    const vacio = { ...datos, anterior: { gastos: 0, ahorros: 0, ocio: 0 } };
+    const enviado = JSON.parse(cuerpoPeticion(vacio).contents[0]!.parts[0]!.text);
+    expect(enviado.periodo_anterior).toBeNull();
+    expect(enviado.simbolo).toBe("S/");
+    expect(simboloMoneda("XYZ1")).toBe("XYZ1");
   });
 
   it("limita la cantidad y el largo de las categorías", () => {
