@@ -11,9 +11,18 @@ export type Database = {
   public: {
     Tables: {
       categorias: {
-        Row: { color: ColorApp; creado: string; icono: string; id: string; nombre: string; user_id: string };
-        Insert: { color: ColorApp; creado?: string; icono?: string; id?: string; nombre: string; user_id?: string };
-        Update: { color?: ColorApp; creado?: string; icono?: string; id?: string; nombre?: string; user_id?: string };
+        Row: {
+          color: ColorApp;
+          creado: string;
+          icono: string;
+          id: string;
+          nombre: string;
+          user_id: string;
+          tope: number | null;
+          tope_avisado: string | null;
+        };
+        Insert: { color: ColorApp; creado?: string; icono?: string; id?: string; nombre: string; user_id?: string; tope?: number | null };
+        Update: { color?: ColorApp; icono?: string; nombre?: string; tope?: number | null };
         Relationships: [];
       };
       metas: {

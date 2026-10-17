@@ -70,11 +70,11 @@ export const MOVIMIENTOS = [
 ];
 
 export const POR_CATEGORIA: GastoCategoria[] = [
-  { nombre: "Alimentación", color: "rojo", total: 300 },
-  { nombre: "Transporte", color: "azul", total: 150 },
-  { nombre: "Suscripciones", color: "negro", total: 108.22 },
-  { nombre: "Ocio", color: "morado", total: 103.5 },
-  { nombre: "Servicios", color: "verde", total: 39.9 },
+  { id: "c1", nombre: "Alimentación", color: "rojo", total: 300, tope: 350 },
+  { id: "c2", nombre: "Transporte", color: "azul", total: 150, tope: 120 },
+  { id: "c3", nombre: "Suscripciones", color: "negro", total: 108.22 },
+  { id: "c4", nombre: "Ocio", color: "morado", total: 103.5 },
+  { id: "c5", nombre: "Servicios", color: "verde", total: 39.9 },
 ];
 
 export const MESES: MesGrafico[] = ["nov", "dic", "ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sept", "oct"].map(
