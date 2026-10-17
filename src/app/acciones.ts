@@ -8,6 +8,7 @@ import { saldoDeuda } from "@/lib/deudas";
 import { calcularResumen } from "@/lib/dinero";
 import { etiquetaRango, hoyLima, periodoFinanciero, sumarDias } from "@/lib/fechas";
 import { pedirResumen, type ResultadoIA } from "@/lib/ia";
+import { finDelReto, objetivoReto } from "@/lib/ideas";
 import { enviarAviso } from "@/lib/notificaciones";
 import { sobranteDelPeriodo, sugerirFondoEmergencia } from "@/lib/planificacion";
 import { esquemaSuscripcion, generarToken, huellaToken } from "@/lib/pwa";
@@ -44,6 +45,7 @@ function leerMovimiento(campo: (nombre: string) => string) {
     categoria_id: campo("categoria_id"),
     meta_id: campo("meta_id"),
     deuda_id: campo("deuda_id"),
+    nota: campo("nota"),
     recurrente: campo("recurrente") === "on",
   });
 }
@@ -337,6 +339,30 @@ export async function guardarTopes(_: EstadoFormulario, formData: FormData): Pro
 }
 
 // ---------- Notificaciones push ----------
+
+// ---------- Reto de 52 semanas ----------
+
+/** Montos base permitidos: el objetivo y cada aporte semanal se calculan aquí, no vienen del teléfono. */
+const BASES_RETO = [1, 2, 5, 10] as const;
+
+export async function crearReto(formData: FormData): Promise<void> {
+  const { supabase, usuario } = await requerirUsuario();
+  const base = Number(texto(formData, "base"));
+  if (!(BASES_RETO as readonly number[]).includes(base)) redirect("/ahorros");
+
+  const hoy = hoyLima();
+  const { data: perfil } = await supabase.from("perfiles").select("moneda_base").single();
+  await supabase.from("metas").insert({
+    nombre: "Reto 52 semanas",
+    objetivo: objetivoReto(base),
+    fecha_objetivo: finDelReto(hoy),
+    reto_base: base,
+    moneda: perfil?.moneda_base ?? "PEN",
+    user_id: usuario.id,
+  });
+  revalidatePath("/ahorros");
+  redirect("/ahorros");
+}
 
 // ---------- Deudas y tarjetas (Fase 5c) ----------
 

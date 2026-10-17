@@ -4,6 +4,8 @@
 export const TEMAS = ["auto", "claro", "oscuro"] as const;
 export type Tema = (typeof TEMAS)[number];
 export const COOKIE_TEMA = "tema";
+/** "1" = montos ocultos. Solo lo lee el servidor para pintar la página ya oculta. */
+export const COOKIE_PRIVADO = "privado";
 
 /** Cualquier valor desconocido o manipulado vuelve a "auto". */
 export function leerTema(valor: string | undefined): Tema {

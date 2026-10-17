@@ -4,6 +4,7 @@ import { BarraPestanas } from "@/components/BarraPestanas";
 import { ListaAportes } from "@/app/(app)/ahorros/ListaAportes";
 import { SelectorTema } from "@/app/(app)/ajustes/SelectorTema";
 import { ResumenIA } from "@/app/(app)/dashboard/ResumenIA";
+import { BotonPrivado } from "@/components/BotonPrivado";
 import { CierreMes } from "@/components/CierreMes";
 import { VistaDashboard } from "@/components/vistas/VistaDashboard";
 import { VistaDeudas } from "@/components/vistas/VistaDeudas";
@@ -35,6 +36,7 @@ export default async function Vitrina({ searchParams }: PageProps<"/vitrina">) {
         resumen={resumen}
         consejo={consejos[0] ?? null}
         sinMovimientos={false}
+        privado={<BotonPrivado inicial={false} />}
         extra={
           <CierreMes
             clave="vitrina"
@@ -83,6 +85,7 @@ export default async function Vitrina({ searchParams }: PageProps<"/vitrina">) {
         resumen={resumen}
         consejos={consejos}
         meses={f.MESES}
+        pagos={f.PAGOS}
         extra={<ResumenIA />}
       />
     ),

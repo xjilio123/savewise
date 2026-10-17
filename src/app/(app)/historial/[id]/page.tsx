@@ -45,6 +45,7 @@ export default async function EditarMovimiento({ params }: PageProps<"/historial
           categoria_id: movimiento.categoria_id ?? "",
           meta_id: movimiento.meta_id ?? "",
           deuda_id: movimiento.deuda_id ?? "",
+          nota: movimiento.nota,
           recurrente: movimiento.recurrente,
         }}
       />

@@ -8,6 +8,8 @@ import { CLASES_COLOR } from "@/lib/colores";
 import type { Consejo } from "@/lib/consejos";
 import type { GastoCategoria } from "@/lib/datos/repositorio";
 import { formatearDinero, fraccion, type Resumen } from "@/lib/dinero";
+import { fechaCorta } from "@/lib/fechas";
+import type { PagoCalendario } from "@/lib/ideas";
 
 export type MesGrafico = { etiqueta: string; gastos: number; ahorros: number };
 
@@ -19,6 +21,8 @@ export type DatosDashboard = {
   resumen: Resumen;
   consejos: Consejo[];
   meses: MesGrafico[];
+  /** Suscripciones y cuotas de deudas del periodo. */
+  pagos?: PagoCalendario[];
   /** Contenido opcional al final (el resumen con IA). */
   extra?: ReactNode;
 };
@@ -59,6 +63,8 @@ export function VistaDashboard(d: DatosDashboard) {
 
       {d.vista === "mes" ? <VistaMes {...d} dinero={dinero} /> : <VistaAnio meses={d.meses} dinero={dinero} />}
 
+      {d.vista === "mes" && d.pagos && d.pagos.length > 0 && <CalendarioPagos pagos={d.pagos} />}
+
       {d.consejos.length > 0 && (
         <section className="flex flex-col gap-2">
           <h2 className="px-1 text-[13px] font-semibold uppercase tracking-wide text-texto-2">Para ti</h2>
@@ -69,7 +75,7 @@ export function VistaDashboard(d: DatosDashboard) {
               </span>
               <span>
                 <span className="block text-[17px] font-bold">{c.titulo}</span>
-                <span className="block text-[15px] leading-snug text-texto-2">{c.texto}</span>
+                <span className="monto block text-[15px] leading-snug text-texto-2">{c.texto}</span>
               </span>
             </div>
           ))}
@@ -118,6 +124,11 @@ function VistaMes({ categorias, resumen: r, dinero }: DatosDashboard & { dinero:
                     <span className="text-[15px] tabular-nums text-texto-2">{Math.round(fraccion(c.total, total) * 100)}%</span>
                     <span className="w-28 text-right text-[17px] font-semibold tabular-nums">{dinero(c.total)}</span>
                   </div>
+                  {c.variacion != null && c.variacion !== 0 && (
+                    <span className={`pl-6 text-[13px] ${c.variacion > 0 ? "text-rojo" : "text-verde"}`}>
+                      {c.variacion > 0 ? "↑" : "↓"} {Math.abs(c.variacion)}% frente al periodo anterior
+                    </span>
+                  )}
                   {usoTope !== null && c.tope && (
                     <div className="flex flex-col gap-1 pl-6">
                       <Barra
@@ -125,7 +136,7 @@ function VistaMes({ categorias, resumen: r, dinero }: DatosDashboard & { dinero:
                         clase={usoTope >= 1 ? "text-rojo-relleno" : usoTope >= 0.8 ? "text-morado-relleno" : "text-verde-relleno"}
                       />
                       <span className={`text-[13px] ${usoTope >= 1 ? "font-semibold text-rojo" : "text-texto-2"}`}>
-                        {Math.round(usoTope * 100)}% de tu tope de {dinero(c.tope)}
+                        {Math.round(usoTope * 100)}% de tu tope de <span className="monto">{dinero(c.tope)}</span>
                       </span>
                     </div>
                   )}
@@ -148,6 +159,37 @@ function VistaMes({ categorias, resumen: r, dinero }: DatosDashboard & { dinero:
         ))}
       </div>
     </>
+  );
+}
+
+function CalendarioPagos({ pagos }: { pagos: PagoCalendario[] }) {
+  const pendientes = pagos.filter((p) => !p.pagado).length;
+  return (
+    <section className="flex flex-col gap-2">
+      <h2 className="px-1 text-[13px] font-semibold uppercase tracking-wide text-texto-2">
+        Calendario de pagos{pendientes > 0 ? ` · ${pendientes} pendiente${pendientes === 1 ? "" : "s"}` : ""}
+      </h2>
+      <ul className="divide-y divide-linea rounded-[22px] bg-tarjeta px-4">
+        {pagos.map((p) => (
+          <li key={`${p.origen}-${p.concepto}-${p.fecha}`} className="flex items-center gap-3 py-3">
+            <span className={`w-14 shrink-0 text-[15px] font-semibold ${p.pagado ? "text-texto-2" : "text-texto"}`}>
+              {fechaCorta(p.fecha)}
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className={`block truncate text-[17px] ${p.pagado ? "text-texto-2 line-through" : ""}`}>{p.concepto}</span>
+              <span className="block text-[13px] text-texto-2">
+                {p.origen === "deuda" ? "Cuota" : "Suscripción"} · {p.pagado ? "pagado" : "pendiente"}
+              </span>
+            </span>
+            {p.monto !== null && (
+              <span className={`shrink-0 text-[17px] font-semibold tabular-nums ${p.pagado ? "text-texto-2" : ""}`}>
+                {formatearDinero(p.monto, p.moneda)}
+              </span>
+            )}
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }
 
@@ -197,7 +239,7 @@ function VistaAnio({ meses, dinero }: { meses: MesGrafico[]; dinero: (n: number)
       </div>
       {mayor && (
         <p className="px-1 text-[15px] text-texto-2">
-          Tu mes con más gastos fue <span className="font-semibold text-texto">{mayor.etiqueta}</span>, con {dinero(mayor.gastos)}.
+          Tu mes con más gastos fue <span className="font-semibold text-texto">{mayor.etiqueta}</span>, con <span className="monto">{dinero(mayor.gastos)}</span>.
         </p>
       )}
     </>

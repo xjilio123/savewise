@@ -158,6 +158,7 @@ export function VistaHistorial({ filtros, filas, cantidad, totales, categorias, 
                           {etiqueta}
                           {m.recurrente ? " · cada mes" : ""}
                         </span>
+                        {m.nota && <span className="block truncate text-[13px] italic text-texto-2">{m.nota}</span>}
                       </span>
                       <span className="text-right">
                         <span className={`block text-[17px] font-semibold tabular-nums ${colorMonto}`}>

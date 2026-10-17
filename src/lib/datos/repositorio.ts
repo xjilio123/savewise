@@ -7,7 +7,15 @@ export type MetaConProgreso = Meta & { ahorrado: number };
 export type DeudaConPagos = Deuda & { pagado: number };
 export type Aporte = Pick<Movimiento, "id" | "fecha" | "concepto" | "monto" | "moneda"> & { meta: { nombre: string } | null };
 export type FilaHistorial = Movimiento & { categoria: { nombre: string; color: ColorApp } | null };
-export type GastoCategoria = { id: string | null; nombre: string; color: ColorApp; total: number; tope?: number | null };
+export type GastoCategoria = {
+  id: string | null;
+  nombre: string;
+  color: ColorApp;
+  total: number;
+  tope?: number | null;
+  /** % frente al periodo anterior; null si antes no hubo gasto en esa categoría. */
+  variacion?: number | null;
+};
 export type TotalMes = { mes: string; tipo: TipoMovimiento; total: number };
 
 /**

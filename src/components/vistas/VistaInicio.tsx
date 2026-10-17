@@ -17,9 +17,11 @@ export type DatosInicio = {
   sinMovimientos: boolean;
   /** Tarjetas adicionales bajo el resumen (por ejemplo, el cierre de mes). */
   extra?: ReactNode;
+  /** Botón para ocultar los montos (va junto a la foto de perfil). */
+  privado?: ReactNode;
 };
 
-export function VistaInicio({ fecha, periodo, inicial, moneda, resumen: r, consejo, sinMovimientos, extra }: DatosInicio) {
+export function VistaInicio({ fecha, periodo, inicial, moneda, resumen: r, consejo, sinMovimientos, extra, privado }: DatosInicio) {
   const dinero = (n: number) => formatearDinero(n, moneda);
   const partes = [
     { nombre: "Gastos", monto: r.gastos, texto: "text-rojo", anillo: "text-rojo-relleno" },
@@ -35,6 +37,8 @@ export function VistaInicio({ fecha, periodo, inicial, moneda, resumen: r, conse
           <p className="text-[15px] font-semibold text-texto-2">{fecha}</p>
           <h1 className="text-[34px] font-extrabold leading-tight tracking-tight">Inicio</h1>
         </div>
+        <div className="flex items-center gap-2">
+        {privado}
         <Link
           href="/ajustes"
           aria-label="Ajustes"
@@ -42,6 +46,7 @@ export function VistaInicio({ fecha, periodo, inicial, moneda, resumen: r, conse
         >
           {inicial}
         </Link>
+        </div>
       </header>
 
       <AvisoInstalar />
@@ -50,7 +55,7 @@ export function VistaInicio({ fecha, periodo, inicial, moneda, resumen: r, conse
         <p className="text-[15px] font-semibold text-white/85">Sin asignar</p>
         <p className="text-[44px] font-extrabold leading-tight tracking-tight tabular-nums">{dinero(r.sinAsignar)}</p>
         <p className="text-[15px] text-white/85">
-          de {dinero(r.ingresos)} · {periodo}
+          de <span className="monto">{dinero(r.ingresos)}</span> · {periodo}
         </p>
       </section>
 
@@ -98,7 +103,7 @@ export function VistaInicio({ fecha, periodo, inicial, moneda, resumen: r, conse
           <Link href="/dashboard" className="flex items-start gap-3 rounded-[22px] bg-tinte-morado px-5 py-4">
             <Icono nombre="bombilla" className="mt-0.5 size-6 shrink-0 text-morado" />
             <p className="text-[16px] leading-snug">
-              <span className="font-semibold">{consejo.titulo}:</span> {consejo.texto}
+              <span className="font-semibold">{consejo.titulo}:</span> <span className="monto">{consejo.texto}</span>
             </p>
           </Link>
         )
