@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { crearRepositorio } from "@/lib/datos/repositorio";
 import { saldoDeuda } from "@/lib/deudas";
@@ -11,6 +12,7 @@ import { enviarAviso } from "@/lib/notificaciones";
 import { sobranteDelPeriodo, sugerirFondoEmergencia } from "@/lib/planificacion";
 import { esquemaSuscripcion, generarToken, huellaToken } from "@/lib/pwa";
 import { requerirUsuario } from "@/lib/supabase/servidor";
+import { COOKIE_TEMA, TEMAS } from "@/lib/tema";
 import { obtenerTipoCambio } from "@/lib/tipoCambio";
 import {
   erroresPorCampo,
@@ -154,12 +156,16 @@ export async function actualizarMovimiento(
   redirect("/historial");
 }
 
-export async function eliminarMovimiento(id: string): Promise<void> {
+/** Pantallas a las que se puede volver tras eliminar (lista cerrada: evita redirecciones abiertas). */
+const VOLVER_TRAS_ELIMINAR = ["/historial", "/ahorros"] as const;
+
+export async function eliminarMovimiento(id: string, volver: string = "/historial"): Promise<void> {
   const { supabase } = await requerirUsuario();
-  if (!esquemaId.safeParse(id).success) redirect("/historial");
+  const destino = (VOLVER_TRAS_ELIMINAR as readonly string[]).includes(volver) ? volver : "/historial";
+  if (!esquemaId.safeParse(id).success) redirect(destino);
   await supabase.from("movimientos").delete().eq("id", id);
   revalidatePath("/", "layout");
-  redirect("/historial");
+  redirect(destino);
 }
 
 export async function borrarMisDatos(_: EstadoFormulario, formData: FormData): Promise<EstadoFormulario> {
@@ -482,6 +488,21 @@ export async function revocarTokenAtajo(): Promise<EstadoFormulario> {
   await supabase.from("tokens_atajo").delete().eq("user_id", usuario.id);
   revalidatePath("/ajustes");
   return { ok: true };
+}
+
+/** Guarda el tema elegido. La cookie no es un secreto, pero va HttpOnly: solo la lee el servidor. */
+export async function guardarTema(formData: FormData): Promise<void> {
+  await requerirUsuario();
+  const tema = texto(formData, "tema");
+  if (!(TEMAS as readonly string[]).includes(tema)) return;
+  (await cookies()).set(COOKIE_TEMA, tema, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/",
+    maxAge: 60 * 60 * 24 * 365,
+  });
+  revalidatePath("/", "layout");
 }
 
 export async function cerrarSesion() {

@@ -53,7 +53,7 @@ export default async function EditarMovimiento({ params }: PageProps<"/historial
         <summary className="cursor-pointer list-none px-5 py-4 text-center text-[17px] font-semibold text-rojo">
           Eliminar movimiento
         </summary>
-        <form action={eliminarMovimiento.bind(null, id)} className="flex flex-col gap-3 px-4 pb-4">
+        <form action={eliminarMovimiento.bind(null, id, "/historial")} className="flex flex-col gap-3 px-4 pb-4">
           <p className="text-center text-[15px] text-texto-2">Esto no se puede deshacer.</p>
           <button type="submit" className="rounded-[18px] bg-rojo py-3.5 text-[17px] font-bold text-fondo">
             Sí, eliminar

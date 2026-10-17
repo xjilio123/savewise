@@ -5,6 +5,7 @@ import type { Categoria, ColorApp, Database, Deuda, Meta, Movimiento, Perfil, Ti
 
 export type MetaConProgreso = Meta & { ahorrado: number };
 export type DeudaConPagos = Deuda & { pagado: number };
+export type Aporte = Pick<Movimiento, "id" | "fecha" | "concepto" | "monto" | "moneda"> & { meta: { nombre: string } | null };
 export type FilaHistorial = Movimiento & { categoria: { nombre: string; color: ColorApp } | null };
 export type GastoCategoria = { id: string | null; nombre: string; color: ColorApp; total: number; tope?: number | null };
 export type TotalMes = { mes: string; tipo: TipoMovimiento; total: number };
@@ -112,6 +113,19 @@ export function crearRepositorio(supabase: SupabaseClient<Database>) {
       return obtener(
         supabase.from("movimientos").select("meta_id, fecha, monto_base").eq("tipo", "AHORRO").gte("fecha", desde),
       );
+    },
+
+    /** Últimos aportes a metas, para revisarlos o borrarlos desde Ahorros. */
+    async aportesRecientes(limite: number): Promise<Aporte[]> {
+      return (await obtener(
+        supabase
+          .from("movimientos")
+          .select("id, fecha, concepto, monto, moneda, meta:metas(nombre)")
+          .eq("tipo", "AHORRO")
+          .order("fecha", { ascending: false })
+          .order("creado", { ascending: false })
+          .limit(limite),
+      )) as Aporte[];
     },
 
     categorias(): Promise<Categoria[]> {

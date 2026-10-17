@@ -1,6 +1,20 @@
 @import "tailwindcss";
 
-/* Tokens de SaveWise: colores de sistema de iOS. Modo claro y oscuro siguen al iPhone. */
+/*
+ * Tokens de SaveWise: colores de sistema de iOS.
+ * Tema: sin data-tema sigue al iPhone; data-tema="claro" u "oscuro" lo fija (cookie leída en el servidor).
+ */
+@custom-variant dark {
+  @media (prefers-color-scheme: dark) {
+    &:where(:root:not([data-tema="claro"]) *) {
+      @slot;
+    }
+  }
+  &:where([data-tema="oscuro"] *) {
+    @slot;
+  }
+}
+
 :root {
   color-scheme: light dark;
   --fondo: #f2f2f7;
@@ -27,7 +41,7 @@
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-tema="claro"]) {
     --fondo: #000000;
     --tarjeta: #1c1c1e;
     --texto: #f5f5f7;
@@ -50,6 +64,36 @@
     --heroe-desde: #0058c9;
     --heroe-hasta: #7d3bb0;
   }
+}
+
+/* Mismo bloque que el de arriba: el tema oscuro elegido a mano, aunque el iPhone esté en claro. */
+:root[data-tema="oscuro"] {
+  color-scheme: dark;
+  --fondo: #000000;
+  --tarjeta: #1c1c1e;
+  --texto: #f5f5f7;
+  --texto-2: #8e8e93;
+  --linea: #2c2c2e;
+  --control: #2c2c2e;
+
+  --rojo: #ff453a;
+  --rojo-relleno: #ff453a;
+  --verde: #30d158;
+  --verde-relleno: #30d158;
+  --morado: #bf5af2;
+  --morado-relleno: #bf5af2;
+  --azul: #0a84ff;
+  --azul-relleno: #0071e3;
+  --negro: #e5e5ea;
+
+  --tinte-morado: #2a1d33;
+  --barra: rgb(28 28 30 / 0.82);
+  --heroe-desde: #0058c9;
+  --heroe-hasta: #7d3bb0;
+}
+
+:root[data-tema="claro"] {
+  color-scheme: light;
 }
 
 @theme inline {
