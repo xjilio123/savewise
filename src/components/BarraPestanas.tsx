@@ -27,6 +27,7 @@ export function BarraPestanas() {
             <Link
               key={p.ruta}
               href={p.ruta}
+              prefetch
               aria-label={p.nombre}
               aria-current={activa ? "page" : undefined}
               className={`flex items-center justify-center rounded-full py-2.5 transition-colors ${
@@ -40,6 +41,7 @@ export function BarraPestanas() {
       </div>
       <Link
         href="/agregar"
+        prefetch
         aria-label="Agregar movimiento"
         className="grid size-16 shrink-0 place-items-center rounded-full bg-azul-relleno text-white shadow-[0_8px_20px_rgb(0_113_227/0.35)] active:scale-95"
       >

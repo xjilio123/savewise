@@ -76,6 +76,17 @@ export function EstadoConexion() {
     };
   }, [sincronizar]);
 
+  // Al volver a la app después de un rato, trae datos frescos (por ejemplo, un gasto registrado con Siri).
+  useEffect(() => {
+    let oculta = 0;
+    const alCambiar = () => {
+      if (document.visibilityState === "hidden") oculta = Date.now();
+      else if (oculta && Date.now() - oculta > 60_000) router.refresh();
+    };
+    document.addEventListener("visibilitychange", alCambiar);
+    return () => document.removeEventListener("visibilitychange", alCambiar);
+  }, [router]);
+
   useEffect(() => {
     if (!mensaje) return;
     const t = setTimeout(() => setMensaje(null), 4000);

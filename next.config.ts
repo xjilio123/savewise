@@ -17,6 +17,11 @@ const cabecerasSeguridad = [
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  experimental: {
+    // Caché del navegador: volver a una pestaña ya vista es instantáneo durante 60 s.
+    // Guardar cualquier movimiento (revalidatePath) invalida esta caché al momento.
+    staleTimes: { dynamic: 60, static: 60 },
+  },
   turbopack: {
     rules: {
       "*.css": {

@@ -4,7 +4,7 @@ import { Icono } from "@/components/Icono";
 
 export function Pantalla({ children }: { children: ReactNode }) {
   return (
-    <main className="mx-auto flex min-h-dvh max-w-md flex-col gap-4 px-5 pt-[max(env(safe-area-inset-top),20px)] pb-36">
+    <main className="mx-auto flex min-h-dvh max-w-md flex-col gap-4 px-5 pt-[calc(env(safe-area-inset-top)+28px)] pb-36">
       {children}
     </main>
   );
