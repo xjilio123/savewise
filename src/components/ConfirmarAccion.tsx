@@ -16,13 +16,21 @@ type Props = {
   confirmando?: string;
 };
 
+/**
+ * Botones de la alerta. Sin anillo de foco: el iPhone lo pintaba como líneas celestes porque
+ * "Cancelar" empieza enfocado. Como en las alertas nativas, se marca con un gris suave
+ * al tocar o al navegar con teclado.
+ */
+const BOTON_ALERTA =
+  "w-full py-3 text-[17px] font-semibold outline-none transition-colors active:bg-control focus-visible:bg-control";
+
 function BotonConfirmar({ texto, enviando }: { texto: string; enviando: string }) {
   const { pending } = useFormStatus();
   return (
     <button
       type="submit"
       disabled={pending}
-      className="w-full py-3 text-[17px] font-semibold text-rojo disabled:opacity-60"
+      className={`${BOTON_ALERTA} text-rojo disabled:opacity-60`}
     >
       {pending ? enviando : texto}
     </button>
@@ -32,7 +40,8 @@ function BotonConfirmar({ texto, enviando }: { texto: string; enviando: string }
 /**
  * Doble validación para acciones que borran o cambian algo: el botón abre una alerta al estilo
  * de iOS y la acción solo corre al confirmar. Usa <dialog> nativo: atrapa el foco, se cierra con
- * Escape y no necesita librerías. "Cancelar" tiene el foco inicial: es la opción segura.
+ * Escape y no necesita librerías. El foco inicial va al recuadro (no a un botón): así Enter
+ * nunca borra por accidente y no se pinta ningún botón como seleccionado al abrir.
  */
 export function ConfirmarAccion({ accion, children, claseBoton, titulo, mensaje, confirmar, confirmando = "Un momento…" }: Props) {
   const dialogo = useRef<HTMLDialogElement>(null);
@@ -41,16 +50,24 @@ export function ConfirmarAccion({ accion, children, claseBoton, titulo, mensaje,
 
   return (
     <>
-      <button type="button" onClick={() => dialogo.current?.showModal()} className={claseBoton}>
+      <button
+        type="button"
+        onClick={() => {
+          dialogo.current?.showModal();
+          dialogo.current?.focus();
+        }}
+        className={claseBoton}
+      >
         {children}
       </button>
       <dialog
         ref={dialogo}
+        tabIndex={-1}
         aria-labelledby={idTitulo}
         aria-describedby={idMensaje}
         // Tocar fuera de la alerta la cierra, como en iOS.
         onClick={(e) => e.target === e.currentTarget && dialogo.current?.close()}
-        className="m-auto w-[min(300px,calc(100vw-48px))] overflow-hidden rounded-[18px] bg-tarjeta p-0 text-texto shadow-2xl backdrop:bg-black/45 backdrop:backdrop-blur-[2px]"
+        className="m-auto w-[min(300px,calc(100vw-48px))] overflow-hidden rounded-[18px] bg-tarjeta p-0 text-texto shadow-2xl outline-none backdrop:bg-black/45 backdrop:backdrop-blur-[2px]"
       >
         <div className="flex flex-col gap-1 px-5 pt-5 pb-4 text-center">
           <h2 id={idTitulo} className="text-[17px] font-semibold">
@@ -72,9 +89,8 @@ export function ConfirmarAccion({ accion, children, claseBoton, titulo, mensaje,
         </form>
         <button
           type="button"
-          autoFocus
           onClick={() => dialogo.current?.close()}
-          className="w-full border-t border-linea py-3 text-[17px] font-semibold text-azul"
+          className={`${BOTON_ALERTA} border-t border-linea text-azul`}
         >
           Cancelar
         </button>
