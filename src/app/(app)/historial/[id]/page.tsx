@@ -1,6 +1,8 @@
 import { notFound } from "next/navigation";
 import { actualizarMovimiento, eliminarMovimiento } from "@/app/acciones";
 import { FormularioMovimiento } from "@/app/(app)/agregar/FormularioMovimiento";
+import { ConfirmarAccion } from "@/components/ConfirmarAccion";
+import { Icono } from "@/components/Icono";
 import { Encabezado, Pantalla } from "@/components/ui";
 import { crearRepositorio } from "@/lib/datos/repositorio";
 import { hoyLima } from "@/lib/fechas";
@@ -50,17 +52,17 @@ export default async function EditarMovimiento({ params }: PageProps<"/historial
         }}
       />
 
-      <details className="rounded-[22px] bg-tarjeta">
-        <summary className="cursor-pointer list-none px-5 py-4 text-center text-[17px] font-semibold text-rojo">
-          Eliminar movimiento
-        </summary>
-        <form action={eliminarMovimiento.bind(null, id, "/historial")} className="flex flex-col gap-3 px-4 pb-4">
-          <p className="text-center text-[15px] text-texto-2">Esto no se puede deshacer.</p>
-          <button type="submit" className="rounded-[18px] bg-rojo py-3.5 text-[17px] font-bold text-fondo">
-            Sí, eliminar
-          </button>
-        </form>
-      </details>
+      <ConfirmarAccion
+        accion={eliminarMovimiento.bind(null, id, "/historial")}
+        claseBoton="flex w-full items-center justify-center gap-2 rounded-[22px] bg-tarjeta px-5 py-4 text-[17px] font-semibold text-rojo"
+        titulo="¿Eliminar este movimiento?"
+        mensaje={`Se borrará «${movimiento.concepto}» y se recalcularán tus totales. No se puede deshacer.`}
+        confirmar="Eliminar"
+        confirmando="Eliminando…"
+      >
+        <Icono nombre="basura" className="size-5" />
+        Eliminar movimiento
+      </ConfirmarAccion>
     </Pantalla>
   );
 }

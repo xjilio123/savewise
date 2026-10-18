@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { crearTokenAtajo, revocarTokenAtajo } from "@/app/acciones";
+import { ConfirmarAccion } from "@/components/ConfirmarAccion";
 import { Icono } from "@/components/Icono";
 
 export function AtajoSiri({ tieneToken, url }: { tieneToken: boolean; url: string }) {
@@ -20,7 +21,6 @@ export function AtajoSiri({ tieneToken, url }: { tieneToken: boolean; url: strin
   }
 
   async function revocar() {
-    if (!confirm("El Atajo dejará de funcionar. ¿Revocar el token?")) return;
     setOcupado(true);
     await revocarTokenAtajo();
     setToken(null);
@@ -92,9 +92,16 @@ export function AtajoSiri({ tieneToken, url }: { tieneToken: boolean; url: strin
           {tieneToken || token ? "Crear token nuevo" : "Crear token"}
         </button>
         {(tieneToken || token) && (
-          <button type="button" onClick={revocar} disabled={ocupado} className="text-[15px] font-semibold text-rojo disabled:opacity-60">
+          <ConfirmarAccion
+            accion={revocar}
+            claseBoton="text-[15px] font-semibold text-rojo"
+            titulo="¿Revocar el token?"
+            mensaje="El Atajo de Siri dejará de funcionar hasta que crees un token nuevo y lo pegues en el Atajo."
+            confirmar="Revocar"
+            confirmando="Revocando…"
+          >
             Revocar
-          </button>
+          </ConfirmarAccion>
         )}
       </div>
     </section>
