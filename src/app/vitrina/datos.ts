@@ -1,6 +1,7 @@
 import type { MesGrafico } from "@/components/vistas/VistaDashboard";
 import type { Aporte, DeudaConPagos, FilaHistorial, GastoCategoria } from "@/lib/datos/repositorio";
-import type { PagoCalendario } from "@/lib/ideas";
+import type { GastoHormiga, PagoCalendario, PuntoPatrimonio } from "@/lib/ideas";
+import type { Prestamo } from "@/lib/supabase/tipos";
 import type { TipoMovimiento } from "@/lib/supabase/tipos";
 
 // Datos FICTICIOS: el ejemplo de la propuesta con sueldo de S/ 1,500. Nunca se guardan en ninguna base.
@@ -117,4 +118,40 @@ export const PAGOS: PagoCalendario[] = [
   { fecha: "2026-10-12", concepto: "Spotify", monto: 8.22, moneda: "PEN", origen: "recurrente", tipo: "GASTO", pagado: true, movimientoId: "00000000-0000-0000-0000-0000000000f2" },
   { fecha: "2026-10-20", concepto: "Netflix", monto: 39.9, moneda: "PEN", origen: "recurrente", tipo: "GASTO", pagado: false, movimientoId: "00000000-0000-0000-0000-0000000000f3" },
   { fecha: "2026-10-28", concepto: "Préstamo celular", monto: 40, moneda: "PEN", origen: "deuda", tipo: null, pagado: false, movimientoId: null },
+];
+
+export const HORMIGA: { umbral: number; total: number; grupos: GastoHormiga[] } = {
+  umbral: 30,
+  total: 154.5,
+  grupos: [
+    { concepto: "Café", veces: 9, total: 76.5 },
+    { concepto: "Snacks", veces: 6, total: 48 },
+    { concepto: "Taxi corto", veces: 3, total: 30 },
+  ],
+};
+
+export const PATRIMONIO: PuntoPatrimonio[] = [-900, -820, -760, -700, -610, -540, -420, -260, -120, 40, 180, 350].map((neto, i) => ({
+  mes: `2026-${String(i + 1).padStart(2, "0")}-01`,
+  ahorros: 0,
+  teDeben: 0,
+  deudas: 0,
+  neto,
+}));
+PATRIMONIO[11] = { mes: "2026-10-01", ahorros: 1900, teDeben: 200, deudas: 1750, neto: 350 };
+
+const prestamo = (p: Partial<Prestamo> & Pick<Prestamo, "id" | "persona" | "monto">): Prestamo => ({
+  user_id: "ficticio",
+  concepto: "",
+  moneda: "PEN",
+  fecha: "2026-10-05",
+  cobrado: false,
+  cobrado_en: null,
+  creado: "2026-10-05T12:00:00Z",
+  ...p,
+});
+
+export const PRESTAMOS: Prestamo[] = [
+  prestamo({ id: "p1", persona: "Carlos", monto: 150, concepto: "Entradas del concierto" }),
+  prestamo({ id: "p2", persona: "Lucía", monto: 50, fecha: "2026-10-12" }),
+  prestamo({ id: "p3", persona: "Mamá", monto: 80, cobrado: true, cobrado_en: "2026-10-10" }),
 ];

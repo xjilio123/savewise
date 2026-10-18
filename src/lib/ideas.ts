@@ -173,3 +173,71 @@ export function semanaDelReto(base: number, inicio: string, hoy: string): { sema
 
 /** Fecha en que termina el reto: 52 semanas después de empezar. */
 export const finDelReto = (inicio: string) => sumarDias(inicio, SEMANAS_RETO * 7 - 1);
+
+// ---------- Gastos hormiga ----------
+
+export type GastoHormiga = { concepto: string; veces: number; total: number };
+
+/**
+ * Gastos chicos que se repiten: cada uno hasta el 2 % del sueldo (mínimo 10) y al menos 3 veces
+ * en el periodo. Devuelve los 3 que más suman y el total de todos.
+ */
+export function gastosHormiga(
+  movimientos: { tipo: TipoMovimiento; concepto: string; monto_base: number | null }[],
+  sueldo: number,
+): { umbral: number; total: number; grupos: GastoHormiga[] } {
+  const umbral = Math.max(10, Math.round(sueldo * 0.02));
+  const grupos = new Map<string, GastoHormiga>();
+  for (const m of movimientos) {
+    const monto = m.monto_base ?? 0;
+    if ((m.tipo !== "GASTO" && m.tipo !== "OCIO") || monto <= 0 || monto > umbral) continue;
+    const clave = m.concepto.trim().toLowerCase();
+    const g = grupos.get(clave) ?? { concepto: m.concepto.trim(), veces: 0, total: 0 };
+    g.veces += 1;
+    g.total = Math.round((g.total + monto) * 100) / 100;
+    grupos.set(clave, g);
+  }
+  const repetidos = [...grupos.values()].filter((g) => g.veces >= 3).sort((a, b) => b.total - a.total);
+  const total = Math.round(repetidos.reduce((s, g) => s + g.total, 0) * 100) / 100;
+  return { umbral, total, grupos: repetidos.slice(0, 3) };
+}
+
+// ---------- Patrimonio neto ----------
+
+export type PuntoPatrimonio = { mes: string; ahorros: number; teDeben: number; deudas: number; neto: number };
+
+const finDeMes = (inicio: string) => {
+  const [a, m] = inicio.split("-").map(Number) as [number, number];
+  return new Date(Date.UTC(a, m, 0)).toISOString().slice(0, 10);
+};
+
+/**
+ * Patrimonio al cierre de cada mes: lo ahorrado en metas activas + lo que te deben − lo que debes.
+ * El saldo de cada deuda abierta es lo prestado menos los pagos hechos hasta esa fecha.
+ */
+export function patrimonioPorMes(
+  meses: string[],
+  hoy: string,
+  datos: {
+    aportes: { fecha: string; monto_base: number | null }[];
+    deudas: { id: string; monto_total: number; creado: string; cerrada: boolean }[];
+    pagos: { deuda_id: string | null; fecha: string; monto_base: number | null }[];
+    prestamos: { fecha: string; monto: number; cobrado: boolean; cobrado_en: string | null }[];
+  },
+): PuntoPatrimonio[] {
+  const c = (n: number) => Math.round(n * 100);
+  return meses.map((inicio) => {
+    const fin = finDeMes(inicio) < hoy ? finDeMes(inicio) : hoy;
+    const ahorros = datos.aportes.filter((a) => a.fecha <= fin).reduce((s, a) => s + c(a.monto_base ?? 0), 0);
+    const teDeben = datos.prestamos
+      .filter((p) => p.fecha <= fin && (!p.cobrado || (p.cobrado_en !== null && p.cobrado_en > fin)))
+      .reduce((s, p) => s + c(p.monto), 0);
+    const deudas = datos.deudas
+      .filter((d) => !d.cerrada && d.creado.slice(0, 10) <= fin)
+      .reduce((s, d) => {
+        const pagado = datos.pagos.filter((p) => p.deuda_id === d.id && p.fecha <= fin).reduce((t, p) => t + c(p.monto_base ?? 0), 0);
+        return s + Math.max(0, c(d.monto_total) - pagado);
+      }, 0);
+    return { mes: inicio, ahorros: ahorros / 100, teDeben: teDeben / 100, deudas: deudas / 100, neto: (ahorros + teDeben - deudas) / 100 };
+  });
+}

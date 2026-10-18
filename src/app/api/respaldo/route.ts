@@ -12,13 +12,14 @@ export async function GET() {
   const { data: sesion, error: errorSesion } = await supabase.auth.getUser();
   if (errorSesion || !sesion.user) return new Response("No autorizado", { status: 401 });
 
-  const [perfil, categorias, metas, deudas] = await Promise.all([
+  const [perfil, categorias, metas, deudas, prestamos] = await Promise.all([
     supabase.from("perfiles").select("sueldo_mensual, moneda_base, moneda_sueldo, dia_pago").single(),
     supabase.from("categorias").select("*").order("nombre"),
     supabase.from("metas").select("*").order("creado"),
     supabase.from("deudas").select("*").order("creado"),
+    supabase.from("prestamos").select("*").order("fecha"),
   ]);
-  if (perfil.error || categorias.error || metas.error || deudas.error) {
+  if (perfil.error || categorias.error || metas.error || deudas.error || prestamos.error) {
     return new Response("No se pudo generar el respaldo", { status: 500 });
   }
 
@@ -43,6 +44,7 @@ export async function GET() {
     metas: metas.data,
     deudas: deudas.data,
     movimientos,
+    prestamos: prestamos.data,
   });
 
   return new Response(JSON.stringify(respaldo, null, 2), {

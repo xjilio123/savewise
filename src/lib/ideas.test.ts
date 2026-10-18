@@ -3,7 +3,9 @@ import {
   calendarioDePagos,
   finDelReto,
   gastosFrecuentes,
+  gastosHormiga,
   objetivoReto,
+  patrimonioPorMes,
   semanaDelReto,
   unMesDespues,
   variacion,
@@ -135,5 +137,63 @@ describe("reto de 52 semanas", () => {
 
   it("termina 52 semanas después", () => {
     expect(finDelReto("2026-10-01")).toBe("2027-09-29");
+  });
+});
+
+describe("gastosHormiga", () => {
+  const g = (concepto: string, monto: number, tipo: "GASTO" | "OCIO" | "AHORRO" = "GASTO") => ({ tipo, concepto, monto_base: monto });
+
+  it("agrupa gastos chicos repetidos 3+ veces y los ordena por total", () => {
+    const r = gastosHormiga(
+      [g("Café", 8), g("café", 8), g("Café ", 9), g("Pasaje", 3), g("Pasaje", 3), g("Pasaje", 3), g("Pasaje", 3), g("Cine", 20), g("Cine", 20)],
+      1500,
+    );
+    expect(r.umbral).toBe(30);
+    expect(r.grupos.map((x) => [x.concepto, x.veces, x.total])).toEqual([
+      ["Café", 3, 25],
+      ["Pasaje", 4, 12],
+    ]);
+    expect(r.total).toBe(37);
+  });
+
+  it("no cuenta gastos grandes ni ahorros", () => {
+    const r = gastosHormiga([g("Mercado", 200), g("Mercado", 200), g("Mercado", 200), g("Meta", 5, "AHORRO"), g("Meta", 5, "AHORRO"), g("Meta", 5, "AHORRO")], 1500);
+    expect(r.grupos).toEqual([]);
+    expect(r.total).toBe(0);
+  });
+
+  it("con sueldo bajo o cero usa un umbral mínimo de 10", () => {
+    expect(gastosHormiga([], 0).umbral).toBe(10);
+  });
+});
+
+describe("patrimonioPorMes", () => {
+  it("ahorros + te deben − deudas al cierre de cada mes", () => {
+    const r = patrimonioPorMes(["2026-09-01", "2026-10-01"], "2026-10-18", {
+      aportes: [
+        { fecha: "2026-09-10", monto_base: 300 },
+        { fecha: "2026-10-05", monto_base: 200 },
+      ],
+      deudas: [{ id: "d1", monto_total: 1000, creado: "2026-09-01T12:00:00Z", cerrada: false }],
+      pagos: [
+        { deuda_id: "d1", fecha: "2026-09-20", monto_base: 250 },
+        { deuda_id: "d1", fecha: "2026-10-15", monto_base: 250 },
+      ],
+      prestamos: [{ fecha: "2026-10-01", monto: 50, cobrado: false, cobrado_en: null }],
+    });
+    expect(r).toEqual([
+      { mes: "2026-09-01", ahorros: 300, teDeben: 0, deudas: 750, neto: -450 },
+      { mes: "2026-10-01", ahorros: 500, teDeben: 50, deudas: 500, neto: 50 },
+    ]);
+  });
+
+  it("un préstamo cobrado deja de contar desde la fecha de cobro; una deuda cerrada no cuenta", () => {
+    const r = patrimonioPorMes(["2026-09-01", "2026-10-01"], "2026-10-18", {
+      aportes: [],
+      deudas: [{ id: "d1", monto_total: 500, creado: "2026-08-01", cerrada: true }],
+      pagos: [],
+      prestamos: [{ fecha: "2026-09-05", monto: 80, cobrado: true, cobrado_en: "2026-10-02" }],
+    });
+    expect(r.map((p) => p.neto)).toEqual([80, 0]);
   });
 });

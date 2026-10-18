@@ -35,6 +35,11 @@ export function VistaDeudas({ deudas, moneda }: { deudas: DeudaConPagos[]; moned
         titulo="Deudas"
         subtitulo={abiertas.length === 1 ? "1 deuda activa" : `${abiertas.length} deudas activas`}
         atras={{ href: "/ahorros", texto: "Ahorros" }}
+        accion={
+          <Link href="/me-deben" className="text-[17px] font-semibold text-azul">
+            Me deben ›
+          </Link>
+        }
       />
 
       <Tarjeta className="flex flex-col gap-1">

@@ -2,6 +2,8 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { Barra } from "@/components/Anillos";
 import { CalendarioPagos } from "@/components/CalendarioPagos";
+import { GastosHormiga } from "@/components/GastosHormiga";
+import { PatrimonioNeto } from "@/components/PatrimonioNeto";
 import { Dona } from "@/components/Dona";
 import { Icono, type NombreIcono } from "@/components/Icono";
 import { Encabezado, Pantalla, Tarjeta } from "@/components/ui";
@@ -9,7 +11,7 @@ import { CLASES_COLOR } from "@/lib/colores";
 import type { Consejo } from "@/lib/consejos";
 import type { GastoCategoria } from "@/lib/datos/repositorio";
 import { formatearDinero, fraccion, type Resumen } from "@/lib/dinero";
-import type { PagoCalendario } from "@/lib/ideas";
+import type { GastoHormiga, PagoCalendario, PuntoPatrimonio } from "@/lib/ideas";
 import { ConMontos, Monto } from "@/components/Monto";
 
 export type MesGrafico = { etiqueta: string; gastos: number; ahorros: number };
@@ -24,6 +26,10 @@ export type DatosDashboard = {
   meses: MesGrafico[];
   /** Suscripciones y cuotas de deudas del periodo. */
   pagos?: PagoCalendario[];
+  /** Gastos chicos repetidos del periodo (vista Mes). */
+  hormiga?: { umbral: number; total: number; grupos: GastoHormiga[] };
+  /** Patrimonio neto de los 12 meses (vista Año). */
+  patrimonio?: PuntoPatrimonio[];
   /** Contenido opcional al final (el resumen con IA). */
   extra?: ReactNode;
 };
@@ -62,7 +68,13 @@ export function VistaDashboard(d: DatosDashboard) {
         ))}
       </nav>
 
+      {d.vista === "anio" && d.patrimonio && d.patrimonio.length > 0 && (
+        <PatrimonioNeto puntos={d.patrimonio} etiquetas={d.meses.map((m) => m.etiqueta)} moneda={d.moneda} />
+      )}
+
       {d.vista === "mes" ? <VistaMes {...d} dinero={dinero} /> : <VistaAnio meses={d.meses} dinero={dinero} />}
+
+      {d.vista === "mes" && d.hormiga && d.hormiga.grupos.length > 0 && <GastosHormiga {...d.hormiga} moneda={d.moneda} />}
 
       {d.vista === "mes" && d.pagos && d.pagos.length > 0 && <CalendarioPagos pagos={d.pagos} />}
 

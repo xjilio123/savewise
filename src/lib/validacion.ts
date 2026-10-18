@@ -60,6 +60,13 @@ export const esquemaId = z.uuid({ error: "Movimiento no encontrado" });
 
 export const esquemaTope = monto;
 
+export const esquemaPrestamo = z.object({
+  persona: z.string().trim().min(1, { error: "¿A quién le prestaste?" }).max(60, { error: "Máximo 60 caracteres" }),
+  concepto: z.string().trim().max(80, { error: "Máximo 80 caracteres" }),
+  monto,
+  fecha: z.iso.date({ error: "Fecha inválida" }),
+});
+
 export const esquemaCategoria = z.object({
   nombre: z.string().trim().min(1, { error: "Ponle un nombre" }).max(40, { error: "Máximo 40 caracteres" }),
   color: z.enum(COLORES_CATEGORIA, { error: "Elige un color" }),

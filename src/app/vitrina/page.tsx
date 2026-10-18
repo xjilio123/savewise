@@ -14,6 +14,7 @@ import { BotonPrivado } from "@/components/BotonPrivado";
 import { CierreMes } from "@/components/CierreMes";
 import { VistaDashboard } from "@/components/vistas/VistaDashboard";
 import { VistaDeudas } from "@/components/vistas/VistaDeudas";
+import { VistaMeDeben } from "@/components/vistas/VistaMeDeben";
 import { VistaHistorial } from "@/components/vistas/VistaHistorial";
 import { VistaInicio } from "@/components/vistas/VistaInicio";
 import { VistaParaMi } from "@/components/vistas/VistaParaMi";
@@ -92,6 +93,7 @@ export default async function Vitrina({ searchParams }: PageProps<"/vitrina">) {
         consejos={consejos}
         meses={f.MESES}
         pagos={f.PAGOS}
+        hormiga={f.HORMIGA}
         extra={<ResumenIA />}
       />
     ),
@@ -126,8 +128,10 @@ export default async function Vitrina({ searchParams }: PageProps<"/vitrina">) {
         resumen={resumen}
         consejos={[]}
         meses={f.MESES}
+        patrimonio={f.PATRIMONIO}
       />
     ),
+    "me-deben": <VistaMeDeben prestamos={f.PRESTAMOS} moneda="PEN" hoy={f.HOY} />,
   };
 
   const pantalla = typeof p === "string" ? pantallas[p] : undefined;
