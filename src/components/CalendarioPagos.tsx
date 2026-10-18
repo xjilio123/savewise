@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { dejarDeRepetir, eliminarMovimiento } from "@/app/acciones";
+import { ConfirmarAccion } from "@/components/ConfirmarAccion";
 import { Icono } from "@/components/Icono";
 import { Monto } from "@/components/Monto";
 import { formatearDinero } from "@/lib/dinero";
@@ -67,21 +68,28 @@ export function CalendarioPagos({ pagos }: { pagos: PagoCalendario[] }) {
                       historial se mantiene.
                     </p>
                     <div className={`grid gap-2 ${p.pagado ? "grid-cols-2" : "grid-cols-1"}`}>
-                      <form action={dejarDeRepetir.bind(null, p.movimientoId)}>
-                        <button type="submit" className="w-full rounded-[14px] bg-fondo py-2.5 text-[15px] font-semibold text-rojo">
-                          Dejar de repetir
-                        </button>
-                      </form>
+                      <ConfirmarAccion
+                        accion={dejarDeRepetir.bind(null, p.movimientoId)}
+                        claseBoton="w-full rounded-[14px] bg-fondo py-2.5 text-[15px] font-semibold text-rojo"
+                        titulo={`¿Dejar de repetir «${p.concepto}»?`}
+                        mensaje="Ya no se registrará solo cada mes ni te avisará. Lo que ya registraste se mantiene en tu historial."
+                        confirmar="Dejar de repetir"
+                        confirmando="Guardando…"
+                      >
+                        Dejar de repetir
+                      </ConfirmarAccion>
                       {p.pagado && (
-                        <form action={eliminarMovimiento.bind(null, p.movimientoId, "/dashboard")}>
-                          <button
-                            type="submit"
-                            className="flex w-full items-center justify-center gap-1.5 rounded-[14px] bg-rojo py-2.5 text-[15px] font-semibold text-fondo"
-                          >
-                            <Icono nombre="basura" className="size-4" />
-                            Eliminar registro
-                          </button>
-                        </form>
+                        <ConfirmarAccion
+                          accion={eliminarMovimiento.bind(null, p.movimientoId, "/dashboard")}
+                          claseBoton="flex w-full items-center justify-center gap-1.5 rounded-[14px] bg-rojo py-2.5 text-[15px] font-semibold text-fondo"
+                          titulo="¿Eliminar este registro?"
+                          mensaje={`Se borrará «${p.concepto}» del ${fechaCorta(p.fecha)}. No se puede deshacer.`}
+                          confirmar="Eliminar"
+                          confirmando="Eliminando…"
+                        >
+                          <Icono nombre="basura" className="size-4" />
+                          Eliminar registro
+                        </ConfirmarAccion>
                       )}
                     </div>
                   </div>

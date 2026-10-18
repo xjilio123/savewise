@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { eliminarMovimiento } from "@/app/acciones";
+import { ConfirmarAccion } from "@/components/ConfirmarAccion";
 import { Icono } from "@/components/Icono";
 import type { Aporte } from "@/lib/datos/repositorio";
 import { formatearDinero } from "@/lib/dinero";
@@ -41,15 +42,17 @@ export function ListaAportes({ aportes }: { aportes: Aporte[] }) {
                 >
                   Editar
                 </Link>
-                <form action={eliminarMovimiento.bind(null, a.id, "/ahorros")}>
-                  <button
-                    type="submit"
-                    className="flex w-full items-center justify-center gap-1.5 rounded-[14px] bg-rojo py-2.5 text-[15px] font-semibold text-fondo"
-                  >
-                    <Icono nombre="basura" className="size-4" />
-                    Eliminar aporte
-                  </button>
-                </form>
+                <ConfirmarAccion
+                  accion={eliminarMovimiento.bind(null, a.id, "/ahorros")}
+                  claseBoton="flex w-full items-center justify-center gap-1.5 rounded-[14px] bg-rojo py-2.5 text-[15px] font-semibold text-fondo"
+                  titulo="¿Eliminar este aporte?"
+                  mensaje={`«${a.concepto}» se borrará y dejará de contar en ${a.meta?.nombre ?? "tus ahorros"}. No se puede deshacer.`}
+                  confirmar="Eliminar aporte"
+                  confirmando="Eliminando…"
+                >
+                  <Icono nombre="basura" className="size-4" />
+                  Eliminar aporte
+                </ConfirmarAccion>
               </div>
             </details>
           </li>

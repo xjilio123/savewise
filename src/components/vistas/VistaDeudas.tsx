@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { alternarDeudaCerrada, eliminarDeuda } from "@/app/acciones";
 import { Barra } from "@/components/Anillos";
+import { ConfirmarAccion } from "@/components/ConfirmarAccion";
 import { Encabezado, Pantalla, Tarjeta } from "@/components/ui";
 import type { DeudaConPagos } from "@/lib/datos/repositorio";
 import { formatearDinero, fraccion } from "@/lib/dinero";
@@ -81,15 +82,16 @@ export function VistaDeudas({ deudas, moneda }: { deudas: DeudaConPagos[]; moned
                   Marcar como pagada
                 </button>
               </form>
-              <details className="ml-auto">
-                <summary className="cursor-pointer list-none text-rojo">Eliminar</summary>
-                <form action={eliminarDeuda.bind(null, d.id)} className="mt-2 flex flex-col items-end gap-2">
-                  <p className="text-[13px] font-normal text-texto-2">Sus pagos se quedan como gastos.</p>
-                  <button type="submit" className="rounded-full bg-rojo px-4 py-1.5 text-fondo">
-                    Sí, eliminar
-                  </button>
-                </form>
-              </details>
+              <ConfirmarAccion
+                accion={eliminarDeuda.bind(null, d.id)}
+                claseBoton="ml-auto text-rojo"
+                titulo={`¿Eliminar «${d.nombre}»?`}
+                mensaje="La deuda desaparece, pero sus pagos se quedan en tu historial como gastos normales. No se puede deshacer."
+                confirmar="Eliminar deuda"
+                confirmando="Eliminando…"
+              >
+                Eliminar
+              </ConfirmarAccion>
             </div>
           </Tarjeta>
         );
