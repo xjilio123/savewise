@@ -44,6 +44,12 @@
   --indigo-relleno: #5856d6;
   --gris: #6e6e73;
   --gris-relleno: #8e8e93;
+  --amarillo: #8a6100;
+  --amarillo-relleno: #ffcc00;
+  --menta: #00756e;
+  --menta-relleno: #00c7be;
+  --marron: #7f6545;
+  --marron-relleno: #a2845e;
 
   --tinte-morado: #f3e8fa;
   --barra: rgb(255 255 255 / 0.78);
@@ -79,6 +85,12 @@
     --indigo-relleno: #5e5ce6;
     --gris: #98989d;
     --gris-relleno: #98989d;
+    --amarillo: #ffd60a;
+    --amarillo-relleno: #ffd60a;
+    --menta: #63e6e2;
+    --menta-relleno: #63e6e2;
+    --marron: #ac8e68;
+    --marron-relleno: #ac8e68;
 
     --tinte-morado: #2a1d33;
     --barra: rgb(28 28 30 / 0.82);
@@ -116,6 +128,12 @@
   --indigo-relleno: #5e5ce6;
   --gris: #98989d;
   --gris-relleno: #98989d;
+  --amarillo: #ffd60a;
+  --amarillo-relleno: #ffd60a;
+  --menta: #63e6e2;
+  --menta-relleno: #63e6e2;
+  --marron: #ac8e68;
+  --marron-relleno: #ac8e68;
 
   --tinte-morado: #2a1d33;
   --barra: rgb(28 28 30 / 0.82);
@@ -153,6 +171,12 @@
   --color-indigo-relleno: var(--indigo-relleno);
   --color-gris: var(--gris);
   --color-gris-relleno: var(--gris-relleno);
+  --color-amarillo: var(--amarillo);
+  --color-amarillo-relleno: var(--amarillo-relleno);
+  --color-menta: var(--menta);
+  --color-menta-relleno: var(--menta-relleno);
+  --color-marron: var(--marron);
+  --color-marron-relleno: var(--marron-relleno);
   --color-tinte-morado: var(--tinte-morado);
   --color-barra: var(--barra);
   --color-heroe-desde: var(--heroe-desde);

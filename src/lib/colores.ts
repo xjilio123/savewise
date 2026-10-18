@@ -14,6 +14,40 @@ export const CLASES_COLOR: Record<ColorApp, Clases> = {
   turquesa: { texto: "text-turquesa", trazo: "text-turquesa-relleno", suave: "bg-turquesa-relleno/15", punto: "bg-turquesa-relleno" },
   indigo: { texto: "text-indigo", trazo: "text-indigo-relleno", suave: "bg-indigo-relleno/15", punto: "bg-indigo-relleno" },
   gris: { texto: "text-gris", trazo: "text-gris-relleno", suave: "bg-gris-relleno/15", punto: "bg-gris-relleno" },
+  amarillo: { texto: "text-amarillo", trazo: "text-amarillo-relleno", suave: "bg-amarillo-relleno/20", punto: "bg-amarillo-relleno" },
+  menta: { texto: "text-menta", trazo: "text-menta-relleno", suave: "bg-menta-relleno/15", punto: "bg-menta-relleno" },
+  marron: { texto: "text-marron", trazo: "text-marron-relleno", suave: "bg-marron-relleno/15", punto: "bg-marron-relleno" },
+};
+
+/** Colores que puede usar una categoría (el gris queda para "Sin categoría"). Uno por categoría. */
+export const COLORES_CATEGORIA = [
+  "rojo",
+  "naranja",
+  "amarillo",
+  "verde",
+  "menta",
+  "turquesa",
+  "azul",
+  "indigo",
+  "morado",
+  "rosa",
+  "marron",
+  "negro",
+] as const satisfies readonly ColorApp[];
+
+export const NOMBRE_COLOR: Record<(typeof COLORES_CATEGORIA)[number], string> = {
+  rojo: "Rojo",
+  naranja: "Naranja",
+  amarillo: "Amarillo",
+  verde: "Verde",
+  menta: "Menta",
+  turquesa: "Turquesa",
+  azul: "Azul",
+  indigo: "Índigo",
+  morado: "Morado",
+  rosa: "Rosa",
+  marron: "Marrón",
+  negro: "Negro",
 };
 
 export const COLOR_TIPO: Record<TipoMovimiento, ColorApp> = {

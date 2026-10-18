@@ -12,7 +12,10 @@ export type ColorApp =
   | "rosa"
   | "turquesa"
   | "indigo"
-  | "gris";
+  | "gris"
+  | "amarillo"
+  | "menta"
+  | "marron";
 export type TipoDeuda = "tarjeta" | "prestamo" | "otro";
 
 export type Database = {

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { COLORES_CATEGORIA } from "@/lib/colores";
 
 export const MONEDAS = ["PEN", "USD", "EUR", "MXN", "COP", "CLP", "ARS"] as const;
 export const TIPOS_FORMULARIO = ["GASTO", "OCIO", "AHORRO", "INGRESO"] as const;
@@ -58,6 +59,11 @@ export const esquemaMeta = z.object({
 export const esquemaId = z.uuid({ error: "Movimiento no encontrado" });
 
 export const esquemaTope = monto;
+
+export const esquemaCategoria = z.object({
+  nombre: z.string().trim().min(1, { error: "Ponle un nombre" }).max(40, { error: "Máximo 40 caracteres" }),
+  color: z.enum(COLORES_CATEGORIA, { error: "Elige un color" }),
+});
 
 /** Convierte "" en null antes de validar un campo numérico opcional. */
 const opcional = <T extends z.ZodType>(esquema: T) =>
