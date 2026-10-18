@@ -1,9 +1,9 @@
 # SaveWise
 
-**Cada sol con un propósito.** App de finanzas personales para iPhone: escribes tu sueldo, lo
+**Cada sol con un propósito.** App de finanzas personales para iPhone y Android: escribes tu sueldo, lo
 repartes en gastos, ahorros y una bolsa “Para mí”, y siempre ves cuánto queda sin asignar.
 
-> *Personal finance PWA for iPhone. Next.js 16 + Supabase, zero-cost hosting, security-first: strict
+> *Personal finance PWA for iPhone and Android. Next.js 16 + Supabase, zero-cost hosting, security-first: strict
 > nonce-based CSP, Row Level Security tested with pgTAP, and a CI pipeline with Gitleaks, Semgrep and OWASP ZAP.*
 
 ## Qué hace
@@ -21,11 +21,17 @@ repartes en gastos, ahorros y una bolsa “Para mí”, y siempre ves cuánto qu
 - **Planificación:** topes por categoría con aviso al 80 %, cierre de mes, fondo de emergencia
   y proyección de cada meta al 31 de diciembre.
 - **Deudas y tarjetas:** saldo, cuotas que faltan según la TEA y aviso un día antes de pagar.
-- **Día a día:** frecuentes de un toque, nota en cada movimiento, ocultar montos, calendario de pagos,
-  comparación por categoría frente al mes anterior, reto de 52 semanas y aviso si ayer no registraste nada.
+- **Día a día:** frecuentes de un toque, nota en cada movimiento, calendario de pagos (con "dejar de
+  repetir"), comparación por categoría frente al mes anterior, reto de 52 semanas y aviso si ayer no
+  registraste nada.
+- **Ocultar montos:** un ojo en cada pantalla cambia todas las cifras por `S/ ••••`; las frases se siguen leyendo.
+- **Confirmación antes de borrar:** alerta al estilo iOS para eliminar o dejar de repetir; borrar todo exige escribir BORRAR.
+- **Categorías con color propio:** 9 categorías, 9 colores de sistema de iOS que nunca se repiten.
 - **Respaldo completo** en JSON y exportación CSV para Google Sheets, con recordatorio mensual.
 - **Resumen con IA (opcional):** Gemini resume tu mes a partir de totales agregados, nunca de tus conceptos.
 - Modo claro, oscuro o automático (elegible en Ajustes), diseño al estilo iOS.
+- **Instalable** en iPhone (Compartir › Añadir a pantalla de inicio) y en Android (botón "Instalar" de Chrome),
+  con avisos push y modo sin conexión.
 
 ## Stack
 
@@ -35,8 +41,9 @@ repartes en gastos, ahorros y una bolsa “Para mí”, y siempre ves cuánto qu
 | Estilos | Tailwind CSS 4, colores de sistema de iOS |
 | Datos y login | Supabase: Postgres, Auth con Google, RLS |
 | Validación | Zod 4 |
-| Pruebas | Vitest, pgTAP |
-| Hosting | Vercel Hobby (costo 0) |
+| Pruebas | Vitest, pgTAP, Playwright (E2E) |
+| IA | Gemini (capa gratuita, sin facturación) |
+| Hosting | Vercel Hobby (costo 0) en São Paulo, junto a la base |
 
 ## Seguridad
 
@@ -54,6 +61,13 @@ npm run verificar            # lint + tipos + pruebas
 Las migraciones están en `supabase/migrations` y las pruebas de RLS en `supabase/tests`
 (`supabase test db`, requiere Docker).
 
+## Fluidez
+
+- La app y la base están en São Paulo (`gru1` y `sa-east-1`); las consultas tardan menos de 6 ms.
+- Pestañas precargadas y en caché 60 s; Lighthouse móvil: rendimiento 98, accesibilidad 100.
+- El plan gratis de Vercel "duerme" la app tras un rato sin uso. Un flujo de GitHub Actions
+  (`mantener-despierta.yml`) la visita cada 10 minutos de 6:00 a 23:59 (hora de Lima), sin costo.
+
 ## Roadmap
 
 - [x] Fase 0: base segura (Supabase + RLS, CSP, pipeline de seguridad)
@@ -62,4 +76,5 @@ Las migraciones están en `supabase/migrations` y las pruebas de RLS en `supabas
 - [x] Fase 3: PWA instalable, offline con cola de envío, avisos push y Atajo de Siri; app en São Paulo junto a la base
 - [x] Fase 4: exportar a CSV (Google Sheets) y gastos recurrentes automáticos
 - [x] Fase 5: topes, cierre de mes, fondo de emergencia, proyección anual, deudas y resumen con IA
-- [ ] Siguiente: invitar personas
+- [x] Mejoras: tema elegible, ocultar montos, confirmaciones, colores únicos, soporte Android
+- [ ] Más adelante: invitar personas (cada una con su cuenta privada; compartir datos entre personas queda fuera)

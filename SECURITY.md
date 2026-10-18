@@ -57,6 +57,19 @@ No abras un issue público. Usa **Security → Report a vulnerability** en este 
 - **Respaldo:** el plan gratis de Supabase no ofrece copias descargables, así que la app genera un
   respaldo JSON completo (`/api/respaldo`, sesión verificada con `getUser` y RLS). No incluye correo,
   suscripciones push ni el token del Atajo. Un aviso push el día 1 de cada mes recuerda descargarlo.
+- **Tema y ocultar montos:** dos cookies sin datos personales. `tema` es HttpOnly y el servidor solo
+  acepta `auto`, `claro` u `oscuro`; `privado` solo se activa con el valor `1`. Cualquier otro valor se
+  ignora (hay pruebas E2E con una cookie manipulada que intenta inyectar HTML). Ocultar montos es solo
+  visual: protege de miradas en público, no es un control de acceso.
+- **Confirmación antes de borrar:** eliminar un aporte, un registro, un movimiento o una deuda, dejar de
+  repetir algo y revocar el token del Atajo piden confirmación en una alerta (`<dialog>` nativo). Al
+  abrirla no queda ningún botón enfocado, así Enter nunca borra por accidente. "Borrar todos mis datos"
+  exige escribir BORRAR (validado en el servidor) y ofrece descargar el respaldo antes.
+- **Redirecciones:** después de eliminar, la app solo vuelve a `/historial`, `/ahorros` o `/dashboard`
+  (lista cerrada; no hay redirecciones abiertas).
+- **Colores de categorías:** un índice único `(user_id, color)` impide que dos categorías compartan color.
+- **Mantener despierta:** el flujo `mantener-despierta.yml` no usa secretos ni acciones de terceros,
+  tiene `permissions: {}` y solo pide la pantalla pública `/login`.
 - **Cola sin conexión:** los movimientos guardados sin internet llevan un UUID generado en el teléfono,
   así reintentar nunca los duplica.
 
@@ -64,5 +77,8 @@ No abras un issue público. Usa **Security → Report a vulnerability** en este 
 
 - Las cookies de sesión de `@supabase/ssr` no son HttpOnly: el cliente del navegador las necesita.
   La defensa contra su robo es la CSP estricta, que impide ejecutar scripts inyectados.
-- `npm audit` reporta una vulnerabilidad en `braces`, dependencia de ESLint que solo se usa en
-  desarrollo y no llega a producción. Aún no tiene versión corregida.
+- `npm audit` reporta una vulnerabilidad en `braces` (GHSA-vfj7-8cjw-p6xm), que aparece como 5 avisos
+  porque llega en cadena desde el plugin de ESLint de Next (`eslint-config-next` › `fast-glob` ›
+  `micromatch` › `braces`). Solo se usa en desarrollo y no llega a producción
+  (`npm audit --omit=dev`: 0 vulnerabilidades). Aún no hay versión corregida (la última, 3.0.3, está afectada).
+- Ocultar montos no cifra nada: los montos viajan al teléfono y solo se esconden en pantalla.

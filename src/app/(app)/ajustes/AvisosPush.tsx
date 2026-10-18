@@ -33,7 +33,11 @@ export function AvisosPush() {
     try {
       const permiso = await Notification.requestPermission();
       if (permiso !== "granted") {
-        setMensaje("Sin permiso. Puedes activarlo en Ajustes del iPhone › Notificaciones › SaveWise.");
+        setMensaje(
+          esIOS()
+            ? "Sin permiso. Puedes activarlo en Ajustes del iPhone › Notificaciones › SaveWise."
+            : "Sin permiso. Puedes activarlo en los ajustes de notificaciones del teléfono (SaveWise o Chrome).",
+        );
         return;
       }
       const registro = await navigator.serviceWorker.ready;
