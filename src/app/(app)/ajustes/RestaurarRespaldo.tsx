@@ -15,7 +15,7 @@ export function RestaurarRespaldo() {
       </summary>
       <form action={accion} className="flex flex-col gap-3 px-3 pb-3">
         <p className="text-[13px] leading-snug text-texto-2">
-          Elige el archivo <b>savewise-respaldo-….json</b>. Se agrega lo que falte (movimientos, metas, deudas y categorías) sin
+          Elige el archivo <b>savewise-respaldo-….json</b>. Se agrega lo que falte (movimientos, metas, deudas, categorías y lo que te deben) sin
           duplicar lo que ya tienes, y se recuperan tu sueldo y tu día de pago.
         </p>
         <input

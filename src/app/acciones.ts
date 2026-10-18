@@ -24,6 +24,7 @@ import {
   esquemaMeta,
   esquemaMovimiento,
   esquemaPerfil,
+  esquemaPrestamo,
   esquemaTope,
   texto,
   type ErroresCampo,
@@ -193,11 +194,12 @@ export async function borrarMisDatos(_: EstadoFormulario, formData: FormData): P
 
   // Primero los movimientos (referencian metas y deudas), luego el resto. RLS limita todo a tus filas.
   const movimientos = await supabase.from("movimientos").delete().eq("user_id", usuario.id);
-  const [metas, deudas] = await Promise.all([
+  const [metas, deudas, prestamos] = await Promise.all([
     supabase.from("metas").delete().eq("user_id", usuario.id),
     supabase.from("deudas").delete().eq("user_id", usuario.id),
+    supabase.from("prestamos").delete().eq("user_id", usuario.id),
   ]);
-  if (movimientos.error || metas.error || deudas.error) return { error: "No se pudo borrar todo. Intenta de nuevo." };
+  if (movimientos.error || metas.error || deudas.error || prestamos.error) return { error: "No se pudo borrar todo. Intenta de nuevo." };
 
   revalidatePath("/", "layout");
   redirect("/");
@@ -358,6 +360,49 @@ export async function eliminarCategoria(id: string): Promise<void> {
   redirect("/categorias");
 }
 
+// ---------- Me deben ----------
+
+export async function crearPrestamo(_: EstadoFormulario, formData: FormData): Promise<EstadoFormulario> {
+  const { supabase, usuario } = await requerirUsuario();
+  const datos = esquemaPrestamo.safeParse({
+    persona: texto(formData, "persona"),
+    concepto: texto(formData, "concepto"),
+    monto: texto(formData, "monto"),
+    fecha: texto(formData, "fecha"),
+  });
+  if (!datos.success) return { errores: erroresPorCampo(datos.error) };
+
+  const { data: perfil } = await supabase.from("perfiles").select("moneda_base").single();
+  const { error } = await supabase
+    .from("prestamos")
+    .insert({ ...datos.data, moneda: perfil?.moneda_base ?? "PEN", user_id: usuario.id });
+  if (error) return { error: ERROR_GENERICO };
+  revalidatePath("/", "layout");
+  redirect("/me-deben");
+}
+
+/** Marca un préstamo como cobrado (con la fecha de hoy) o lo vuelve a pendiente. */
+export async function alternarPrestamoCobrado(id: string, cobrado: boolean): Promise<void> {
+  const { supabase } = await requerirUsuario();
+  if (esquemaId.safeParse(id).success) {
+    await supabase
+      .from("prestamos")
+      .update({ cobrado, cobrado_en: cobrado ? hoyLima() : null })
+      .eq("id", id);
+  }
+  revalidatePath("/", "layout");
+  redirect("/me-deben");
+}
+
+export async function eliminarPrestamo(id: string): Promise<void> {
+  const { supabase } = await requerirUsuario();
+  if (esquemaId.safeParse(id).success) {
+    await supabase.from("prestamos").delete().eq("id", id);
+  }
+  revalidatePath("/", "layout");
+  redirect("/me-deben");
+}
+
 // ---------- Restaurar respaldo ----------
 
 const LOTE_RESTAURAR = 500;
@@ -396,6 +441,7 @@ export async function restaurarRespaldo(_: EstadoFormulario, formData: FormData)
     plan.categorias.length ? supabase.from("categorias").upsert(conDueno(plan.categorias), soloNuevos) : null,
     plan.metas.length ? supabase.from("metas").upsert(conDueno(plan.metas), soloNuevos) : null,
     plan.deudas.length ? supabase.from("deudas").upsert(conDueno(plan.deudas), soloNuevos) : null,
+    plan.prestamos.length ? supabase.from("prestamos").upsert(conDueno(plan.prestamos), soloNuevos) : null,
   ];
   for (const paso of pasos) {
     if (!paso) continue;

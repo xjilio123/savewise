@@ -26,8 +26,12 @@ repartes en gastos, ahorros y una bolsa “Para mí”, y siempre ves cuánto qu
   registraste nada.
 - **Ocultar montos:** un ojo en cada pantalla cambia todas las cifras por `S/ ••••`; las frases se siguen leyendo.
 - **Confirmación antes de borrar:** alerta al estilo iOS para eliminar o dejar de repetir; borrar todo exige escribir BORRAR.
-- **Categorías con color propio:** 9 categorías, 9 colores de sistema de iOS que nunca se repiten.
-- **Respaldo completo** en JSON y exportación CSV para Google Sheets, con recordatorio mensual.
+- **Categorías propias:** crea, renombra o elimina categorías; hasta 12, cada una con su color de sistema de iOS.
+- **Metas y deudas editables:** editar, archivar o eliminar metas (moviendo sus aportes) y editar deudas.
+- **Me deben:** lista de préstamos que hiciste, que marcas como cobrados.
+- **Gastos hormiga y patrimonio neto:** gastos chicos repetidos del mes y la evolución de ahorros + te deben − deudas.
+- **Avisos inteligentes:** resumen del periodo el día de cobro y "¿Sigues usando…?" cada 3 renovaciones.
+- **Respaldo completo** en JSON (que también se restaura desde la app, sin duplicar) y exportación CSV para Google Sheets, con recordatorio mensual.
 - **Resumen con IA (opcional):** Gemini resume tu mes a partir de totales agregados, nunca de tus conceptos.
 - Modo claro, oscuro o automático (elegible en Ajustes), diseño al estilo iOS.
 - **Instalable** en iPhone (Compartir › Añadir a pantalla de inicio) y en Android (botón "Instalar" de Chrome),

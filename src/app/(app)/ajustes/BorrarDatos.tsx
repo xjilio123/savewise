@@ -15,7 +15,7 @@ export function BorrarDatos() {
       </summary>
       <form action={accion} className="flex flex-col gap-3 px-4 pb-4">
         <p className="text-[15px] leading-snug text-texto-2">
-          Borra todos tus movimientos, metas y deudas. Tu cuenta, tu sueldo, tus categorías y tus topes se mantienen. No se
+          Borra todos tus movimientos, metas, deudas y lo que te deben. Tu cuenta, tu sueldo, tus categorías y tus topes se mantienen. No se
           puede deshacer.
         </p>
         {/* El respaldo es lo único que permite recuperar los datos si te arrepientes después. */}

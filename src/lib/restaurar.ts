@@ -78,6 +78,22 @@ const esquemaRespaldoArchivo = z.object({
       }),
     )
     .max(50_000),
+  // Respaldos anteriores a "Me deben" no traen esta lista.
+  prestamos: z
+    .array(
+      z.object({
+        id: z.uuid(),
+        persona: z.string().trim().min(1).max(60),
+        concepto: z.string().max(80),
+        monto: MONTO,
+        moneda: MONEDA,
+        fecha: FECHA,
+        cobrado: z.boolean(),
+        cobrado_en: FECHA.nullable(),
+      }),
+    )
+    .max(1000)
+    .default([]),
 });
 
 export type RespaldoArchivo = z.infer<typeof esquemaRespaldoArchivo>;
@@ -178,5 +194,8 @@ export function planRestauracion(r: RespaldoArchivo, existentes: Existentes) {
     });
   }
 
-  return { categorias, metas, deudas, movimientos, omitidos, categoriasSinColor };
+  // ---- Me deben: llevan su id original, restaurar dos veces no los duplica
+  const prestamos = r.prestamos;
+
+  return { categorias, metas, deudas, movimientos, prestamos, omitidos, categoriasSinColor };
 }

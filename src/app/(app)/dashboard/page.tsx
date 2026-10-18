@@ -3,7 +3,7 @@ import { generarConsejos } from "@/lib/consejos";
 import { crearRepositorio } from "@/lib/datos/repositorio";
 import { calcularResumen } from "@/lib/dinero";
 import { etiquetaRango, hoyLima, periodoFinanciero, sumarDias } from "@/lib/fechas";
-import { calendarioDePagos, variacion } from "@/lib/ideas";
+import { calendarioDePagos, gastosHormiga, patrimonioPorMes, variacion } from "@/lib/ideas";
 import { estadoTopes } from "@/lib/planificacion";
 import { requerirSesion } from "@/lib/supabase/servidor";
 import { ResumenIA } from "./ResumenIA";
@@ -32,16 +32,44 @@ export default async function Dashboard({ searchParams }: PageProps<"/dashboard"
   const anterior = periodoFinanciero(sumarDias(periodo.desde, -1), perfil.dia_pago);
   const esMes = vista === "mes";
 
-  const [movimientos, porCategoria, categorias, totales, porCategoriaAnterior, recientes, deudas] = await Promise.all([
+  // Todo en una sola tanda de consultas en paralelo; cada vista pide solo lo que muestra.
+  const nada = Promise.resolve([]);
+  const [
+    movimientos,
+    porCategoria,
+    categorias,
+    totales,
+    porCategoriaAnterior,
+    recientes,
+    deudas,
+    aportes,
+    metasActivas,
+    pagosDeudas,
+    prestamos,
+  ] = await Promise.all([
     repo.movimientosEntre(periodo.desde, periodo.hasta),
     repo.gastosPorCategoria(periodo.desde, periodo.hasta),
     repo.categorias(),
-    esMes ? Promise.resolve([]) : repo.totalesPorMes(meses[0]!, meses[11]!),
-    esMes ? repo.gastosPorCategoria(anterior.desde, anterior.hasta) : Promise.resolve([]),
+    esMes ? nada : repo.totalesPorMes(meses[0]!, meses[11]!),
+    esMes ? repo.gastosPorCategoria(anterior.desde, anterior.hasta) : nada,
     // Para el calendario: lo del periodo y lo de antes (una suscripción pagada el mes pasado vence en este).
-    esMes ? repo.movimientosEntre(sumarDias(periodo.desde, -45), periodo.hasta) : Promise.resolve([]),
-    esMes ? repo.deudas() : Promise.resolve([]),
+    esMes ? repo.movimientosEntre(sumarDias(periodo.desde, -45), periodo.hasta) : nada,
+    repo.deudas(),
+    // Patrimonio neto (vista Año): aportes de metas activas, pagos de deudas y préstamos, con fecha.
+    esMes ? nada : repo.aportesDesde("2000-01-01"),
+    esMes ? nada : repo.metas(),
+    esMes ? nada : repo.pagosDeDeudas(),
+    esMes ? nada : repo.prestamos(),
   ]);
+  const activas = new Set(metasActivas.map((m) => m.id));
+  const patrimonio = esMes
+    ? undefined
+    : patrimonioPorMes(meses, hoy, {
+        aportes: aportes.filter((a) => a.meta_id && activas.has(a.meta_id)),
+        deudas,
+        pagos: pagosDeudas,
+        prestamos,
+      });
   const totalAnterior = new Map(porCategoriaAnterior.map((c) => [c.id ?? "sin", c.total]));
   const pagos = esMes ? calendarioDePagos({ movimientos: recientes, deudas, desde: periodo.desde, hasta: periodo.hasta }) : [];
   const resumen = calcularResumen(perfil.sueldo_mensual, movimientos);
@@ -69,6 +97,8 @@ export default async function Dashboard({ searchParams }: PageProps<"/dashboard"
         variacion: variacion(c.total, totalAnterior.get(c.id ?? "sin")),
       }))}
       pagos={pagos}
+      hormiga={esMes ? gastosHormiga(movimientos, perfil.sueldo_mensual) : undefined}
+      patrimonio={patrimonio}
       resumen={resumen}
       consejos={movimientos.length > 0 ? generarConsejos(resumen, periodo, perfil.moneda_base, topes) : []}
       meses={grafico}

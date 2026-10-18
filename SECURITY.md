@@ -67,7 +67,16 @@ No abras un issue público. Usa **Security → Report a vulnerability** en este 
   exige escribir BORRAR (validado en el servidor) y ofrece descargar el respaldo antes.
 - **Redirecciones:** después de eliminar, la app solo vuelve a `/historial`, `/ahorros` o `/dashboard`
   (lista cerrada; no hay redirecciones abiertas).
-- **Colores de categorías:** un índice único `(user_id, color)` impide que dos categorías compartan color.
+- **Colores de categorías:** un índice único `(user_id, color)` impide que dos categorías compartan color,
+  y un `check` reserva el gris para "Sin categoría".
+- **Restaurar respaldo:** el archivo es entrada externa. Se valida entero con Zod (uuid, enums, rangos,
+  largos y cantidades máximas) y se descartan los campos que no corresponden, como `user_id`. Todo se
+  guarda con el `user_id` de la sesión. Los inserts usan `ON CONFLICT DO NOTHING`, así que restaurar dos
+  veces no duplica, y un id que pertenezca a otra cuenta se ignora sin filtrar nada. Las Server Actions
+  aceptan hasta 4 MB.
+- **Me deben (`prestamos`):** RLS en las cuatro operaciones y sin acceso para `anon`, con pruebas pgTAP.
+- **Eliminar metas:** la regla "todo ahorro tiene meta" sigue en la base; antes de borrar una meta con
+  aportes hay que moverlos a otra meta propia (la llave compuesta impide moverlos a una ajena) o borrarlos.
 - **Mantener despierta:** el flujo `mantener-despierta.yml` no usa secretos ni acciones de terceros,
   tiene `permissions: {}` y solo pide la pantalla pública `/login`.
 - **Cola sin conexión:** los movimientos guardados sin internet llevan un UUID generado en el teléfono,

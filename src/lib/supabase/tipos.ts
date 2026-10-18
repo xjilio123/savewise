@@ -76,6 +76,40 @@ export type Database = {
         };
         Relationships: [];
       };
+      prestamos: {
+        Row: {
+          cobrado: boolean;
+          cobrado_en: string | null;
+          concepto: string;
+          creado: string;
+          fecha: string;
+          id: string;
+          moneda: string;
+          monto: number;
+          persona: string;
+          user_id: string;
+        };
+        Insert: {
+          cobrado?: boolean;
+          cobrado_en?: string | null;
+          concepto?: string;
+          fecha?: string;
+          id?: string;
+          moneda?: string;
+          monto: number;
+          persona: string;
+          user_id?: string;
+        };
+        Update: {
+          cobrado?: boolean;
+          cobrado_en?: string | null;
+          concepto?: string;
+          fecha?: string;
+          monto?: number;
+          persona?: string;
+        };
+        Relationships: [];
+      };
       metas: {
         Row: {
           archivada: boolean;
@@ -291,4 +325,5 @@ export type Perfil = Database["public"]["Tables"]["perfiles"]["Row"];
 export type Categoria = Database["public"]["Tables"]["categorias"]["Row"];
 export type Meta = Database["public"]["Tables"]["metas"]["Row"];
 export type Deuda = Database["public"]["Tables"]["deudas"]["Row"];
+export type Prestamo = Database["public"]["Tables"]["prestamos"]["Row"];
 export type Movimiento = Database["public"]["Tables"]["movimientos"]["Row"];

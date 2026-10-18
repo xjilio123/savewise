@@ -1,7 +1,7 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { escaparLike, TAMANO_PAGINA, type Filtros } from "@/lib/filtros";
-import type { Categoria, ColorApp, Database, Deuda, Meta, Movimiento, Perfil, TipoMovimiento } from "@/lib/supabase/tipos";
+import type { Categoria, ColorApp, Database, Deuda, Meta, Prestamo, Movimiento, Perfil, TipoMovimiento } from "@/lib/supabase/tipos";
 
 export type MetaConProgreso = Meta & { ahorrado: number };
 export type DeudaConPagos = Deuda & { pagado: number };
@@ -154,6 +154,15 @@ export function crearRepositorio(supabase: SupabaseClient<Database>) {
 
     metasArchivadas(): Promise<Meta[]> {
       return obtener(supabase.from("metas").select("*").eq("archivada", true).order("nombre"));
+    },
+
+    prestamos(): Promise<Prestamo[]> {
+      return obtener(supabase.from("prestamos").select("*").order("cobrado").order("fecha", { ascending: false }));
+    },
+
+    /** Pagos de deudas con su fecha (para el saldo al cierre de cada mes). */
+    pagosDeDeudas(): Promise<{ deuda_id: string | null; fecha: string; monto_base: number | null }[]> {
+      return obtener(supabase.from("movimientos").select("deuda_id, fecha, monto_base").not("deuda_id", "is", null));
     },
 
     async deuda(id: string): Promise<Deuda | null> {

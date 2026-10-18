@@ -17,7 +17,7 @@ describe("armarRespaldo", () => {
   it("incluye todo lo necesario para restaurar, con cantidades para verificar", () => {
     const r = armarRespaldo(base);
     expect(r).toMatchObject({ app: "SaveWise", version: VERSION_RESPALDO, fecha: "2026-10-17" });
-    expect(r.cantidades).toEqual({ categorias: 1, metas: 1, deudas: 0, movimientos: 2 });
+    expect(r.cantidades).toEqual({ categorias: 1, metas: 1, deudas: 0, movimientos: 2, prestamos: 0 });
     expect(r.movimientos[0]).toEqual({ id: "x1", concepto: "Farmacia", monto: 50, categoria_id: "c1" });
   });
 

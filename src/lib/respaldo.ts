@@ -18,6 +18,7 @@ export function armarRespaldo(datos: {
   metas: Fila[];
   deudas: Fila[];
   movimientos: Fila[];
+  prestamos?: Fila[];
 }) {
   return {
     app: "SaveWise",
@@ -34,10 +35,12 @@ export function armarRespaldo(datos: {
       metas: datos.metas.length,
       deudas: datos.deudas.length,
       movimientos: datos.movimientos.length,
+      prestamos: datos.prestamos?.length ?? 0,
     },
     categorias: sinDueno(datos.categorias),
     metas: sinDueno(datos.metas),
     deudas: sinDueno(datos.deudas),
     movimientos: sinDueno(datos.movimientos),
+    prestamos: sinDueno(datos.prestamos ?? []),
   };
 }
