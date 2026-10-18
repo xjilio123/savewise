@@ -13,7 +13,7 @@ export function ResumenIA() {
     <section aria-live="polite" className="flex flex-col gap-3 rounded-[22px] bg-tinte-morado px-5 py-4">
       <div>
         <p className="text-[17px] font-semibold">Resumen con IA</p>
-        <p className="text-[13px] leading-snug text-texto-2">
+        <p className="text-[13px] leading-snug text-texto/75">
           Solo se envían totales y nombres de categorías a Google Gemini; nunca tus conceptos ni notas.
         </p>
       </div>

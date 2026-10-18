@@ -154,7 +154,7 @@ export default async function Ahorros() {
           </p>
           {metaEmergencia ? (
             metaEmergencia.objetivo < fondo.minimo && (
-              <p className="text-[15px] text-texto-2">
+              <p className="text-[15px] text-texto/75">
                 Tu meta “{metaEmergencia.nombre}” es de <Monto texto={dinero(metaEmergencia.objetivo)} />: considera subirla.
               </p>
             )

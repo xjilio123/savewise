@@ -33,6 +33,17 @@
   --azul: #0066cc;
   --azul-relleno: #0071e3;
   --negro: #1d1d1f;
+  /* Colores de categorías: el "texto" es una versión más oscura que cumple contraste en fondo claro. */
+  --naranja: #c93400;
+  --naranja-relleno: #ff9500;
+  --rosa: #d30f45;
+  --rosa-relleno: #ff2d55;
+  --turquesa: #0071a4;
+  --turquesa-relleno: #30b0c7;
+  --indigo: #3634a3;
+  --indigo-relleno: #5856d6;
+  --gris: #6e6e73;
+  --gris-relleno: #8e8e93;
 
   --tinte-morado: #f3e8fa;
   --barra: rgb(255 255 255 / 0.78);
@@ -58,6 +69,16 @@
     --azul: #0a84ff;
     --azul-relleno: #0071e3;
     --negro: #e5e5ea;
+    --naranja: #ff9f0a;
+    --naranja-relleno: #ff9f0a;
+    --rosa: #ff375f;
+    --rosa-relleno: #ff375f;
+    --turquesa: #40c8e0;
+    --turquesa-relleno: #40c8e0;
+    --indigo: #7d7aff;
+    --indigo-relleno: #5e5ce6;
+    --gris: #98989d;
+    --gris-relleno: #98989d;
 
     --tinte-morado: #2a1d33;
     --barra: rgb(28 28 30 / 0.82);
@@ -85,6 +106,16 @@
   --azul: #0a84ff;
   --azul-relleno: #0071e3;
   --negro: #e5e5ea;
+  --naranja: #ff9f0a;
+  --naranja-relleno: #ff9f0a;
+  --rosa: #ff375f;
+  --rosa-relleno: #ff375f;
+  --turquesa: #40c8e0;
+  --turquesa-relleno: #40c8e0;
+  --indigo: #7d7aff;
+  --indigo-relleno: #5e5ce6;
+  --gris: #98989d;
+  --gris-relleno: #98989d;
 
   --tinte-morado: #2a1d33;
   --barra: rgb(28 28 30 / 0.82);
@@ -112,6 +143,16 @@
   --color-azul: var(--azul);
   --color-azul-relleno: var(--azul-relleno);
   --color-negro: var(--negro);
+  --color-naranja: var(--naranja);
+  --color-naranja-relleno: var(--naranja-relleno);
+  --color-rosa: var(--rosa);
+  --color-rosa-relleno: var(--rosa-relleno);
+  --color-turquesa: var(--turquesa);
+  --color-turquesa-relleno: var(--turquesa-relleno);
+  --color-indigo: var(--indigo);
+  --color-indigo-relleno: var(--indigo-relleno);
+  --color-gris: var(--gris);
+  --color-gris-relleno: var(--gris-relleno);
   --color-tinte-morado: var(--tinte-morado);
   --color-barra: var(--barra);
   --color-heroe-desde: var(--heroe-desde);
