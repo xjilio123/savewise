@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { BarraPestanas } from "@/components/BarraPestanas";
 import { ListaAportes } from "@/app/(app)/ahorros/ListaAportes";
+import { BorrarDatos } from "@/app/(app)/ajustes/BorrarDatos";
 import { SelectorTema } from "@/app/(app)/ajustes/SelectorTema";
 import { ResumenIA } from "@/app/(app)/dashboard/ResumenIA";
 import { BotonPrivado } from "@/components/BotonPrivado";
@@ -94,6 +95,7 @@ export default async function Vitrina({ searchParams }: PageProps<"/vitrina">) {
       <main className="mx-auto flex min-h-dvh max-w-md flex-col gap-4 px-5 pt-7 pb-36">
         <SelectorTema actual="auto" />
         <ListaAportes aportes={f.APORTES} />
+        <BorrarDatos />
       </main>
     ),
     anio: (

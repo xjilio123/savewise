@@ -15,7 +15,19 @@ export function BorrarDatos() {
       </summary>
       <form action={accion} className="flex flex-col gap-3 px-4 pb-4">
         <p className="text-[15px] leading-snug text-texto-2">
-          Borra todos tus movimientos y metas. Tu cuenta, tu sueldo y tus categorías se mantienen. No se puede deshacer.
+          Borra todos tus movimientos, metas y deudas. Tu cuenta, tu sueldo, tus categorías y tus topes se mantienen. No se
+          puede deshacer.
+        </p>
+        {/* El respaldo es lo único que permite recuperar los datos si te arrepientes después. */}
+        <a
+          href="/api/respaldo"
+          download
+          className="rounded-[16px] bg-verde py-3 text-center text-[17px] font-semibold text-fondo active:scale-[0.98]"
+        >
+          Descargar respaldo primero
+        </a>
+        <p className="-mt-1 text-[13px] leading-snug text-texto-2">
+          Guárdalo en Archivos o iCloud Drive. Si te arrepientes, con ese archivo se puede recuperar todo.
         </p>
         <label className="flex flex-col gap-1">
           <span className="text-[15px] font-semibold">
