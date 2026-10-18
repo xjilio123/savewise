@@ -2,7 +2,10 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { BarraPestanas } from "@/components/BarraPestanas";
 import { ListaAportes } from "@/app/(app)/ahorros/ListaAportes";
+import { actualizarDeuda, actualizarMeta } from "@/app/acciones";
+import { FormularioEditarMeta } from "@/app/(app)/ahorros/[id]/FormularioEditarMeta";
 import { BorrarDatos } from "@/app/(app)/ajustes/BorrarDatos";
+import { FormularioDeuda } from "@/app/(app)/deudas/FormularioDeuda";
 import { SelectorTema } from "@/app/(app)/ajustes/SelectorTema";
 import { ResumenIA } from "@/app/(app)/dashboard/ResumenIA";
 import { BotonPrivado } from "@/components/BotonPrivado";
@@ -96,6 +99,14 @@ export default async function Vitrina({ searchParams }: PageProps<"/vitrina">) {
         <SelectorTema actual="auto" />
         <ListaAportes aportes={f.APORTES} />
         <BorrarDatos />
+        <FormularioEditarMeta
+          accion={actualizarMeta.bind(null, "vitrina")}
+          inicial={{ nombre: "Navidad", objetivo: "800.00", fecha_objetivo: "2026-12-20" }}
+        />
+        <FormularioDeuda
+          accion={actualizarDeuda.bind(null, "vitrina")}
+          inicial={{ nombre: "Visa", tipo: "tarjeta", monto_total: "2500.00", cuota_mensual: "250.00", dia_pago: "5", tea: "65" }}
+        />
       </main>
     ),
     anio: (

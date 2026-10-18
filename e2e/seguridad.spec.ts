@@ -14,6 +14,8 @@ const RUTAS_PRIVADAS = [
   "/bienvenida",
   "/categorias",
   "/deudas",
+  "/deudas/00000000-0000-0000-0000-000000000000",
+  "/ahorros/00000000-0000-0000-0000-000000000000",
   "/agregar?tipo=GASTO&deuda=00000000-0000-0000-0000-000000000000",
   "/api/exportar",
   "/api/respaldo",

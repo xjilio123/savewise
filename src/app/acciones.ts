@@ -243,11 +243,7 @@ export async function guardarPerfil(_: EstadoFormulario, formData: FormData): Pr
 export async function crearMeta(_: EstadoFormulario, formData: FormData): Promise<EstadoFormulario> {
   const { supabase, usuario } = await requerirUsuario();
 
-  const datos = esquemaMeta.safeParse({
-    nombre: texto(formData, "nombre"),
-    objetivo: texto(formData, "objetivo"),
-    fecha_objetivo: texto(formData, "fecha_objetivo"),
-  });
+  const datos = leerMeta(formData);
   if (!datos.success) return { errores: erroresPorCampo(datos.error) };
 
   const { data: perfil } = await supabase.from("perfiles").select("moneda_base").single();
@@ -259,6 +255,61 @@ export async function crearMeta(_: EstadoFormulario, formData: FormData): Promis
   }
 
   revalidatePath("/ahorros");
+  redirect("/ahorros");
+}
+
+function leerMeta(formData: FormData) {
+  return esquemaMeta.safeParse({
+    nombre: texto(formData, "nombre"),
+    objetivo: texto(formData, "objetivo"),
+    fecha_objetivo: texto(formData, "fecha_objetivo"),
+  });
+}
+
+export async function actualizarMeta(id: string, _: EstadoFormulario, formData: FormData): Promise<EstadoFormulario> {
+  const { supabase } = await requerirUsuario();
+  if (!esquemaId.safeParse(id).success) return { error: "Meta no encontrada" };
+  const datos = leerMeta(formData);
+  if (!datos.success) return { errores: erroresPorCampo(datos.error) };
+
+  const { data, error } = await supabase.from("metas").update(datos.data).eq("id", id).select("id");
+  if (error) {
+    return error.code === "23505" ? { errores: { nombre: "Ya tienes una meta con ese nombre" } } : { error: ERROR_GENERICO };
+  }
+  if (!data?.length) return { error: "Meta no encontrada" };
+  revalidatePath("/", "layout");
+  redirect("/ahorros");
+}
+
+/** Archiva una meta (deja de mostrarse y de sumar en el total) o la reactiva. Sus aportes no se tocan. */
+export async function alternarMetaArchivada(id: string, archivada: boolean): Promise<void> {
+  const { supabase } = await requerirUsuario();
+  if (esquemaId.safeParse(id).success) {
+    await supabase.from("metas").update({ archivada }).eq("id", id);
+  }
+  revalidatePath("/", "layout");
+  redirect("/ahorros");
+}
+
+/**
+ * Elimina una meta. Todo ahorro debe tener meta (regla de la base), así que sus aportes se mueven
+ * a otra meta tuya o se eliminan también, según lo que elijas en la confirmación.
+ */
+export async function eliminarMeta(id: string, formData: FormData): Promise<void> {
+  const { supabase } = await requerirUsuario();
+  if (!esquemaId.safeParse(id).success) redirect("/ahorros");
+  const destino = texto(formData, "destino");
+
+  if (destino === "eliminar") {
+    await supabase.from("movimientos").delete().eq("meta_id", id).eq("tipo", "AHORRO");
+  } else if (destino) {
+    if (!esquemaId.safeParse(destino).success || destino === id) redirect("/ahorros");
+    // La llave compuesta (meta_id, user_id) impide mover aportes a una meta de otra persona.
+    await supabase.from("movimientos").update({ meta_id: destino }).eq("meta_id", id);
+  }
+  // Si quedan aportes (no se eligió destino), la base rechaza el borrado: no se pierde nada.
+  await supabase.from("metas").delete().eq("id", id);
+  revalidatePath("/", "layout");
   redirect("/ahorros");
 }
 
@@ -401,6 +452,28 @@ export async function crearDeuda(_: EstadoFormulario, formData: FormData): Promi
   }
 
   revalidatePath("/deudas");
+  redirect("/deudas");
+}
+
+export async function actualizarDeuda(id: string, _: EstadoFormulario, formData: FormData): Promise<EstadoFormulario> {
+  const { supabase } = await requerirUsuario();
+  if (!esquemaId.safeParse(id).success) return { error: "Deuda no encontrada" };
+  const datos = esquemaDeuda.safeParse({
+    nombre: texto(formData, "nombre"),
+    tipo: texto(formData, "tipo"),
+    monto_total: texto(formData, "monto_total"),
+    cuota_mensual: texto(formData, "cuota_mensual"),
+    dia_pago: texto(formData, "dia_pago"),
+    tea: texto(formData, "tea"),
+  });
+  if (!datos.success) return { errores: erroresPorCampo(datos.error) };
+
+  const { data, error } = await supabase.from("deudas").update(datos.data).eq("id", id).select("id");
+  if (error) {
+    return error.code === "23505" ? { errores: { nombre: "Ya tienes una deuda con ese nombre" } } : { error: ERROR_GENERICO };
+  }
+  if (!data?.length) return { error: "Deuda no encontrada" };
+  revalidatePath("/", "layout");
   redirect("/deudas");
 }
 
