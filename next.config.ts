@@ -21,6 +21,8 @@ const nextConfig: NextConfig = {
     // Caché del navegador: volver a una pestaña ya vista es instantáneo durante 60 s.
     // Guardar cualquier movimiento (revalidatePath) invalida esta caché al momento.
     staleTimes: { dynamic: 60, static: 60 },
+    // Restaurar un respaldo sube el archivo a una Server Action (1 MB por defecto; Vercel admite 4.5 MB).
+    serverActions: { bodySizeLimit: "4mb" },
   },
   turbopack: {
     rules: {

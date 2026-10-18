@@ -49,7 +49,7 @@ export default async function Ajustes() {
       <AvisosPush />
       <AtajoSiri tieneToken={Boolean(token.data)} url={urlAtajo} />
       <Link href="/categorias" className="flex items-center justify-between rounded-[22px] bg-tarjeta px-4 py-4 text-[17px] font-semibold">
-        Topes por categoría
+        Categorías y topes
         <Icono nombre="atras" className="size-5 rotate-180 text-texto-2" />
       </Link>
       <Exportar />

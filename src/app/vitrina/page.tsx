@@ -2,7 +2,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { BarraPestanas } from "@/components/BarraPestanas";
 import { ListaAportes } from "@/app/(app)/ahorros/ListaAportes";
-import { actualizarDeuda, actualizarMeta } from "@/app/acciones";
+import { actualizarDeuda, actualizarMeta, crearCategoria } from "@/app/acciones";
+import { Exportar } from "@/app/(app)/ajustes/Exportar";
+import { FormularioCategoria } from "@/app/(app)/categorias/FormularioCategoria";
 import { FormularioEditarMeta } from "@/app/(app)/ahorros/[id]/FormularioEditarMeta";
 import { BorrarDatos } from "@/app/(app)/ajustes/BorrarDatos";
 import { FormularioDeuda } from "@/app/(app)/deudas/FormularioDeuda";
@@ -98,6 +100,12 @@ export default async function Vitrina({ searchParams }: PageProps<"/vitrina">) {
       <main className="mx-auto flex min-h-dvh max-w-md flex-col gap-4 px-5 pt-7 pb-36">
         <SelectorTema actual="auto" />
         <ListaAportes aportes={f.APORTES} />
+        <FormularioCategoria
+          accion={crearCategoria}
+          ocupados={["rojo", "naranja", "verde", "turquesa", "azul", "indigo", "morado", "rosa", "negro"]}
+          textoBoton="Crear categoría"
+        />
+        <Exportar />
         <BorrarDatos />
         <FormularioEditarMeta
           accion={actualizarMeta.bind(null, "vitrina")}

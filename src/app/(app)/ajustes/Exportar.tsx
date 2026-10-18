@@ -1,4 +1,5 @@
 import { Icono } from "@/components/Icono";
+import { RestaurarRespaldo } from "./RestaurarRespaldo";
 
 /**
  * Respaldo y exportación. El JSON es la copia de seguridad completa (movimientos, metas, deudas,
@@ -27,6 +28,7 @@ export function Exportar() {
       >
         Descargar respaldo completo
       </a>
+      <RestaurarRespaldo />
       <p className="text-[15px] leading-snug text-texto-2">
         <b>CSV de movimientos:</b> ábrelo en Google Sheets con <b>Archivo › Importar</b>, o desde el teléfono compártelo a
         Google Sheets (o a Numbers en iPhone).

@@ -13,6 +13,7 @@ const RUTAS_PRIVADAS = [
   "/ajustes",
   "/bienvenida",
   "/categorias",
+  "/categorias/00000000-0000-0000-0000-000000000000",
   "/deudas",
   "/deudas/00000000-0000-0000-0000-000000000000",
   "/ahorros/00000000-0000-0000-0000-000000000000",

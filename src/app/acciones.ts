@@ -8,6 +8,7 @@ import { saldoDeuda } from "@/lib/deudas";
 import { calcularResumen } from "@/lib/dinero";
 import { etiquetaRango, hoyLima, periodoFinanciero, sumarDias } from "@/lib/fechas";
 import { pedirResumen, type ResultadoIA } from "@/lib/ia";
+import { leerRespaldo, planRestauracion, TAMANO_MAXIMO } from "@/lib/restaurar";
 import { finDelReto, objetivoReto } from "@/lib/ideas";
 import { enviarAviso } from "@/lib/notificaciones";
 import { sobranteDelPeriodo, sugerirFondoEmergencia } from "@/lib/planificacion";
@@ -17,6 +18,7 @@ import { COOKIE_TEMA, TEMAS } from "@/lib/tema";
 import { obtenerTipoCambio } from "@/lib/tipoCambio";
 import {
   erroresPorCampo,
+  esquemaCategoria,
   esquemaDeuda,
   esquemaId,
   esquemaMeta,
@@ -311,6 +313,114 @@ export async function eliminarMeta(id: string, formData: FormData): Promise<void
   await supabase.from("metas").delete().eq("id", id);
   revalidatePath("/", "layout");
   redirect("/ahorros");
+}
+
+// ---------- Categorías propias ----------
+
+function errorCategoria(error: { code?: string; message?: string }): EstadoFormulario {
+  if (error.code !== "23505") return { error: ERROR_GENERICO };
+  return error.message?.includes("color")
+    ? { errores: { color: "Ese color ya lo usa otra categoría" } }
+    : { errores: { nombre: "Ya tienes una categoría con ese nombre" } };
+}
+
+export async function crearCategoria(_: EstadoFormulario, formData: FormData): Promise<EstadoFormulario> {
+  const { supabase, usuario } = await requerirUsuario();
+  const datos = esquemaCategoria.safeParse({ nombre: texto(formData, "nombre"), color: texto(formData, "color") });
+  if (!datos.success) return { errores: erroresPorCampo(datos.error) };
+
+  const { error } = await supabase.from("categorias").insert({ ...datos.data, user_id: usuario.id });
+  if (error) return errorCategoria(error);
+  revalidatePath("/", "layout");
+  redirect("/categorias");
+}
+
+export async function actualizarCategoria(id: string, _: EstadoFormulario, formData: FormData): Promise<EstadoFormulario> {
+  const { supabase } = await requerirUsuario();
+  if (!esquemaId.safeParse(id).success) return { error: "Categoría no encontrada" };
+  const datos = esquemaCategoria.safeParse({ nombre: texto(formData, "nombre"), color: texto(formData, "color") });
+  if (!datos.success) return { errores: erroresPorCampo(datos.error) };
+
+  const { data, error } = await supabase.from("categorias").update(datos.data).eq("id", id).select("id");
+  if (error) return errorCategoria(error);
+  if (!data?.length) return { error: "Categoría no encontrada" };
+  revalidatePath("/", "layout");
+  redirect("/categorias");
+}
+
+/** Elimina una categoría. Sus movimientos se conservan "Sin categoría" (on delete set null). */
+export async function eliminarCategoria(id: string): Promise<void> {
+  const { supabase } = await requerirUsuario();
+  if (esquemaId.safeParse(id).success) {
+    await supabase.from("categorias").delete().eq("id", id);
+  }
+  revalidatePath("/", "layout");
+  redirect("/categorias");
+}
+
+// ---------- Restaurar respaldo ----------
+
+const LOTE_RESTAURAR = 500;
+
+/**
+ * Restaura un respaldo descargado de la app. Agrega lo que falta sin duplicar (ver planRestauracion)
+ * y actualiza sueldo y día de pago. Todo se guarda con el user_id de la sesión, nunca el del archivo.
+ */
+export async function restaurarRespaldo(_: EstadoFormulario, formData: FormData): Promise<EstadoFormulario> {
+  const { supabase, usuario } = await requerirUsuario();
+  const archivo = formData.get("archivo");
+  if (!(archivo instanceof File) || archivo.size === 0) return { error: "Elige el archivo del respaldo." };
+  if (archivo.size > TAMANO_MAXIMO) return { error: "El archivo es demasiado grande (máximo 4 MB)." };
+
+  const leido = leerRespaldo(await archivo.text());
+  if ("error" in leido) return { error: leido.error };
+  const r = leido.respaldo;
+
+  const { data: perfil } = await supabase.from("perfiles").select("moneda_base").single();
+  if (perfil && perfil.moneda_base !== r.perfil.moneda_base) {
+    return { error: `El respaldo está en ${r.perfil.moneda_base}. Cambia tu moneda base a ${r.perfil.moneda_base} en Ajustes y vuelve a intentar.` };
+  }
+
+  const [categorias, metas, deudas] = await Promise.all([
+    supabase.from("categorias").select("id, nombre, color"),
+    supabase.from("metas").select("id, nombre"),
+    supabase.from("deudas").select("id, nombre"),
+  ]);
+  if (categorias.error || metas.error || deudas.error) return { error: ERROR_GENERICO };
+  const plan = planRestauracion(r, { categorias: categorias.data, metas: metas.data, deudas: deudas.data });
+  const conDueno = <T extends object>(filas: T[]) => filas.map((f) => ({ ...f, user_id: usuario.id }));
+
+  // Orden: lo que los movimientos referencian primero. "ignoreDuplicates": lo que ya existe se salta.
+  const soloNuevos = { onConflict: "id", ignoreDuplicates: true } as const;
+  const pasos = [
+    plan.categorias.length ? supabase.from("categorias").upsert(conDueno(plan.categorias), soloNuevos) : null,
+    plan.metas.length ? supabase.from("metas").upsert(conDueno(plan.metas), soloNuevos) : null,
+    plan.deudas.length ? supabase.from("deudas").upsert(conDueno(plan.deudas), soloNuevos) : null,
+  ];
+  for (const paso of pasos) {
+    if (!paso) continue;
+    const { error } = await paso;
+    if (error) return { error: "No se pudo restaurar. Revisa que el archivo sea tuyo y vuelve a intentar." };
+  }
+  for (let i = 0; i < plan.movimientos.length; i += LOTE_RESTAURAR) {
+    const lote = conDueno(plan.movimientos.slice(i, i + LOTE_RESTAURAR));
+    const { error } = await supabase.from("movimientos").upsert(lote, soloNuevos);
+    if (error) return { error: "No se pudieron restaurar todos los movimientos. Vuelve a intentar: no se duplicará nada." };
+  }
+  await supabase
+    .from("perfiles")
+    .update({ sueldo_mensual: r.perfil.sueldo_mensual, dia_pago: r.perfil.dia_pago })
+    .eq("id", usuario.id);
+
+  revalidatePath("/", "layout");
+  const avisos = [
+    plan.omitidos > 0 ? `${plan.omitidos} ahorros sin meta no se pudieron restaurar.` : "",
+    plan.categoriasSinColor > 0 ? `${plan.categoriasSinColor} categorías no tenían color libre: sus movimientos quedaron sin categoría.` : "",
+  ].filter(Boolean);
+  return {
+    ok: true,
+    error: avisos.length ? avisos.join(" ") : undefined,
+  };
 }
 
 // ---------- Planificación (Fase 5) ----------
