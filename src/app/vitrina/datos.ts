@@ -47,14 +47,14 @@ function fila(
 export const FILAS: FilaHistorial[] = [
   fila("m1", "2026-10-17", "OCIO", "Café", 12.5, { nombre: "Ocio", color: "morado" }),
   fila("m2", "2026-10-14", "OCIO", "Libro", 59, { nombre: "Ocio", color: "morado" }),
-  fila("m3", "2026-10-12", "GASTO", "Spotify", 8.22, { nombre: "Suscripciones", color: "negro" }, { recurrente: true }),
+  fila("m3", "2026-10-12", "GASTO", "Spotify", 8.22, { nombre: "Suscripciones", color: "rosa" }, { recurrente: true }),
   fila("m4", "2026-10-12", "OCIO", "Cine", 32, { nombre: "Ocio", color: "morado" }),
   fila("m5", "2026-10-08", "GASTO", "Curso online", 68.68, { nombre: "Educación", color: "azul" }, { moneda: "USD", monto: 20, tipo_cambio: 3.434 }),
-  fila("m6", "2026-10-03", "GASTO", "Claude", 100, { nombre: "Suscripciones", color: "negro" }, { recurrente: true }),
+  fila("m6", "2026-10-03", "GASTO", "Claude", 100, { nombre: "Suscripciones", color: "rosa" }, { recurrente: true }),
   fila("m7", "2026-10-02", "AHORRO", "Aporte Navidad", 200, null),
   fila("m8", "2026-10-02", "PARA_MI", "Bolsa del mes", 250, null),
   fila("m9", "2026-10-01", "INGRESO", "Bono", 120, null),
-  fila("m10", "2026-10-01", "GASTO", "Mercado", 300, { nombre: "Alimentación", color: "rojo" }),
+  fila("m10", "2026-10-01", "GASTO", "Mercado", 300, { nombre: "Alimentación", color: "naranja" }),
 ];
 
 export const MOVIMIENTOS = [
@@ -72,11 +72,11 @@ export const MOVIMIENTOS = [
 ];
 
 export const POR_CATEGORIA: GastoCategoria[] = [
-  { id: "c1", nombre: "Alimentación", color: "rojo", total: 300, tope: 350, variacion: -12 },
+  { id: "c1", nombre: "Alimentación", color: "naranja", total: 300, tope: 350, variacion: -12 },
   { id: "c2", nombre: "Transporte", color: "azul", total: 150, tope: 120, variacion: 25 },
-  { id: "c3", nombre: "Suscripciones", color: "negro", total: 108.22 },
+  { id: "c3", nombre: "Suscripciones", color: "rosa", total: 108.22 },
   { id: "c4", nombre: "Ocio", color: "morado", total: 103.5 },
-  { id: "c5", nombre: "Servicios", color: "verde", total: 39.9 },
+  { id: "c5", nombre: "Servicios", color: "turquesa", total: 39.9 },
 ];
 
 export const MESES: MesGrafico[] = ["nov", "dic", "ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sept", "oct"].map(

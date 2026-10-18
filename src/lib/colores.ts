@@ -9,6 +9,11 @@ export const CLASES_COLOR: Record<ColorApp, Clases> = {
   verde: { texto: "text-verde", trazo: "text-verde-relleno", suave: "bg-verde-relleno/15", punto: "bg-verde-relleno" },
   morado: { texto: "text-morado", trazo: "text-morado-relleno", suave: "bg-morado-relleno/15", punto: "bg-morado-relleno" },
   negro: { texto: "text-negro", trazo: "text-negro", suave: "bg-negro/10", punto: "bg-negro" },
+  naranja: { texto: "text-naranja", trazo: "text-naranja-relleno", suave: "bg-naranja-relleno/15", punto: "bg-naranja-relleno" },
+  rosa: { texto: "text-rosa", trazo: "text-rosa-relleno", suave: "bg-rosa-relleno/15", punto: "bg-rosa-relleno" },
+  turquesa: { texto: "text-turquesa", trazo: "text-turquesa-relleno", suave: "bg-turquesa-relleno/15", punto: "bg-turquesa-relleno" },
+  indigo: { texto: "text-indigo", trazo: "text-indigo-relleno", suave: "bg-indigo-relleno/15", punto: "bg-indigo-relleno" },
+  gris: { texto: "text-gris", trazo: "text-gris-relleno", suave: "bg-gris-relleno/15", punto: "bg-gris-relleno" },
 };
 
 export const COLOR_TIPO: Record<TipoMovimiento, ColorApp> = {

@@ -2,7 +2,17 @@
 // Regenerar cuando cambie una migración.
 
 export type TipoMovimiento = "INGRESO" | "GASTO" | "AHORRO" | "PARA_MI" | "OCIO";
-export type ColorApp = "rojo" | "azul" | "verde" | "morado" | "negro";
+export type ColorApp =
+  | "rojo"
+  | "azul"
+  | "verde"
+  | "morado"
+  | "negro"
+  | "naranja"
+  | "rosa"
+  | "turquesa"
+  | "indigo"
+  | "gris";
 export type TipoDeuda = "tarjeta" | "prestamo" | "otro";
 
 export type Database = {
