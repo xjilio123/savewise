@@ -1,0 +1,31 @@
+name: Mantener la app despierta
+
+# El plan gratis de Vercel "duerme" la función tras un rato sin uso y la primera apertura tarda
+# ~1 s más. Una visita cada 10 minutos, de 6:00 a 23:59 hora de Lima, la mantiene lista.
+# Costo 0: ~3,200 visitas al mes (Vercel incluye 1,000,000) y GitHub Actions es gratis en repos públicos.
+# No usa secretos ni acciones de terceros: solo pide la pantalla pública de inicio de sesión.
+
+on:
+  schedule:
+    - cron: "*/10 11-23 * * *" # 6:00–18:59 en Lima (UTC-5)
+    - cron: "*/10 0-4 * * *" # 19:00–23:59 en Lima
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: mantener-despierta
+  cancel-in-progress: true
+
+jobs:
+  visitar:
+    name: Visitar la app
+    if: github.repository == 'xjilio123/savewise'
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Pedir la pantalla de inicio de sesión
+        run: |
+          curl --fail --silent --show-error --max-time 30 --output /dev/null \
+            --write-out "HTTP %{http_code} en %{time_total}s\n" \
+            https://savewise-inky.vercel.app/login

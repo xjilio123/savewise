@@ -81,8 +81,8 @@ export function AtajoSiri({ tieneToken, url }: { tieneToken: boolean; url: strin
         </div>
       ) : (
         <p className="text-[15px] leading-snug text-texto-2">
-          Registra gastos con la voz sin abrir la app. El token es como una contraseña solo para el Atajo: si pierdes el iPhone,
-          revócalo aquí.
+          Registra gastos con la voz sin abrir la app (Atajos de iPhone; en Android sirve una app de atajos HTTP). El token es
+          como una contraseña solo para el Atajo: si pierdes el teléfono, revócalo aquí.
         </p>
       )}
 

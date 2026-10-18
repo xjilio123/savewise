@@ -69,7 +69,7 @@ export function FormularioMovimiento(props: {
   if (encolado) {
     return (
       <div className="flex flex-col items-center gap-4 rounded-[22px] bg-tarjeta px-6 py-8 text-center">
-        <p className="text-[20px] font-bold">Guardado en tu iPhone</p>
+        <p className="text-[20px] font-bold">Guardado en tu teléfono</p>
         <p className="text-[17px] text-texto-2">Sin conexión. Se enviará solo cuando vuelva internet.</p>
         <button type="button" onClick={() => setEncolado(false)} className="text-[17px] font-semibold text-azul">
           Agregar otro

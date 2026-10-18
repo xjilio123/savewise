@@ -27,7 +27,7 @@ export function BorrarDatos() {
           Descargar respaldo primero
         </a>
         <p className="-mt-1 text-[13px] leading-snug text-texto-2">
-          Guárdalo en Archivos o iCloud Drive. Si te arrepientes, con ese archivo se puede recuperar todo.
+          Guárdalo en iCloud Drive (iPhone) o Google Drive (Android). Si te arrepientes, con ese archivo se puede recuperar todo.
         </p>
         <label className="flex flex-col gap-1">
           <span className="text-[15px] font-semibold">

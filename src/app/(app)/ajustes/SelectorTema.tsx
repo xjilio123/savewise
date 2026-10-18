@@ -13,7 +13,7 @@ export function SelectorTema({ actual }: { actual: Tema }) {
     <section className="flex flex-col gap-3 rounded-[22px] bg-tarjeta p-4">
       <div>
         <h2 className="text-[17px] font-semibold">Apariencia</h2>
-        <p className="text-[13px] text-texto-2">Automático sigue el modo claro u oscuro de tu iPhone.</p>
+        <p className="text-[13px] text-texto-2">Automático sigue el modo claro u oscuro de tu teléfono.</p>
       </div>
       <form action={guardarTema} className="flex rounded-[12px] bg-control p-1" aria-label="Tema">
         {opciones.map((o) => (

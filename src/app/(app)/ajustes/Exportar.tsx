@@ -17,7 +17,7 @@ export function Exportar() {
         </div>
       </div>
       <p className="text-[15px] leading-snug text-texto-2">
-        <b>Respaldo completo:</b> guárdalo una vez al mes en Archivos o iCloud Drive (te avisamos el día 1). Sirve para
+        <b>Respaldo completo:</b> guárdalo una vez al mes en iCloud Drive o Google Drive (te avisamos el día 1). Sirve para
         recuperar todo si algo se borra.
       </p>
       <a
@@ -28,8 +28,8 @@ export function Exportar() {
         Descargar respaldo completo
       </a>
       <p className="text-[15px] leading-snug text-texto-2">
-        <b>CSV de movimientos:</b> ábrelo en Google Sheets con <b>Archivo › Importar</b>, o en el iPhone compártelo a Sheets
-        o Numbers.
+        <b>CSV de movimientos:</b> ábrelo en Google Sheets con <b>Archivo › Importar</b>, o desde el teléfono compártelo a
+        Google Sheets (o a Numbers en iPhone).
       </p>
       <a
         href="/api/exportar"
