@@ -5,8 +5,9 @@ export default async function Login({ searchParams }: PageProps<"/login">) {
   const { error } = await searchParams;
 
   return (
-    <main className="mx-auto flex min-h-dvh max-w-md flex-col justify-between px-6 pt-[max(env(safe-area-inset-top),48px)] pb-[max(env(safe-area-inset-bottom),32px)]">
-      <div className="flex flex-col items-start gap-8 pt-10">
+    <main className="mx-auto flex min-h-dvh max-w-md flex-col px-6 pt-[max(env(safe-area-inset-top),48px)] pb-[max(env(safe-area-inset-bottom),32px)]">
+      {/* Logo y textos centrados en el espacio libre; el botón queda abajo, al alcance del pulgar. */}
+      <div className="flex flex-1 flex-col items-center justify-center gap-8 text-center">
         <Anillos
           etiqueta="Logo de SaveWise: tres anillos de colores"
           anillos={[
@@ -15,12 +16,12 @@ export default async function Login({ searchParams }: PageProps<"/login">) {
             { fraccion: 0.86, clase: "text-morado-relleno" },
           ]}
         />
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col items-center gap-3">
           <h1 className="bg-gradient-to-r from-rojo-relleno via-morado-relleno to-azul-relleno bg-clip-text text-[56px] font-extrabold leading-none tracking-tighter text-transparent">
             SaveWise
           </h1>
           <p className="text-[22px] font-semibold tracking-tight">Cada sol con un propósito.</p>
-          <p className="text-[17px] leading-relaxed text-texto-2">
+          <p className="max-w-80 text-[17px] leading-relaxed text-texto-2">
             Reparte tu sueldo en gastos, ahorros y “Para mí”, y mira siempre cuánto queda sin asignar.
           </p>
         </div>

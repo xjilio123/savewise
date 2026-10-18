@@ -14,6 +14,8 @@ type Props = {
   /** Texto del botón rojo de la alerta, por ejemplo "Eliminar". */
   confirmar: string;
   confirmando?: string;
+  /** Campos que la acción necesita (por ejemplo, a qué meta mover los aportes). Van dentro del formulario. */
+  campos?: ReactNode;
 };
 
 /**
@@ -43,7 +45,16 @@ function BotonConfirmar({ texto, enviando }: { texto: string; enviando: string }
  * Escape y no necesita librerías. El foco inicial va al recuadro (no a un botón): así Enter
  * nunca borra por accidente y no se pinta ningún botón como seleccionado al abrir.
  */
-export function ConfirmarAccion({ accion, children, claseBoton, titulo, mensaje, confirmar, confirmando = "Un momento…" }: Props) {
+export function ConfirmarAccion({
+  accion,
+  children,
+  claseBoton,
+  titulo,
+  mensaje,
+  confirmar,
+  confirmando = "Un momento…",
+  campos,
+}: Props) {
   const dialogo = useRef<HTMLDialogElement>(null);
   const idTitulo = useId();
   const idMensaje = useId();
@@ -85,6 +96,7 @@ export function ConfirmarAccion({ accion, children, claseBoton, titulo, mensaje,
           }}
           className="border-t border-linea"
         >
+          {campos && <div className="px-5 pt-3">{campos}</div>}
           <BotonConfirmar texto={confirmar} enviando={confirmando} />
         </form>
         <button

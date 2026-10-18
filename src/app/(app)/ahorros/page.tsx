@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { crearMetaEmergencia } from "@/app/acciones";
 import { AnilloProgreso } from "@/components/Anillos";
+import { Icono } from "@/components/Icono";
 import { BotonEnviar } from "@/components/BotonEnviar";
 import { Encabezado, Pantalla, Tarjeta } from "@/components/ui";
 import { crearRepositorio } from "@/lib/datos/repositorio";
@@ -31,12 +32,13 @@ export default async function Ahorros() {
   const repo = crearRepositorio(supabase);
   const hoy = hoyLima();
   const meses = ultimos3Meses(hoy);
-  const [perfil, metas, aportes, totales, recientes] = await Promise.all([
+  const [perfil, metas, aportes, totales, recientes, archivadas] = await Promise.all([
     repo.perfil(),
     repo.metas(),
     repo.aportesDesde(meses[0]!),
     repo.totalesPorMes(meses[0]!, meses[2]!),
     repo.aportesRecientes(8),
+    repo.metasArchivadas(),
   ]);
   const dinero = (n: number) => formatearDinero(n, perfil.moneda_base);
   const total = metas.reduce((suma, m) => suma + Math.round(m.ahorrado * 100), 0) / 100;
@@ -112,7 +114,10 @@ export default async function Ahorros() {
           <Tarjeta key={m.id} className="flex items-center gap-4">
             <AnilloProgreso fraccion={avance} etiqueta={`${m.nombre} al ${Math.round(avance * 100)}%`} />
             <div className="flex min-w-0 flex-1 flex-col">
-              <p className="truncate text-[17px] font-bold">{m.nombre}</p>
+              <Link href={`/ahorros/${m.id}`} className="flex min-w-0 items-center gap-1 text-[17px] font-bold">
+                <span className="truncate">{m.nombre}</span>
+                <Icono nombre="atras" className="size-4 shrink-0 rotate-180 text-texto-2" />
+              </Link>
               <p className="text-[15px] text-texto-2 tabular-nums">
                 <Monto texto={dinero(m.ahorrado)} /> de <Monto texto={dinero(m.objetivo)} />
               </p>
@@ -167,6 +172,24 @@ export default async function Ahorros() {
       )}
 
       <ListaAportes aportes={recientes} />
+
+      {archivadas.length > 0 && (
+        <details className="rounded-[22px] bg-tarjeta px-4">
+          <summary className="cursor-pointer list-none py-3.5 text-[15px] font-semibold text-texto-2">
+            Metas archivadas ({archivadas.length})
+          </summary>
+          <ul className="divide-y divide-linea border-t border-linea">
+            {archivadas.map((m) => (
+              <li key={m.id}>
+                <Link href={`/ahorros/${m.id}`} className="flex items-center justify-between gap-3 py-3 text-[17px]">
+                  <span className="truncate">{m.nombre}</span>
+                  <span className="text-[15px] text-azul">Ver</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </details>
+      )}
 
       {!metas.some((m) => m.reto_base) && <FormularioReto moneda={perfil.moneda_base} />}
 

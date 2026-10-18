@@ -82,6 +82,9 @@ export function VistaDeudas({ deudas, moneda }: { deudas: DeudaConPagos[]; moned
                   Marcar como pagada
                 </button>
               </form>
+              <Link href={`/deudas/${d.id}`} className="text-azul">
+                Editar
+              </Link>
               <ConfirmarAccion
                 accion={eliminarDeuda.bind(null, d.id)}
                 claseBoton="ml-auto text-rojo"

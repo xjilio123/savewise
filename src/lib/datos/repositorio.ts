@@ -140,6 +140,28 @@ export function crearRepositorio(supabase: SupabaseClient<Database>) {
       return obtener(supabase.from("categorias").select("*").order("nombre"));
     },
 
+    /** Una meta (activa o archivada) con lo ahorrado y cuántos aportes tiene. */
+    async meta(id: string): Promise<(MetaConProgreso & { aportes: number }) | null> {
+      const [{ data: meta, error }, aportes] = await Promise.all([
+        supabase.from("metas").select("*").eq("id", id).maybeSingle(),
+        obtener(supabase.from("movimientos").select("monto_base").eq("meta_id", id)),
+      ]);
+      if (error) throw new Error("No se pudieron leer los datos");
+      if (!meta) return null;
+      const ahorrado = aportes.reduce((s, a) => s + Math.round((a.monto_base ?? 0) * 100), 0) / 100;
+      return { ...meta, ahorrado, aportes: aportes.length };
+    },
+
+    metasArchivadas(): Promise<Meta[]> {
+      return obtener(supabase.from("metas").select("*").eq("archivada", true).order("nombre"));
+    },
+
+    async deuda(id: string): Promise<Deuda | null> {
+      const { data, error } = await supabase.from("deudas").select("*").eq("id", id).maybeSingle();
+      if (error) throw new Error("No se pudieron leer los datos");
+      return data;
+    },
+
     async metas(): Promise<MetaConProgreso[]> {
       const [metas, aportes] = await Promise.all([
         obtener(supabase.from("metas").select("*").eq("archivada", false).order("creado")),
