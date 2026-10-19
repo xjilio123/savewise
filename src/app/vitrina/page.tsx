@@ -68,6 +68,17 @@ export default async function Vitrina({ searchParams }: PageProps<"/vitrina">) {
         ultimos={f.FILAS.filter((m) => m.tipo === "OCIO").map((m) => ({ id: m.id, concepto: m.concepto, fecha: m.fecha, monto: m.monto }))}
       />
     ),
+    // Todo el sueldo ya repartido: la bolsa no deja sumar y muestra la alerta.
+    "para-mi-sin-dinero": (
+      <VistaParaMi
+        moneda="PEN"
+        resumen={{ ...resumen, sinAsignar: 0 }}
+        periodo={periodo}
+        etiquetaPeriodo="1 oct – 31 oct"
+        hoy={f.HOY}
+        ultimos={[]}
+      />
+    ),
     historial: (
       <VistaHistorial
         filtros={{ desde: "2026-10-01", hasta: "2026-10-31", pagina: 1 }}

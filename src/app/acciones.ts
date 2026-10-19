@@ -5,7 +5,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { crearRepositorio } from "@/lib/datos/repositorio";
 import { saldoDeuda } from "@/lib/deudas";
-import { calcularResumen, formatearDinero } from "@/lib/dinero";
+import { calcularResumen, formatearDinero, validarBolsa } from "@/lib/dinero";
 import { etiquetaRango, hoyLima, periodoFinanciero, sumarDias } from "@/lib/fechas";
 import { pedirResumen } from "@/lib/ia";
 import { mensajeBloqueo, type RespuestaIA } from "@/lib/usoIA";
@@ -68,6 +68,27 @@ const destinoPorTipo = (tipo: string) =>
 
 type Sesion = Awaited<ReturnType<typeof requerirUsuario>>;
 
+/**
+ * Revisa que lo que se suma a la bolsa Para mí no supere lo que queda sin asignar en el periodo
+ * de `fecha`. `excluir` es el movimiento que se está editando (su monto anterior vuelve a estar libre).
+ */
+async function revisarBolsa(
+  supabase: Sesion["supabase"],
+  fecha: string,
+  montoBase: number,
+  excluir?: string,
+): Promise<string | null> {
+  const repo = crearRepositorio(supabase);
+  const perfil = await repo.perfil();
+  const periodo = periodoFinanciero(fecha, perfil.dia_pago);
+  const movimientos = await repo.movimientosEntre(periodo.desde, periodo.hasta);
+  const { sinAsignar } = calcularResumen(
+    perfil.sueldo_mensual,
+    movimientos.filter((m) => m.id !== excluir),
+  );
+  return validarBolsa(montoBase, sinAsignar, perfil.moneda_base);
+}
+
 /** Valida e inserta un movimiento. Devuelve el estado de error o null si se guardó. */
 async function insertarMovimiento(
   { supabase, usuario }: Sesion,
@@ -87,6 +108,11 @@ async function insertarMovimiento(
     tipoCambio = await obtenerTipoCambio(moneda, base);
   } catch {
     return { estado: { error: ERROR_CAMBIO } };
+  }
+
+  if (datos.data.tipo === "PARA_MI") {
+    const aviso = await revisarBolsa(supabase, datos.data.fecha, datos.data.monto * tipoCambio);
+    if (aviso) return { estado: { errores: { monto: aviso } } };
   }
 
   const { error } = await supabase.from("movimientos").insert({
@@ -136,7 +162,7 @@ export async function actualizarMovimiento(
   if (!datos.success) return { errores: erroresPorCampo(datos.error) };
 
   const [{ data: actual }, { data: perfil }] = await Promise.all([
-    supabase.from("movimientos").select("moneda, tipo_cambio").eq("id", id).maybeSingle(),
+    supabase.from("movimientos").select("moneda, tipo_cambio, tipo, monto_base").eq("id", id).maybeSingle(),
     supabase.from("perfiles").select("moneda_base").single(),
   ]);
   if (!actual) return { error: "Movimiento no encontrado" };
@@ -151,6 +177,14 @@ export async function actualizarMovimiento(
     } catch {
       return { error: ERROR_CAMBIO };
     }
+  }
+
+  // Solo se revisa si la bolsa sube: bajarla o dejarla igual siempre está permitido.
+  const nuevoBase = datos.data.monto * tipoCambio;
+  const anteriorBase = actual.tipo === "PARA_MI" ? (actual.monto_base ?? 0) : 0;
+  if (datos.data.tipo === "PARA_MI" && Math.round(nuevoBase * 100) > Math.round(anteriorBase * 100)) {
+    const aviso = await revisarBolsa(supabase, datos.data.fecha, nuevoBase, id);
+    if (aviso) return { errores: { monto: aviso } };
   }
 
   const { data: actualizadas, error } = await supabase
