@@ -1,6 +1,14 @@
 import { describe, expect, it } from "vitest";
 import { generarConsejos } from "./consejos";
-import { calcularResumen, cuotaMensual, formatearDinero, fraccion, paraMiPorDia } from "./dinero";
+import {
+  calcularResumen,
+  cuotaMensual,
+  formatearDinero,
+  fraccion,
+  paraMiPorDia,
+  SIN_DINERO_PARA_BOLSA,
+  validarBolsa,
+} from "./dinero";
 import { fechaLarga, mesesHasta, rangoDelMes } from "./fechas";
 
 // Ejemplo de la propuesta: sueldo S/ 1,500.
@@ -17,6 +25,23 @@ const movimientos = [
   { tipo: "OCIO" as const, monto_base: 59 },
   { tipo: "OCIO" as const, monto_base: 32 },
 ];
+
+describe("validarBolsa (Para mí sale de lo sin asignar)", () => {
+  it("con 0 o menos sin asignar no deja sumar nada", () => {
+    expect(validarBolsa(10, 0)).toBe(SIN_DINERO_PARA_BOLSA);
+    expect(validarBolsa(10, -50)).toBe(SIN_DINERO_PARA_BOLSA);
+  });
+
+  it("no deja sumar más de lo que queda y dice cuánto hay", () => {
+    expect(validarBolsa(200, 150.5)).toMatch(/^Solo tienes S\/\s150\.50 sin asignar/);
+  });
+
+  it("deja sumar hasta el último céntimo disponible", () => {
+    expect(validarBolsa(150.5, 150.5)).toBeNull();
+    expect(validarBolsa(0.1 + 0.2, 0.3)).toBeNull();
+    expect(validarBolsa(100, 150.5)).toBeNull();
+  });
+});
 
 describe("calcularResumen", () => {
   const r = calcularResumen(1500, movimientos);

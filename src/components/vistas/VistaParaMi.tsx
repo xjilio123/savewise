@@ -34,7 +34,7 @@ export function VistaParaMi({ moneda, resumen: r, periodo, etiquetaPeriodo, hoy,
         </p>
       </section>
 
-      <FormularioBolsa hoy={hoy} actual={r.paraMi} />
+      <FormularioBolsa hoy={hoy} actual={r.paraMi} disponible={r.sinAsignar} moneda={moneda} />
 
       {ultimos.length > 0 && (
         <Grupo titulo="Últimos gastos">
