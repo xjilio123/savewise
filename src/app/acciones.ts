@@ -5,7 +5,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { crearRepositorio } from "@/lib/datos/repositorio";
 import { saldoDeuda } from "@/lib/deudas";
-import { calcularResumen } from "@/lib/dinero";
+import { calcularResumen, formatearDinero } from "@/lib/dinero";
 import { etiquetaRango, hoyLima, periodoFinanciero, sumarDias } from "@/lib/fechas";
 import { pedirResumen, type ResultadoIA } from "@/lib/ia";
 import { leerRespaldo, planRestauracion, TAMANO_MAXIMO } from "@/lib/restaurar";
@@ -26,11 +26,20 @@ import {
   esquemaPerfil,
   esquemaPrestamo,
   esquemaTope,
+  pideConfirmarSueldo,
   texto,
   type ErroresCampo,
 } from "@/lib/validacion";
 
-export type EstadoFormulario = { errores?: ErroresCampo; error?: string; ok?: boolean };
+export type EstadoFormulario = {
+  errores?: ErroresCampo;
+  error?: string;
+  ok?: boolean;
+  /** Algo que conviene revisar antes de guardar; volver a enviar lo mismo lo confirma. */
+  aviso?: string;
+  /** Lo que se envió, para volver a mostrarlo junto al aviso. */
+  valores?: Record<string, string>;
+};
 
 const ERROR_GENERICO = "No se pudo guardar. Intenta de nuevo.";
 const ERROR_CAMBIO = "No se pudo obtener el tipo de cambio. Revisa tu conexión e intenta de nuevo.";
@@ -193,13 +202,17 @@ export async function borrarMisDatos(_: EstadoFormulario, formData: FormData): P
   }
 
   // Primero los movimientos (referencian metas y deudas), luego el resto. RLS limita todo a tus filas.
+  // El sueldo vuelve a 0: así "Sin asignar" no queda con un monto viejo e Inicio pide escribirlo de nuevo.
   const movimientos = await supabase.from("movimientos").delete().eq("user_id", usuario.id);
-  const [metas, deudas, prestamos] = await Promise.all([
+  const [metas, deudas, prestamos, perfil] = await Promise.all([
     supabase.from("metas").delete().eq("user_id", usuario.id),
     supabase.from("deudas").delete().eq("user_id", usuario.id),
     supabase.from("prestamos").delete().eq("user_id", usuario.id),
+    supabase.from("perfiles").update({ sueldo_mensual: 0 }).eq("id", usuario.id),
   ]);
-  if (movimientos.error || metas.error || deudas.error || prestamos.error) return { error: "No se pudo borrar todo. Intenta de nuevo." };
+  if (movimientos.error || metas.error || deudas.error || prestamos.error || perfil.error) {
+    return { error: "No se pudo borrar todo. Intenta de nuevo." };
+  }
 
   revalidatePath("/", "layout");
   redirect("/");
@@ -214,6 +227,14 @@ export async function guardarPerfil(_: EstadoFormulario, formData: FormData): Pr
     dia_pago: texto(formData, "dia_pago"),
   });
   if (!datos.success) return { errores: erroresPorCampo(datos.error) };
+
+  const { sueldo_mensual, moneda_base, dia_pago } = datos.data;
+  if (pideConfirmarSueldo(sueldo_mensual, texto(formData, "confirmar_sueldo"))) {
+    return {
+      aviso: `¿Tu sueldo es ${formatearDinero(sueldo_mensual, moneda_base)}? Parece muy poco: revisa que no falten cifras. Si es correcto, vuelve a tocar el botón.`,
+      valores: { sueldo_mensual: String(sueldo_mensual), moneda_base, dia_pago: String(dia_pago) },
+    };
+  }
 
   const { data: perfil } = await supabase.from("perfiles").select("moneda_base").single();
   const anterior = perfil?.moneda_base ?? "PEN";

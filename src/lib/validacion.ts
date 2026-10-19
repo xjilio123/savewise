@@ -50,6 +50,14 @@ export const esquemaPerfil = z.object({
     .max(31, { error: "Entre 1 y 31" }),
 });
 
+/** Un sueldo menor suele ser un error al escribirlo (0.40 en vez de 400): se pide confirmarlo. */
+export const SUELDO_MINIMO_SIN_AVISO = 10;
+
+/** true si hay que avisar antes de guardar. `confirmado` es el sueldo que ya se avisó y la persona volvió a enviar. */
+export function pideConfirmarSueldo(sueldo: number, confirmado: string): boolean {
+  return sueldo < SUELDO_MINIMO_SIN_AVISO && confirmado !== String(sueldo);
+}
+
 export const esquemaMeta = z.object({
   nombre: z.string().trim().min(1, { error: "Ponle un nombre" }).max(60, { error: "Máximo 60 caracteres" }),
   objetivo: monto,
