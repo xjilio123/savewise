@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { erroresPorCampo, esquemaMeta, esquemaMovimiento, esquemaPerfil } from "./validacion";
+import { erroresPorCampo, esquemaMeta, esquemaMovimiento, esquemaPerfil, pideConfirmarSueldo } from "./validacion";
 
 const base = {
   tipo: "GASTO",
@@ -67,6 +67,23 @@ describe("esquemaPerfil", () => {
   it("rechaza monedas no soportadas y días fuera de rango", () => {
     expect(esquemaPerfil.safeParse({ sueldo_mensual: "1500", moneda_base: "XYZ", dia_pago: "1" }).success).toBe(false);
     expect(esquemaPerfil.safeParse({ sueldo_mensual: "1500", moneda_base: "PEN", dia_pago: "32" }).success).toBe(false);
+  });
+});
+
+describe("pideConfirmarSueldo", () => {
+  it("avisa si el sueldo parece un error al escribirlo (0.40 en vez de 400)", () => {
+    expect(pideConfirmarSueldo(0.4, "")).toBe(true);
+    expect(pideConfirmarSueldo(9.99, "")).toBe(true);
+  });
+
+  it("no avisa con un sueldo normal", () => {
+    expect(pideConfirmarSueldo(10, "")).toBe(false);
+    expect(pideConfirmarSueldo(1500, "")).toBe(false);
+  });
+
+  it("deja guardar si se confirma el mismo monto, pero vuelve a avisar si lo cambia por otro bajo", () => {
+    expect(pideConfirmarSueldo(0.4, "0.4")).toBe(false);
+    expect(pideConfirmarSueldo(0.5, "0.4")).toBe(true);
   });
 });
 
