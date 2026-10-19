@@ -1,11 +1,17 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, type FormEvent } from "react";
 import { guardarPerfil, type EstadoFormulario } from "@/app/acciones";
 import { BotonEnviar } from "@/components/BotonEnviar";
 import { ConMontos } from "@/components/Monto";
 import { MensajeError } from "@/components/ui";
-import { MONEDAS } from "@/lib/validacion";
+import { limpiarDia, limpiarMonto, MONEDAS } from "@/lib/validacion";
+
+/** Corrige el campo mientras se escribe, así lo inválido (letras, 3 decimales, día 45) ni siquiera aparece. */
+const filtrar = (limpiar: (valor: string) => string) => (e: FormEvent<HTMLInputElement>) => {
+  const limpio = limpiar(e.currentTarget.value);
+  if (limpio !== e.currentTarget.value) e.currentTarget.value = limpio;
+};
 
 const nombres: Record<(typeof MONEDAS)[number], string> = {
   PEN: "Sol peruano",
@@ -45,7 +51,9 @@ export function FormularioPerfil({
           id="sueldo_mensual"
           name="sueldo_mensual"
           inputMode="decimal"
+          autoComplete="off"
           required
+          onInput={filtrar(limpiarMonto)}
           defaultValue={sueldoInicial > 0 ? sueldoInicial.toFixed(2) : ""}
           placeholder="1500.00"
           aria-invalid={Boolean(errores.sueldo_mensual)}
@@ -62,7 +70,7 @@ export function FormularioPerfil({
       <div className="divide-y divide-linea rounded-[22px] bg-tarjeta px-4">
         <label className="flex items-center justify-between gap-4 py-3.5">
           <span className="text-[17px]">Moneda</span>
-          <select name="moneda_base" defaultValue={v?.moneda_base ?? moneda}className="bg-transparent text-right text-[17px] text-texto-2 outline-none">
+          <select name="moneda_base" defaultValue={v?.moneda_base ?? moneda} className="bg-transparent text-right text-[17px] text-texto-2 outline-none">
             {MONEDAS.map((m) => (
               <option key={m} value={m}>
                 {m} · {nombres[m]}
@@ -75,6 +83,10 @@ export function FormularioPerfil({
           <input
             name="dia_pago"
             inputMode="numeric"
+            maxLength={2}
+            autoComplete="off"
+            placeholder="1–31"
+            onInput={filtrar(limpiarDia)}
             defaultValue={v?.dia_pago ?? diaPago}
             required
             className="w-16 bg-transparent text-right text-[17px] text-texto-2 outline-none"
@@ -83,7 +95,7 @@ export function FormularioPerfil({
       </div>
       <MensajeError texto={errores.moneda_base ?? errores.dia_pago ?? estado.error} />
       <p className="px-1 text-[13px] text-texto-2">
-        Soles por defecto. Si cambias la moneda, tus montos y metas se convierten con el tipo de cambio de hoy. El día de pago define tu mes: si cobras el 15, va del 15 al 14.
+        Soles por defecto. Si cambias la moneda, tus montos y metas se convierten con el tipo de cambio de hoy. El día de pago (del 1 al 31) define tu mes: si cobras el 15, va del 15 al 14. Si eliges 31, en los meses más cortos cuenta el último día.
       </p>
       <BotonEnviar texto={textoBoton} clase="bg-azul-relleno text-white" />
     </form>
