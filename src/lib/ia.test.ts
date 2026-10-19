@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   cuerpoPeticion,
   extraerTexto,
@@ -87,6 +87,7 @@ describe("modeloValido", () => {
 });
 
 describe("pedirResumen", () => {
+  afterEach(() => vi.restoreAllMocks());
   const respuesta = (status: number, cuerpo: unknown = {}) =>
     vi.fn<typeof fetch>().mockResolvedValue(new Response(JSON.stringify(cuerpo), { status }));
 
@@ -100,9 +101,37 @@ describe("pedirResumen", () => {
   });
 
   it("traduce el límite de la capa gratuita y otros errores", async () => {
+    vi.spyOn(console, "warn").mockImplementation(() => {});
     expect((await pedirResumen(datos, { clave: "k", fetch: respuesta(429) })).error).toMatch(/límite gratuito/);
-    expect((await pedirResumen(datos, { clave: "k", fetch: respuesta(500) })).error).toMatch(/no respondió/);
+    expect((await pedirResumen(datos, { clave: "k", fetch: respuesta(500), esperaReintento: 0 })).error).toMatch(/no respondió/);
     const caida = vi.fn<typeof fetch>().mockRejectedValue(new Error("red"));
     expect((await pedirResumen(datos, { clave: "k", fetch: caida })).error).toMatch(/conectar/);
+  });
+
+  it("si Google está saturado (503) reintenta una vez sola y entrega el resumen", async () => {
+    vi.spyOn(console, "warn").mockImplementation(() => {});
+    const f = vi
+      .fn<typeof fetch>()
+      .mockResolvedValueOnce(new Response("{}", { status: 503 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ candidates: [{ content: { parts: [{ text: "Vas bien." }] } }] })));
+    expect(await pedirResumen(datos, { clave: "k", fetch: f, esperaReintento: 0 })).toEqual({ texto: "Vas bien." });
+    expect(f).toHaveBeenCalledTimes(2);
+  });
+
+  it("no reintenta el límite gratuito (429): gastaría más cupo", async () => {
+    vi.spyOn(console, "warn").mockImplementation(() => {});
+    const f = respuesta(429);
+    await pedirResumen(datos, { clave: "k", fetch: f, esperaReintento: 0 });
+    expect(f).toHaveBeenCalledTimes(1);
+  });
+
+  it("registra solo el motivo, nunca la clave ni los datos", async () => {
+    const aviso = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const f = respuesta(200, { candidates: [{ finishReason: "MAX_TOKENS", content: { parts: [] } }] });
+    expect((await pedirResumen(datos, { clave: "clave-secreta", fetch: f })).error).toMatch(/no devolvió/);
+    const registrado = aviso.mock.calls.flat().join(" ");
+    expect(registrado).toContain("MAX_TOKENS");
+    expect(registrado).not.toContain("clave-secreta");
+    expect(registrado).not.toContain(String(datos.sueldo));
   });
 });

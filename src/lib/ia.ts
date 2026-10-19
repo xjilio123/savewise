@@ -101,24 +101,52 @@ export function modeloValido(modelo: string | undefined): string {
 
 export type ResultadoIA = { texto?: string; error?: string };
 
+/** Fallas pasajeras de Google (modelo saturado, caída breve): vale la pena un segundo intento. */
+const REINTENTABLES = new Set([500, 502, 503, 504]);
+
+/** Por qué Gemini no devolvió texto (bloqueo, tope de tokens…), para los registros. */
+function motivoSinTexto(respuesta: unknown): string {
+  const r = respuesta as { candidates?: { finishReason?: unknown }[]; promptFeedback?: { blockReason?: unknown } };
+  return String(r?.promptFeedback?.blockReason ?? r?.candidates?.[0]?.finishReason ?? "sin candidatos");
+}
+
+// Los registros de Vercel solo llevan el código o motivo del error: nunca la clave ni los datos del usuario.
 export async function pedirResumen(
   datos: DatosIA,
-  opciones: { clave: string; modelo?: string; fetch?: typeof fetch },
+  opciones: { clave: string; modelo?: string; fetch?: typeof fetch; esperaReintento?: number },
 ): Promise<ResultadoIA> {
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${modeloValido(opciones.modelo)}:generateContent`;
-  try {
-    const respuesta = await (opciones.fetch ?? fetch)(url, {
+  const enviar = () =>
+    (opciones.fetch ?? fetch)(url, {
       method: "POST",
       headers: { "content-type": "application/json", "x-goog-api-key": opciones.clave },
       body: JSON.stringify(cuerpoPeticion(datos)),
       cache: "no-store",
-      signal: AbortSignal.timeout(20_000),
+      signal: AbortSignal.timeout(15_000),
     });
-    if (respuesta.status === 429) return { error: "Se alcanzó el límite gratuito por ahora. Intenta en unos minutos." };
-    if (!respuesta.ok) return { error: "La IA no respondió. Intenta de nuevo más tarde." };
-    const texto = extraerTexto(await respuesta.json());
-    return texto ? { texto } : { error: "La IA no devolvió un resumen. Intenta de nuevo." };
-  } catch {
+
+  try {
+    let respuesta = await enviar();
+    if (REINTENTABLES.has(respuesta.status)) {
+      console.warn(`[ia] Gemini respondió ${respuesta.status}; se reintenta una vez`);
+      await new Promise((listo) => setTimeout(listo, opciones.esperaReintento ?? 1500));
+      respuesta = await enviar();
+    }
+    if (respuesta.status === 429) {
+      console.warn("[ia] límite de la capa gratuita (429)");
+      return { error: "Se alcanzó el límite gratuito por ahora. Intenta en unos minutos." };
+    }
+    if (!respuesta.ok) {
+      console.warn(`[ia] Gemini respondió ${respuesta.status}`);
+      return { error: "La IA no respondió. Intenta de nuevo más tarde." };
+    }
+    const cuerpo: unknown = await respuesta.json();
+    const texto = extraerTexto(cuerpo);
+    if (texto) return { texto };
+    console.warn(`[ia] respuesta sin texto: ${motivoSinTexto(cuerpo)}`);
+    return { error: "La IA no devolvió un resumen. Intenta de nuevo." };
+  } catch (e) {
+    console.warn(`[ia] sin conexión con Gemini: ${e instanceof Error ? e.name : "desconocido"}`);
     return { error: "No se pudo conectar con la IA. Revisa tu conexión." };
   }
 }
