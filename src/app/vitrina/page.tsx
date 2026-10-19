@@ -95,7 +95,13 @@ export default async function Vitrina({ searchParams }: PageProps<"/vitrina">) {
         meses={f.MESES}
         pagos={f.PAGOS}
         hormiga={f.HORMIGA}
-        extra={<ResumenIA />}
+        extra={
+          <ResumenIA
+            texto="Vas bien: llevas S/ 612.35 en gastos de S/ 1,500.00 y la categoría que más pesa es Alimentación. Si mantienes el ritmo, cerrarás el periodo con S/ 300.00 para tu meta."
+            usados={3}
+            espera={95}
+          />
+        }
       />
     ),
     deudas: <VistaDeudas deudas={f.DEUDAS} moneda="PEN" />,
