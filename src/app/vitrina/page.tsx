@@ -12,6 +12,7 @@ import { SelectorTema } from "@/app/(app)/ajustes/SelectorTema";
 import { ResumenIA } from "@/app/(app)/dashboard/ResumenIA";
 import { BotonPrivado } from "@/components/BotonPrivado";
 import { CierreMes } from "@/components/CierreMes";
+import { FormularioPerfil } from "@/components/FormularioPerfil";
 import { VistaDashboard } from "@/components/vistas/VistaDashboard";
 import { VistaDeudas } from "@/components/vistas/VistaDeudas";
 import { VistaMeDeben } from "@/components/vistas/VistaMeDeben";
@@ -100,6 +101,7 @@ export default async function Vitrina({ searchParams }: PageProps<"/vitrina">) {
     deudas: <VistaDeudas deudas={f.DEUDAS} moneda="PEN" />,
     piezas: (
       <main className="mx-auto flex min-h-dvh max-w-md flex-col gap-4 px-5 pt-7 pb-36">
+        <FormularioPerfil sueldo={1500} moneda="PEN" diaPago={1} textoBoton="Guardar cambios" />
         <SelectorTema actual="auto" />
         <ListaAportes aportes={f.APORTES} />
         <FormularioCategoria

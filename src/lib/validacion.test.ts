@@ -1,5 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { erroresPorCampo, esquemaMeta, esquemaMovimiento, esquemaPerfil, pideConfirmarSueldo } from "./validacion";
+import {
+  erroresPorCampo,
+  esquemaMeta,
+  esquemaMovimiento,
+  esquemaPerfil,
+  limpiarDia,
+  limpiarMonto,
+  pideConfirmarSueldo,
+} from "./validacion";
 
 const base = {
   tipo: "GASTO",
@@ -67,6 +75,47 @@ describe("esquemaPerfil", () => {
   it("rechaza monedas no soportadas y días fuera de rango", () => {
     expect(esquemaPerfil.safeParse({ sueldo_mensual: "1500", moneda_base: "XYZ", dia_pago: "1" }).success).toBe(false);
     expect(esquemaPerfil.safeParse({ sueldo_mensual: "1500", moneda_base: "PEN", dia_pago: "32" }).success).toBe(false);
+  });
+});
+
+describe("montos con coma", () => {
+  it.each([
+    ["coma decimal", "1500,50", 1500.5],
+    ["formato peruano con miles", "1,500.00", 1500],
+    ["con espacios", " 1500 ", 1500],
+  ])("acepta %s", (_, sueldo, esperado) => {
+    expect(esquemaPerfil.parse({ sueldo_mensual: sueldo, moneda_base: "PEN", dia_pago: "1" }).sueldo_mensual).toBe(esperado);
+  });
+
+  it("sigue rechazando 3 decimales también con coma", () => {
+    expect(esquemaPerfil.safeParse({ sueldo_mensual: "1500,505", moneda_base: "PEN", dia_pago: "1" }).success).toBe(false);
+  });
+});
+
+describe("limpiarMonto (lo que deja escribir el campo)", () => {
+  it.each([
+    ["1500.505", "1500.50"],
+    ["1500,5", "1500.5"],
+    ["15a00", "1500"],
+    ["1.5.0", "1.50"],
+    ["-200", "200"],
+    ["9999999999", "999999999"],
+    ["", ""],
+  ])("%s → %s", (escrito, queda) => {
+    expect(limpiarMonto(escrito)).toBe(queda);
+  });
+});
+
+describe("limpiarDia (lo que deja escribir el campo)", () => {
+  it.each([
+    ["1", "1"],
+    ["31", "31"],
+    ["32", "3"],
+    ["45", "4"],
+    ["123", "12"],
+    ["1a", "1"],
+  ])("%s → %s", (escrito, queda) => {
+    expect(limpiarDia(escrito)).toBe(queda);
   });
 });
 

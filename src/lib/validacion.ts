@@ -4,11 +4,35 @@ import { COLORES_CATEGORIA } from "@/lib/colores";
 export const MONEDAS = ["PEN", "USD", "EUR", "MXN", "COP", "CLP", "ARS"] as const;
 export const TIPOS_FORMULARIO = ["GASTO", "OCIO", "AHORRO", "INGRESO"] as const;
 
-const monto = z.coerce
-  .number({ error: "Escribe un monto válido" })
-  .positive({ error: "El monto debe ser mayor a 0" })
-  .max(999_999_999, { error: "El monto es demasiado grande" })
-  .multipleOf(0.01, { error: "Usa máximo 2 decimales" });
+/**
+ * Acepta coma decimal (teclados en español: "1500,50") y el formato peruano con comas de miles
+ * ("1,500.00"). Si hay punto, las comas son de miles; si no, la coma es el decimal.
+ */
+export function normalizarMonto(valor: string): string {
+  const s = valor.trim();
+  return s.includes(".") ? s.replaceAll(",", "") : s.replace(",", ".");
+}
+
+/** Lo que se puede escribir en un campo de monto: solo cifras, un separador decimal y 2 decimales. */
+export function limpiarMonto(valor: string): string {
+  const [entero = "", ...resto] = valor.replaceAll(",", ".").replace(/[^\d.]/g, "").split(".");
+  return resto.length > 0 ? `${entero.slice(0, 9)}.${resto.join("").slice(0, 2)}` : entero.slice(0, 9);
+}
+
+/** Lo que se puede escribir en el día de pago: un número del 1 al 31 (con 45 se queda en 4). */
+export function limpiarDia(valor: string): string {
+  const s = valor.replace(/\D/g, "").slice(0, 2);
+  return Number(s) > 31 ? s.slice(0, 1) : s;
+}
+
+const monto = z.preprocess(
+  (v) => (typeof v === "string" ? normalizarMonto(v) : v),
+  z.coerce
+    .number({ error: "Escribe un monto válido" })
+    .positive({ error: "El monto debe ser mayor a 0" })
+    .max(999_999_999, { error: "El monto es demasiado grande" })
+    .multipleOf(0.01, { error: "Usa máximo 2 decimales" }),
+);
 
 const uuidOpcional = z
   .union([z.uuid({ error: "Opción inválida" }), z.literal("")])
