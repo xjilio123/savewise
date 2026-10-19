@@ -5,7 +5,6 @@ import {
   MODELO_POR_DEFECTO,
   modeloValido,
   pedirResumen,
-  simboloMoneda,
   type DatosIA,
 } from "./ia";
 
@@ -27,28 +26,47 @@ describe("cuerpoPeticion", () => {
     const enviado = JSON.parse(cuerpo.contents[0]!.parts[0]!.text);
     expect(Object.keys(enviado).sort()).toEqual(
       [
+        "categoria_que_mas_pesa",
+        "categorias_sobre_tope",
         "deudas",
         "dias",
         "gastos_por_categoria",
-        "moneda",
         "periodo",
         "periodo_anterior",
-        "simbolo",
         "sueldo",
         "este_periodo",
       ].sort(),
     );
-    expect(enviado.este_periodo.gastos).toBe(612.35);
-    expect(enviado.gastos_por_categoria[0]).toEqual({ categoria: "Alimentación", total: 320.5, tope: 400 });
+    expect(enviado.gastos_por_categoria[0]).toEqual({ categoria: "Alimentación", total: "S/ 320.50", tope: "S/ 400.00" });
     expect(enviado.gastos_por_categoria[1]).not.toHaveProperty("tope");
   });
 
-  it("sin historial no manda periodo anterior y usa el símbolo local", () => {
-    const vacio = { ...datos, anterior: { gastos: 0, ahorros: 0, ocio: 0 } };
+  it("manda los montos ya escritos como en la app, con separador de miles", () => {
+    const enviado = JSON.parse(cuerpoPeticion(datos).contents[0]!.parts[0]!.text);
+    expect(enviado.sueldo).toBe("S/ 1,500.00");
+    expect(enviado.este_periodo.gastos).toBe("S/ 612.35");
+    expect(enviado.este_periodo.gastos_sobre_ingresos).toBe("41 %");
+    expect(enviado.deudas.pendiente).toBe("S/ 2,000.00");
+  });
+
+  it("señala la categoría que más pesa y las que pasaron su tope", () => {
+    const categorias = [
+      { nombre: "Otros", total: 120 },
+      { nombre: "Salud", total: 450, tope: 300 },
+      { nombre: "Alimentación", total: 200, tope: 400 },
+    ];
+    const enviado = JSON.parse(cuerpoPeticion({ ...datos, categorias }).contents[0]!.parts[0]!.text);
+    expect(enviado.categoria_que_mas_pesa).toEqual({ categoria: "Salud", total: "S/ 450.00", tope: "S/ 300.00" });
+    expect(enviado.categorias_sobre_tope.map((c: { categoria: string }) => c.categoria)).toEqual(["Salud"]);
+    expect(enviado.gastos_por_categoria.map((c: { categoria: string }) => c.categoria)).toEqual(["Salud", "Alimentación", "Otros"]);
+  });
+
+  it("sin historial ni gastos no manda periodo anterior ni categoría principal", () => {
+    const vacio = { ...datos, anterior: { gastos: 0, ahorros: 0, ocio: 0 }, categorias: [] };
     const enviado = JSON.parse(cuerpoPeticion(vacio).contents[0]!.parts[0]!.text);
     expect(enviado.periodo_anterior).toBeNull();
-    expect(enviado.simbolo).toBe("S/");
-    expect(simboloMoneda("XYZ1")).toBe("XYZ1");
+    expect(enviado.categoria_que_mas_pesa).toBeNull();
+    expect(enviado.categorias_sobre_tope).toEqual([]);
   });
 
   it("limita la cantidad y el largo de las categorías", () => {
