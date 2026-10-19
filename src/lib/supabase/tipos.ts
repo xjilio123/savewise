@@ -292,6 +292,19 @@ export type Database = {
         Returns: { categoria_id: string; color: ColorApp; nombre: string; total: number }[];
       };
       ping: { Args: never; Returns: number };
+      estado_resumen_ia: {
+        Args: never;
+        Returns: { usados: number; espera_segundos: number; texto: string | null }[];
+      };
+      reservar_resumen_ia: {
+        Args: never;
+        Returns: { permitido: boolean; motivo: string | null; usados: number; espera_segundos: number }[];
+      };
+      terminar_resumen_ia: {
+        Args: { p_texto: string | null };
+        Returns: { usados: number; espera_segundos: number }[];
+      };
+      olvidar_resumen_ia: { Args: never; Returns: undefined };
       generar_recurrentes: { Args: { p_token: string }; Returns: number };
       recordatorios_del_dia: {
         Args: { p_token: string };

@@ -31,6 +31,7 @@ export default async function Dashboard({ searchParams }: PageProps<"/dashboard"
 
   const anterior = periodoFinanciero(sumarDias(periodo.desde, -1), perfil.dia_pago);
   const esMes = vista === "mes";
+  const conIA = esMes && Boolean(process.env.GEMINI_API_KEY);
 
   // Todo en una sola tanda de consultas en paralelo; cada vista pide solo lo que muestra.
   const nada = Promise.resolve([]);
@@ -46,6 +47,7 @@ export default async function Dashboard({ searchParams }: PageProps<"/dashboard"
     metasActivas,
     pagosDeudas,
     prestamos,
+    usoIA,
   ] = await Promise.all([
     repo.movimientosEntre(periodo.desde, periodo.hasta),
     repo.gastosPorCategoria(periodo.desde, periodo.hasta),
@@ -60,6 +62,8 @@ export default async function Dashboard({ searchParams }: PageProps<"/dashboard"
     esMes ? nada : repo.metas(),
     esMes ? nada : repo.pagosDeDeudas(),
     esMes ? nada : repo.prestamos(),
+    // Si falla, el resumen arranca desde 0: igual la base hace cumplir el tope al pedirlo.
+    conIA ? repo.estadoResumenIA().catch(() => null) : null,
   ]);
   const activas = new Set(metasActivas.map((m) => m.id));
   const patrimonio = esMes
@@ -102,7 +106,11 @@ export default async function Dashboard({ searchParams }: PageProps<"/dashboard"
       resumen={resumen}
       consejos={movimientos.length > 0 ? generarConsejos(resumen, periodo, perfil.moneda_base, topes) : []}
       meses={grafico}
-      extra={vista === "mes" && movimientos.length > 0 && process.env.GEMINI_API_KEY ? <ResumenIA /> : null}
+      extra={
+        conIA && movimientos.length > 0 ? (
+          <ResumenIA texto={usoIA?.texto ?? null} usados={usoIA?.usados ?? 0} espera={usoIA?.espera ?? 0} />
+        ) : null
+      }
     />
   );
 }

@@ -35,6 +35,13 @@ export function crearRepositorio(supabase: SupabaseClient<Database>) {
       return obtener(supabase.from("perfiles").select("*").single());
     },
 
+    /** Resúmenes con IA usados hoy, segundos que faltan para el próximo y el último resumen de hoy. */
+    async estadoResumenIA(): Promise<{ usados: number; espera: number; texto: string | null }> {
+      const { data: fila, error } = await supabase.rpc("estado_resumen_ia").single();
+      if (error || !fila) throw new Error("No se pudieron leer los datos");
+      return { usados: fila.usados, espera: fila.espera_segundos, texto: fila.texto };
+    },
+
     movimientosEntre(desde: string, hasta: string): Promise<Movimiento[]> {
       return obtener(
         supabase

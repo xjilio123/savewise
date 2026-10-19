@@ -7,7 +7,8 @@ import { crearRepositorio } from "@/lib/datos/repositorio";
 import { saldoDeuda } from "@/lib/deudas";
 import { calcularResumen, formatearDinero } from "@/lib/dinero";
 import { etiquetaRango, hoyLima, periodoFinanciero, sumarDias } from "@/lib/fechas";
-import { pedirResumen, type ResultadoIA } from "@/lib/ia";
+import { pedirResumen } from "@/lib/ia";
+import { mensajeBloqueo, type RespuestaIA } from "@/lib/usoIA";
 import { leerRespaldo, planRestauracion, TAMANO_MAXIMO } from "@/lib/restaurar";
 import { finDelReto, objetivoReto } from "@/lib/ideas";
 import { enviarAviso } from "@/lib/notificaciones";
@@ -204,13 +205,15 @@ export async function borrarMisDatos(_: EstadoFormulario, formData: FormData): P
   // Primero los movimientos (referencian metas y deudas), luego el resto. RLS limita todo a tus filas.
   // El sueldo vuelve a 0: así "Sin asignar" no queda con un monto viejo e Inicio pide escribirlo de nuevo.
   const movimientos = await supabase.from("movimientos").delete().eq("user_id", usuario.id);
-  const [metas, deudas, prestamos, perfil] = await Promise.all([
+  const [metas, deudas, prestamos, perfil, ia] = await Promise.all([
     supabase.from("metas").delete().eq("user_id", usuario.id),
     supabase.from("deudas").delete().eq("user_id", usuario.id),
     supabase.from("prestamos").delete().eq("user_id", usuario.id),
     supabase.from("perfiles").update({ sueldo_mensual: 0 }).eq("id", usuario.id),
+    // El resumen con IA guardado describe tus datos: se olvida también (el contador del día sigue).
+    supabase.rpc("olvidar_resumen_ia"),
   ]);
-  if (movimientos.error || metas.error || deudas.error || prestamos.error || perfil.error) {
+  if (movimientos.error || metas.error || deudas.error || prestamos.error || perfil.error || ia.error) {
     return { error: "No se pudo borrar todo. Intenta de nuevo." };
   }
 
@@ -680,7 +683,7 @@ export async function eliminarDeuda(id: string): Promise<void> {
  * Pide a Gemini un resumen del periodo. Los totales se calculan aquí con la sesión del usuario:
  * el teléfono no envía datos, y a Google solo llegan cifras agregadas (ver src/lib/ia.ts).
  */
-export async function pedirResumenIA(): Promise<ResultadoIA> {
+export async function pedirResumenIA(): Promise<RespuestaIA> {
   const clave = process.env.GEMINI_API_KEY;
   if (!clave) return { error: "El resumen con IA no está activado." };
 
@@ -700,11 +703,18 @@ export async function pedirResumenIA(): Promise<ResultadoIA> {
   ]);
   if (movimientos.length === 0) return { error: "Registra algunos movimientos para tener un resumen." };
 
+  // La base decide si toca (máximo 10 al día, 2 minutos entre resúmenes) y frena el doble toque.
+  const { data: reserva, error: errorReserva } = await supabase.rpc("reservar_resumen_ia").single();
+  if (errorReserva || !reserva) return { error: "No se pudo pedir el resumen. Intenta de nuevo." };
+  if (!reserva.permitido) {
+    return { error: mensajeBloqueo(reserva.motivo), usados: reserva.usados, espera: reserva.espera_segundos };
+  }
+
   const topes = new Map(categorias.map((c) => [c.id, c.tope]));
   const abiertas = deudas.filter((d) => !d.cerrada);
   const previo = calcularResumen(perfil.sueldo_mensual, previos);
 
-  return pedirResumen(
+  const resultado = await pedirResumen(
     {
       periodo: etiquetaRango(periodo.desde, periodo.hasta),
       diasTranscurridos: periodo.diasDelMes - periodo.diasRestantes + 1,
@@ -721,6 +731,12 @@ export async function pedirResumenIA(): Promise<ResultadoIA> {
     },
     { clave, modelo: process.env.GEMINI_MODELO },
   );
+
+  // Solo un resumen que salió bien gasta intento; un error deja esperar 15 s y reintentar.
+  const { data: fin } = await supabase.rpc("terminar_resumen_ia", { p_texto: resultado.texto ?? null }).single();
+  // El Dashboard está en caché 60 s: así, al volver, muestra el resumen guardado y el contador al día.
+  revalidatePath("/dashboard");
+  return { ...resultado, usados: fin?.usados ?? reserva.usados, espera: fin?.espera_segundos ?? 0 };
 }
 
 export async function guardarSuscripcion(suscripcion: unknown): Promise<EstadoFormulario> {
