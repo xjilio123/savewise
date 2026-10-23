@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { Icono } from "@/components/Icono";
 import { BotonPrivado } from "@/components/BotonPrivado";
+import { ConMontos } from "@/components/Monto";
 
 export function Pantalla({ children }: { children: ReactNode }) {
   return (
@@ -61,7 +62,23 @@ export function MensajeError({ texto }: { texto?: string }) {
   if (!texto) return null;
   return (
     <p role="alert" className="text-[15px] font-medium text-rojo">
-      {texto}
+      {/* Algunos errores dicen montos ("Solo tienes S/ 120.00…"): respetan Ocultar montos. */}
+      <ConMontos texto={texto} />
+    </p>
+  );
+}
+
+/** Aviso destacado, por ejemplo cuando no queda dinero sin asignar. `enTarjeta` si va dentro de otra tarjeta. */
+export function Alerta({ texto, enTarjeta = false }: { texto: string; enTarjeta?: boolean }) {
+  return (
+    <p
+      role="alert"
+      className={`flex gap-2.5 rounded-2xl px-4 py-3 text-[15px] font-medium leading-snug text-naranja ${enTarjeta ? "bg-fondo" : "bg-tarjeta"}`}
+    >
+      <Icono nombre="alerta" className="mt-0.5 size-5 shrink-0" />
+      <span>
+        <ConMontos texto={texto} />
+      </span>
     </p>
   );
 }

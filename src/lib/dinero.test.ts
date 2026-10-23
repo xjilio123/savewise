@@ -6,8 +6,9 @@ import {
   formatearDinero,
   fraccion,
   paraMiPorDia,
+  restaDeSinAsignar,
   SIN_DINERO_PARA_BOLSA,
-  validarBolsa,
+  validarSalida,
 } from "./dinero";
 import { fechaLarga, mesesHasta, rangoDelMes } from "./fechas";
 
@@ -26,20 +27,27 @@ const movimientos = [
   { tipo: "OCIO" as const, monto_base: 32 },
 ];
 
-describe("validarBolsa (Para mí sale de lo sin asignar)", () => {
-  it("con 0 o menos sin asignar no deja sumar nada", () => {
-    expect(validarBolsa(10, 0)).toBe(SIN_DINERO_PARA_BOLSA);
-    expect(validarBolsa(10, -50)).toBe(SIN_DINERO_PARA_BOLSA);
+describe("validarSalida (gastos, ahorros y Para mí salen de lo sin asignar)", () => {
+  it("con 0 o menos sin asignar no deja registrar nada", () => {
+    expect(validarSalida("PARA_MI", 10, 0)).toBe(SIN_DINERO_PARA_BOLSA);
+    expect(validarSalida("GASTO", 10, -50)).toMatch(/no puedes registrar este gasto/);
+    expect(validarSalida("AHORRO", 10, 0)).toMatch(/no puedes registrar este ahorro/);
   });
 
-  it("no deja sumar más de lo que queda y dice cuánto hay", () => {
-    expect(validarBolsa(200, 150.5)).toMatch(/^Solo tienes S\/\s150\.50 sin asignar/);
+  it("no deja usar más de lo que queda y dice cuánto hay", () => {
+    expect(validarSalida("PARA_MI", 200, 150.5)).toMatch(/^Solo tienes S\/\s150\.50 sin asignar\. No puedes sumar/);
+    expect(validarSalida("GASTO", 200, 150.5)).toMatch(/^Solo tienes S\/\s150\.50 sin asignar\. No puedes registrar un gasto mayor/);
+    expect(validarSalida("AHORRO", 200, 150.5)).toMatch(/No puedes ahorrar más que eso/);
   });
 
-  it("deja sumar hasta el último céntimo disponible", () => {
-    expect(validarBolsa(150.5, 150.5)).toBeNull();
-    expect(validarBolsa(0.1 + 0.2, 0.3)).toBeNull();
-    expect(validarBolsa(100, 150.5)).toBeNull();
+  it("deja usar hasta el último céntimo disponible", () => {
+    expect(validarSalida("GASTO", 150.5, 150.5)).toBeNull();
+    expect(validarSalida("AHORRO", 0.1 + 0.2, 0.3)).toBeNull();
+    expect(validarSalida("PARA_MI", 100, 150.5)).toBeNull();
+  });
+
+  it("solo gastos, ahorros y la bolsa restan; ingresos y gastos de Para mí no", () => {
+    expect(["GASTO", "AHORRO", "PARA_MI", "OCIO", "INGRESO"].filter(restaDeSinAsignar)).toEqual(["GASTO", "AHORRO", "PARA_MI"]);
   });
 });
 

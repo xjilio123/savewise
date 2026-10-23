@@ -1,10 +1,13 @@
-import { formatearDinero } from "@/lib/dinero";
+import { formatearDinero, validarSalida } from "@/lib/dinero";
 import { esquemaAtajo, tokenDeCabecera } from "@/lib/pwa";
 import { crearClienteAnonimo } from "@/lib/supabase/anonimo";
 
 // Endpoint del Atajo de Siri. Responde texto plano para que Atajos lo muestre tal cual.
 // Autenticación: "Authorization: Bearer <token personal>". La base valida el token por su huella
 // y aplica el límite de 10 registros por minuto.
+
+/** La base avisa "Sin dinero|PEN|120.50" cuando el gasto supera lo que queda sin asignar. */
+const SIN_DINERO = /Sin dinero\|([A-Z]{3})\|(-?\d+(?:\.\d+)?)/;
 
 const texto = (mensaje: string, status: number) =>
   new Response(mensaje, { status, headers: { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-store" } });
@@ -37,6 +40,11 @@ export async function POST(request: Request) {
   if (error) {
     if (error.message.includes("Token inválido")) return texto("Token inválido o revocado", 401);
     if (error.message.includes("Demasiados")) return texto("Demasiados registros, espera un minuto", 429);
+    const sinDinero = SIN_DINERO.exec(error.message);
+    if (sinDinero) {
+      const aviso = validarSalida("GASTO", datos.data.monto, Number(sinDinero[2]), sinDinero[1]);
+      return texto(aviso ?? "No tienes dinero sin asignar", 409);
+    }
     return texto("No se pudo guardar", 400);
   }
 
