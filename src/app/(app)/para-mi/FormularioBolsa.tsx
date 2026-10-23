@@ -3,20 +3,9 @@
 import { useActionState } from "react";
 import { guardarMovimiento, type EstadoFormulario } from "@/app/acciones";
 import { BotonEnviar } from "@/components/BotonEnviar";
-import { Icono } from "@/components/Icono";
 import { ConMontos } from "@/components/Monto";
+import { Alerta } from "@/components/ui";
 import { formatearDinero, SIN_DINERO_PARA_BOLSA } from "@/lib/dinero";
-
-function Alerta({ texto }: { texto: string }) {
-  return (
-    <p role="alert" className="flex gap-2.5 rounded-2xl bg-fondo px-4 py-3 text-[15px] font-medium leading-snug text-naranja">
-      <Icono nombre="alerta" className="mt-0.5 size-5 shrink-0" />
-      <span>
-        <ConMontos texto={texto} />
-      </span>
-    </p>
-  );
-}
 
 /**
  * Suma dinero a la bolsa "Para mí" del mes. Cada aporte resta de lo que queda sin asignar, así que
@@ -49,7 +38,7 @@ export function FormularioBolsa({
         )}
       </div>
       {sinDinero ? (
-        <Alerta texto={SIN_DINERO_PARA_BOLSA} />
+        <Alerta texto={SIN_DINERO_PARA_BOLSA} enTarjeta />
       ) : (
         <>
           <input type="hidden" name="tipo" value="PARA_MI" />
@@ -69,7 +58,7 @@ export function FormularioBolsa({
               <BotonEnviar texto="Asignar" textoEnviando="…" clase="bg-morado text-fondo" />
             </div>
           </div>
-          {(estado.errores?.monto ?? estado.error) && <Alerta texto={(estado.errores?.monto ?? estado.error)!} />}
+          {(estado.errores?.monto ?? estado.error) && <Alerta texto={(estado.errores?.monto ?? estado.error)!} enTarjeta />}
         </>
       )}
     </form>

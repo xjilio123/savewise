@@ -5,7 +5,13 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { crearRepositorio } from "@/lib/datos/repositorio";
 import { saldoDeuda } from "@/lib/deudas";
-import { calcularResumen, formatearDinero, validarBolsa } from "@/lib/dinero";
+import {
+  calcularResumen,
+  formatearDinero,
+  restaDeSinAsignar,
+  validarSalida,
+  type TipoQueResta,
+} from "@/lib/dinero";
 import { etiquetaRango, hoyLima, periodoFinanciero, sumarDias } from "@/lib/fechas";
 import { pedirResumen } from "@/lib/ia";
 import { mensajeBloqueo, type RespuestaIA } from "@/lib/usoIA";
@@ -68,32 +74,46 @@ const destinoPorTipo = (tipo: string) =>
 
 type Sesion = Awaited<ReturnType<typeof requerirUsuario>>;
 
+const centimos = (n: number) => Math.round(n * 100);
+
 /**
- * Revisa que lo que se suma a la bolsa Para mí no supere lo que queda sin asignar en el periodo
- * de `fecha`. `excluir` es el movimiento que se está editando (su monto anterior vuelve a estar libre).
+ * Gastos, ahorros y la bolsa Para mí salen de lo que queda sin asignar en el periodo de `fecha`:
+ * no se puede usar más de lo que hay. Devuelve el mensaje de error, o null si alcanza.
+ * `editando` es el movimiento que se modifica: su monto anterior vuelve a estar libre, y bajarlo
+ * o dejarlo igual siempre se permite (aunque el periodo ya esté en negativo).
  */
-async function revisarBolsa(
+async function revisarSinAsignar(
   supabase: Sesion["supabase"],
+  tipo: TipoQueResta,
   fecha: string,
   montoBase: number,
-  excluir?: string,
+  editando?: string,
 ): Promise<string | null> {
   const repo = crearRepositorio(supabase);
   const perfil = await repo.perfil();
   const periodo = periodoFinanciero(fecha, perfil.dia_pago);
-  const movimientos = await repo.movimientosEntre(periodo.desde, periodo.hasta);
+  const delPeriodo = await repo.movimientosEntre(periodo.desde, periodo.hasta);
+
+  const este = editando ? delPeriodo.find((m) => m.id === editando) : undefined;
+  const yaRestaba = este && restaDeSinAsignar(este.tipo) ? (este.monto_base ?? 0) : 0;
+  if (este && centimos(montoBase) <= centimos(yaRestaba)) return null;
+
   const { sinAsignar } = calcularResumen(
     perfil.sueldo_mensual,
-    movimientos.filter((m) => m.id !== excluir),
+    delPeriodo.filter((m) => m.id !== editando),
   );
-  return validarBolsa(montoBase, sinAsignar, perfil.moneda_base);
+  return validarSalida(tipo, montoBase, sinAsignar, perfil.moneda_base);
 }
 
-/** Valida e inserta un movimiento. Devuelve el estado de error o null si se guardó. */
+/**
+ * Valida e inserta un movimiento. Devuelve el estado de error o null si se guardó.
+ * `revisarDinero` en false solo para lo registrado sin conexión: ya ocurrió y no se pudo avisar antes.
+ */
 async function insertarMovimiento(
   { supabase, usuario }: Sesion,
   campo: (nombre: string) => string,
   id?: string,
+  revisarDinero = true,
 ): Promise<{ estado: EstadoFormulario; tipo?: string } | null> {
   const datos = leerMovimiento(campo);
   if (!datos.success) return { estado: { errores: erroresPorCampo(datos.error) } };
@@ -110,8 +130,8 @@ async function insertarMovimiento(
     return { estado: { error: ERROR_CAMBIO } };
   }
 
-  if (datos.data.tipo === "PARA_MI") {
-    const aviso = await revisarBolsa(supabase, datos.data.fecha, datos.data.monto * tipoCambio);
+  if (revisarDinero && restaDeSinAsignar(datos.data.tipo)) {
+    const aviso = await revisarSinAsignar(supabase, datos.data.tipo, datos.data.fecha, datos.data.monto * tipoCambio);
     if (aviso) return { estado: { errores: { monto: aviso } } };
   }
 
@@ -145,7 +165,8 @@ export async function guardarMovimiento(_: EstadoFormulario, formData: FormData)
 export async function sincronizarMovimiento(id: string, datos: Record<string, string>): Promise<EstadoFormulario> {
   const sesion = await requerirUsuario();
   if (!esquemaId.safeParse(id).success) return { error: "Registro inválido" };
-  const fallo = await insertarMovimiento(sesion, (c) => (typeof datos[c] === "string" ? datos[c] : ""), id);
+  // Sin revisar el dinero disponible: el gasto ya ocurrió sin conexión y descartarlo lo perdería.
+  const fallo = await insertarMovimiento(sesion, (c) => (typeof datos[c] === "string" ? datos[c] : ""), id, false);
   if (fallo) return fallo.estado;
   revalidatePath("/", "layout");
   return { ok: true };
@@ -162,7 +183,7 @@ export async function actualizarMovimiento(
   if (!datos.success) return { errores: erroresPorCampo(datos.error) };
 
   const [{ data: actual }, { data: perfil }] = await Promise.all([
-    supabase.from("movimientos").select("moneda, tipo_cambio, tipo, monto_base").eq("id", id).maybeSingle(),
+    supabase.from("movimientos").select("moneda, tipo_cambio").eq("id", id).maybeSingle(),
     supabase.from("perfiles").select("moneda_base").single(),
   ]);
   if (!actual) return { error: "Movimiento no encontrado" };
@@ -179,11 +200,8 @@ export async function actualizarMovimiento(
     }
   }
 
-  // Solo se revisa si la bolsa sube: bajarla o dejarla igual siempre está permitido.
-  const nuevoBase = datos.data.monto * tipoCambio;
-  const anteriorBase = actual.tipo === "PARA_MI" ? (actual.monto_base ?? 0) : 0;
-  if (datos.data.tipo === "PARA_MI" && Math.round(nuevoBase * 100) > Math.round(anteriorBase * 100)) {
-    const aviso = await revisarBolsa(supabase, datos.data.fecha, nuevoBase, id);
+  if (restaDeSinAsignar(datos.data.tipo)) {
+    const aviso = await revisarSinAsignar(supabase, datos.data.tipo, datos.data.fecha, datos.data.monto * tipoCambio, id);
     if (aviso) return { errores: { monto: aviso } };
   }
 

@@ -34,17 +34,36 @@ export function calcularResumen(sueldo: number, movimientos: MovimientoMinimo[])
   };
 }
 
+/** Movimientos que salen de lo sin asignar. OCIO sale de la bolsa Para mí e INGRESO suma. */
+export const TIPOS_QUE_RESTAN = ["GASTO", "AHORRO", "PARA_MI"] as const;
+export type TipoQueResta = (typeof TIPOS_QUE_RESTAN)[number];
+
+export const restaDeSinAsignar = (tipo: string): tipo is TipoQueResta =>
+  (TIPOS_QUE_RESTAN as readonly string[]).includes(tipo);
+
 export const SIN_DINERO_PARA_BOLSA =
   "No tienes dinero sin asignar, así que no puedes sumar a Para mí. Registra un ingreso o libera dinero de tus gastos o ahorros.";
 
+const SIN_DINERO: Record<TipoQueResta, string> = {
+  GASTO: "No tienes dinero sin asignar, así que no puedes registrar este gasto. Si te entró dinero, regístralo primero como ingreso.",
+  AHORRO: "No tienes dinero sin asignar, así que no puedes registrar este ahorro. Si te entró dinero, regístralo primero como ingreso.",
+  PARA_MI: SIN_DINERO_PARA_BOLSA,
+};
+
+const SOLO_ALCANZA: Record<TipoQueResta, string> = {
+  GASTO: "No puedes registrar un gasto mayor.",
+  AHORRO: "No puedes ahorrar más que eso.",
+  PARA_MI: "No puedes sumar más que eso a Para mí.",
+};
+
 /**
- * La bolsa Para mí sale de lo que queda sin asignar: no se puede sumar más de lo que hay.
- * Devuelve el mensaje para la persona, o null si alcanza.
+ * Gastos, ahorros y la bolsa Para mí salen de lo que queda sin asignar: no se puede usar más de lo
+ * que hay. Devuelve el mensaje para la persona, o null si alcanza.
  */
-export function validarBolsa(monto: number, sinAsignar: number, moneda = "PEN"): string | null {
-  if (aCentimos(sinAsignar) <= 0) return SIN_DINERO_PARA_BOLSA;
+export function validarSalida(tipo: TipoQueResta, monto: number, sinAsignar: number, moneda = "PEN"): string | null {
+  if (aCentimos(sinAsignar) <= 0) return SIN_DINERO[tipo];
   if (aCentimos(monto) > aCentimos(sinAsignar)) {
-    return `Solo tienes ${formatearDinero(sinAsignar, moneda)} sin asignar. No puedes sumar más que eso a Para mí.`;
+    return `Solo tienes ${formatearDinero(sinAsignar, moneda)} sin asignar. ${SOLO_ALCANZA[tipo]}`;
   }
   return null;
 }

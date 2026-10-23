@@ -2,7 +2,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 
-select plan(14);
+select plan(17);
 
 -- ---------- Preparación (como superusuario) ----------
 insert into private.correos_permitidos (email) values ('a@prueba.local'), ('b@prueba.local');
@@ -17,6 +17,8 @@ insert into public.tokens_atajo (user_id, hash_token) values (
 insert into private.config (clave, valor)
 values ('hash_cron', encode(extensions.digest('secreto-cron-de-prueba', 'sha256'), 'hex'))
 on conflict (clave) do update set valor = excluded.valor;
+-- A cobra 1500 desde el día 1: tiene dinero sin asignar para sus gastos.
+update public.perfiles set sueldo_mensual = 1500, dia_pago = 1 where id = '00000000-0000-0000-0000-00000000000a';
 
 -- ---------- Como visitante sin sesión (así llaman /api/atajo y el cron) ----------
 set local role anon;
@@ -44,6 +46,21 @@ select throws_ok(
   $$select public.registrar_por_atajo('token-de-prueba-de-A-0123456789abcdef', 10, 'Café', 'AHORRO')$$,
   'P0001', 'Tipo inválido',
   'El Atajo solo registra gastos, ocio o ingresos'
+);
+-- Un gasto no puede superar lo sin asignar (1500 − 12.50 del café = 1487.50); ocio e ingresos no se frenan
+select throws_ok(
+  $$select public.registrar_por_atajo('token-de-prueba-de-A-0123456789abcdef', 1500, 'Televisor')$$,
+  'P0001', 'Sin dinero|PEN|1487.50',
+  'Un gasto mayor a lo sin asignar se rechaza e informa lo disponible'
+);
+select lives_ok(
+  $$select public.registrar_por_atajo('token-de-prueba-de-A-0123456789abcdef', 1487.5, 'Todo lo que queda')$$,
+  'Se puede gastar hasta el último céntimo sin asignar'
+);
+select throws_ok(
+  $$select public.registrar_por_atajo('token-de-prueba-de-A-0123456789abcdef', 1, 'Chicle')$$,
+  'P0001', 'Sin dinero|PEN|0.00',
+  'Sin dinero sin asignar no se puede registrar ningún gasto'
 );
 select throws_ok($$select * from public.tokens_atajo$$, '42501', null, 'anon no puede leer tokens');
 select throws_ok($$select * from public.push_suscripciones$$, '42501', null, 'anon no puede leer suscripciones');
