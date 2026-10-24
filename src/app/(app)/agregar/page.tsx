@@ -1,8 +1,8 @@
 import Link from "next/link";
-import { Alerta, Encabezado, Pantalla } from "@/components/ui";
+import { Encabezado, Pantalla } from "@/components/ui";
 import { crearRepositorio } from "@/lib/datos/repositorio";
-import { calcularResumen, formatearDinero } from "@/lib/dinero";
-import { hoyLima, periodoFinanciero, sumarDias } from "@/lib/fechas";
+import { formatearDinero } from "@/lib/dinero";
+import { hoyLima, sumarDias } from "@/lib/fechas";
 import { gastosFrecuentes } from "@/lib/ideas";
 import { requerirSesion } from "@/lib/supabase/servidor";
 import { TIPOS_FORMULARIO } from "@/lib/validacion";
@@ -26,12 +26,6 @@ export default async function Agregar({ searchParams }: PageProps<"/agregar">) {
   ]);
   const abiertas = deudas.filter((d) => !d.cerrada);
   const frecuentes = gastosFrecuentes(recientes);
-  // Para el aviso basta lo registrado hasta hoy; al guardar, el servidor revisa el periodo completo.
-  const periodo = periodoFinanciero(hoy, perfil.dia_pago);
-  const { sinAsignar } = calcularResumen(
-    perfil.sueldo_mensual,
-    recientes.filter((m) => m.fecha >= periodo.desde),
-  );
 
   // Los parámetros de la URL solo precargan el formulario: cada uno se valida y el servidor
   // vuelve a validar todo al guardar. Las opciones (meta, categoría, deuda) deben existir.
@@ -51,10 +45,6 @@ export default async function Agregar({ searchParams }: PageProps<"/agregar">) {
   return (
     <Pantalla>
       <Encabezado titulo="Nuevo movimiento" atras={{ href: "/", texto: "Inicio" }} />
-
-      {sinAsignar <= 0 && (
-        <Alerta texto="No tienes dinero sin asignar: por ahora no puedes registrar gastos ni ahorros. Sí puedes registrar un ingreso o un gasto de tu bolsa Para mí." />
-      )}
 
       {frecuentes.length > 0 && !deuda && (
         <nav aria-label="Gastos frecuentes" className="flex flex-col gap-2">

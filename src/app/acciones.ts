@@ -44,9 +44,27 @@ export type EstadoFormulario = {
   ok?: boolean;
   /** Algo que conviene revisar antes de guardar; volver a enviar lo mismo lo confirma. */
   aviso?: string;
-  /** Lo que se envió, para volver a mostrarlo junto al aviso. */
+  /** Por qué no se guardó aunque los datos estén bien (por ejemplo, no queda dinero sin asignar). */
+  bloqueo?: string;
+  /** Lo que se envió, para volver a mostrarlo junto al aviso o el error (React vacía el formulario al enviar). */
   valores?: Record<string, string>;
 };
+
+const CAMPOS_MOVIMIENTO = [
+  "tipo",
+  "monto",
+  "concepto",
+  "fecha",
+  "moneda",
+  "categoria_id",
+  "meta_id",
+  "deuda_id",
+  "nota",
+  "recurrente",
+] as const;
+
+/** Lo que se escribió en el formulario de un movimiento, para devolverlo junto al error. */
+const valoresDe = (formData: FormData) => Object.fromEntries(CAMPOS_MOVIMIENTO.map((c) => [c, texto(formData, c)]));
 
 const ERROR_GENERICO = "No se pudo guardar. Intenta de nuevo.";
 const ERROR_CAMBIO = "No se pudo obtener el tipo de cambio. Revisa tu conexión e intenta de nuevo.";
@@ -132,7 +150,7 @@ async function insertarMovimiento(
 
   if (revisarDinero && restaDeSinAsignar(datos.data.tipo)) {
     const aviso = await revisarSinAsignar(supabase, datos.data.tipo, datos.data.fecha, datos.data.monto * tipoCambio);
-    if (aviso) return { estado: { errores: { monto: aviso } } };
+    if (aviso) return { estado: { bloqueo: aviso } };
   }
 
   const { error } = await supabase.from("movimientos").insert({
@@ -152,7 +170,7 @@ async function insertarMovimiento(
 export async function guardarMovimiento(_: EstadoFormulario, formData: FormData): Promise<EstadoFormulario> {
   const sesion = await requerirUsuario();
   const fallo = await insertarMovimiento(sesion, (c) => texto(formData, c));
-  if (fallo) return fallo.estado;
+  if (fallo) return { ...fallo.estado, valores: valoresDe(formData) };
 
   revalidatePath("/", "layout");
   redirect(destinoPorTipo(texto(formData, "tipo")));
@@ -180,7 +198,7 @@ export async function actualizarMovimiento(
   const { supabase } = await requerirUsuario();
   if (!esquemaId.safeParse(id).success) return { error: "Movimiento no encontrado" };
   const datos = leerMovimiento((c) => texto(formData, c));
-  if (!datos.success) return { errores: erroresPorCampo(datos.error) };
+  if (!datos.success) return { errores: erroresPorCampo(datos.error), valores: valoresDe(formData) };
 
   const [{ data: actual }, { data: perfil }] = await Promise.all([
     supabase.from("movimientos").select("moneda, tipo_cambio").eq("id", id).maybeSingle(),
@@ -202,7 +220,7 @@ export async function actualizarMovimiento(
 
   if (restaDeSinAsignar(datos.data.tipo)) {
     const aviso = await revisarSinAsignar(supabase, datos.data.tipo, datos.data.fecha, datos.data.monto * tipoCambio, id);
-    if (aviso) return { errores: { monto: aviso } };
+    if (aviso) return { bloqueo: aviso, valores: valoresDe(formData) };
   }
 
   const { data: actualizadas, error } = await supabase
