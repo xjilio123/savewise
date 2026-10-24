@@ -26,7 +26,7 @@ export function FormularioBolsa({
   const sinDinero = disponible <= 0;
 
   return (
-    <form action={accion} className="flex flex-col gap-3 rounded-[22px] bg-tarjeta p-4">
+    <form key={estado.valores?.monto ?? "inicial"} action={accion} className="flex flex-col gap-3 rounded-[22px] bg-tarjeta p-4">
       <div className="flex items-baseline justify-between gap-3">
         <p className="text-[15px] font-semibold text-texto-2">
           {actual > 0 ? "Sumar a la bolsa del mes" : "Asigna tu bolsa de este mes"}
@@ -50,15 +50,18 @@ export function FormularioBolsa({
               inputMode="decimal"
               required
               placeholder="Monto"
+              defaultValue={estado.valores?.monto}
               aria-label="Monto para la bolsa"
-              aria-invalid={Boolean(estado.errores?.monto)}
+              aria-invalid={Boolean(estado.errores?.monto ?? estado.bloqueo)}
               className="min-w-0 flex-1 rounded-2xl bg-fondo px-4 py-3 text-[17px] tabular-nums outline-none cifra-campo"
             />
             <div className="w-32">
               <BotonEnviar texto="Asignar" textoEnviando="…" clase="bg-morado text-fondo" />
             </div>
           </div>
-          {(estado.errores?.monto ?? estado.error) && <Alerta texto={(estado.errores?.monto ?? estado.error)!} enTarjeta />}
+          {(estado.bloqueo ?? estado.errores?.monto ?? estado.error) && (
+            <Alerta texto={(estado.bloqueo ?? estado.errores?.monto ?? estado.error)!} enTarjeta />
+          )}
         </>
       )}
     </form>

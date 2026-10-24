@@ -3,7 +3,7 @@
 import { useActionState, useState } from "react";
 import { guardarMovimiento, type EstadoFormulario } from "@/app/acciones";
 import { BotonEnviar } from "@/components/BotonEnviar";
-import { MensajeError } from "@/components/ui";
+import { Alerta, MensajeError } from "@/components/ui";
 import { encolarMovimiento } from "@/lib/dispositivo";
 import { FUENTE_TIPO_CAMBIO } from "@/lib/tipoCambio";
 import { MONEDAS } from "@/lib/validacion";
@@ -44,15 +44,19 @@ export function FormularioMovimiento(props: {
   accion?: Accion;
   textoBoton?: string;
 }) {
-  const inicial = props.inicial ?? {};
   const [estado, accion] = useActionState<EstadoFormulario, FormData>(props.accion ?? guardarMovimiento, {});
+  // Tras un error, el servidor devuelve lo escrito: el formulario vuelve a mostrarlo en vez de quedar vacío.
+  const enviado = estado.valores;
+  const inicial: Partial<ValoresMovimiento> = enviado
+    ? { ...props.inicial, ...enviado, recurrente: enviado.recurrente === "on" }
+    : (props.inicial ?? {});
   const [tipo, setTipo] = useState(inicial.tipo ?? "GASTO");
   const [moneda, setMoneda] = useState(inicial.moneda ?? props.monedaBase);
   const [encolado, setEncolado] = useState(false);
   const errores = estado.errores ?? {};
   // La bolsa de Para mí solo aparece como opción cuando se edita una.
   const opciones =
-    inicial.tipo === "PARA_MI"
+    props.inicial?.tipo === "PARA_MI"
       ? [...tipos, { valor: "PARA_MI", nombre: "Bolsa", activo: "bg-morado text-fondo", punto: "bg-morado-relleno" }]
       : tipos;
 
@@ -79,7 +83,8 @@ export function FormularioMovimiento(props: {
   }
 
   return (
-    <form action={accion} onSubmit={alEnviar} className="flex flex-col gap-5">
+    // La clave cambia con cada respuesta con datos: los campos se vuelven a montar con lo enviado.
+    <form key={enviado ? JSON.stringify(enviado) : "inicial"} action={accion} onSubmit={alEnviar} className="flex flex-col gap-5">
       <fieldset className="grid grid-cols-2 gap-2.5">
         <legend className="sr-only">Tipo de movimiento</legend>
         {opciones.map((t) => (
@@ -147,6 +152,8 @@ export function FormularioMovimiento(props: {
         )}
         <MensajeError texto={errores.monto ?? errores.moneda} />
       </div>
+
+      {estado.bloqueo && <Alerta texto={estado.bloqueo} />}
 
       <div className="divide-y divide-linea rounded-[22px] bg-tarjeta px-4">
         <label className="flex items-center justify-between gap-4 py-3.5">
