@@ -78,7 +78,7 @@ export function VistaInicio({ fecha, periodo, inicial, moneda, resumen: r, conse
       </Tarjeta>
 
       <Link href="/para-mi" className="flex items-center justify-between rounded-[22px] bg-tarjeta px-5 py-4">
-        {r.paraMi > 0 ? (
+        {r.paraMiDisponible > 0 ? (
           <span>
             <span className="block text-[15px] text-texto-2">Para mí · te quedan</span>
             <span className="block text-[20px] font-bold tabular-nums text-morado"><Monto texto={dinero(r.paraMiRestante)} /></span>

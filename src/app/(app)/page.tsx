@@ -4,7 +4,7 @@ import { CierreMes } from "@/components/CierreMes";
 import { VistaInicio } from "@/components/vistas/VistaInicio";
 import { generarConsejos } from "@/lib/consejos";
 import { crearRepositorio } from "@/lib/datos/repositorio";
-import { calcularResumen, formatearDinero } from "@/lib/dinero";
+import { arrastreParaMi, calcularResumen, formatearDinero } from "@/lib/dinero";
 import { etiquetaRango, fechaLarga, hoyLima, periodoFinanciero, sumarDias } from "@/lib/fechas";
 import { estadoTopes, sobranteDelPeriodo } from "@/lib/planificacion";
 import { requerirSesion } from "@/lib/supabase/servidor";
@@ -14,17 +14,22 @@ export default async function Inicio() {
   const repo = crearRepositorio(supabase);
   const hoy = hoyLima();
   // Perfil y movimientos en paralelo. La ventana de -64/+32 días contiene el periodo actual y el anterior.
-  const [perfil, ventana, categorias] = await Promise.all([
+  const [perfil, ventana, categorias, historialParaMi] = await Promise.all([
     repo.perfil(),
     repo.movimientosEntre(sumarDias(hoy, -64), sumarDias(hoy, 32)),
     repo.categorias(),
+    repo.historialParaMi(),
   ]);
   if (perfil.sueldo_mensual <= 0) redirect("/bienvenida");
 
   const enRango = (desde: string, hasta: string) => ventana.filter((m) => m.fecha >= desde && m.fecha <= hasta);
   const periodo = periodoFinanciero(hoy, perfil.dia_pago);
   const movimientos = enRango(periodo.desde, periodo.hasta);
-  const resumen = calcularResumen(perfil.sueldo_mensual, movimientos);
+  const resumen = calcularResumen(
+    perfil.sueldo_mensual,
+    movimientos,
+    arrastreParaMi(historialParaMi, perfil.dia_pago, periodo.desde),
+  );
 
   // Cierre de mes: los primeros 7 días del periodo, si en el anterior sobró algo sin asignar.
   let cierre = null;

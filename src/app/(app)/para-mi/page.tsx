@@ -1,6 +1,6 @@
 import { VistaParaMi } from "@/components/vistas/VistaParaMi";
 import { crearRepositorio } from "@/lib/datos/repositorio";
-import { calcularResumen } from "@/lib/dinero";
+import { arrastreParaMi, calcularResumen } from "@/lib/dinero";
 import { etiquetaRango, hoyLima, periodoFinanciero, sumarDias } from "@/lib/fechas";
 import { requerirSesion } from "@/lib/supabase/servidor";
 
@@ -8,9 +8,10 @@ export default async function ParaMi() {
   const { supabase } = await requerirSesion();
   const repo = crearRepositorio(supabase);
   const hoy = hoyLima();
-  const [perfil, ventana] = await Promise.all([
+  const [perfil, ventana, historialParaMi] = await Promise.all([
     repo.perfil(),
     repo.movimientosEntre(sumarDias(hoy, -32), sumarDias(hoy, 32)),
+    repo.historialParaMi(),
   ]);
   const periodo = periodoFinanciero(hoy, perfil.dia_pago);
   const movimientos = ventana.filter((m) => m.fecha >= periodo.desde && m.fecha <= periodo.hasta);
@@ -18,7 +19,11 @@ export default async function ParaMi() {
   return (
     <VistaParaMi
       moneda={perfil.moneda_base}
-      resumen={calcularResumen(perfil.sueldo_mensual, movimientos)}
+      resumen={calcularResumen(
+        perfil.sueldo_mensual,
+        movimientos,
+        arrastreParaMi(historialParaMi, perfil.dia_pago, periodo.desde),
+      )}
       periodo={periodo}
       etiquetaPeriodo={etiquetaRango(periodo.desde, periodo.hasta)}
       hoy={hoy}

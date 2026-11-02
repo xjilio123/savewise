@@ -1,4 +1,4 @@
-import { mesesHasta, type RangoMes } from "@/lib/fechas";
+import { mesesHasta, periodoFinanciero, type RangoMes } from "@/lib/fechas";
 import type { TipoMovimiento } from "@/lib/supabase/tipos";
 
 export type Resumen = {
@@ -8,6 +8,10 @@ export type Resumen = {
   paraMi: number;
   ocio: number;
   sinAsignar: number;
+  /** Lo que sobró de la bolsa Para mí en periodos anteriores y pasa a este. */
+  arrastreParaMi: number;
+  /** Bolsa Para mí de este periodo más lo que sobró antes. */
+  paraMiDisponible: number;
   paraMiRestante: number;
 };
 
@@ -16,12 +20,14 @@ type MovimientoMinimo = { tipo: TipoMovimiento; monto_base: number | null };
 // Se trabaja en céntimos para evitar errores de coma flotante (0.1 + 0.2).
 const aCentimos = (n: number) => Math.round(n * 100);
 
-export function calcularResumen(sueldo: number, movimientos: MovimientoMinimo[]): Resumen {
+export function calcularResumen(sueldo: number, movimientos: MovimientoMinimo[], arrastreParaMi = 0): Resumen {
   const totales: Record<TipoMovimiento, number> = { INGRESO: 0, GASTO: 0, AHORRO: 0, PARA_MI: 0, OCIO: 0 };
   for (const m of movimientos) totales[m.tipo] += aCentimos(m.monto_base ?? 0);
 
   const ingresos = aCentimos(sueldo) + totales.INGRESO;
   const sinAsignar = ingresos - totales.GASTO - totales.AHORRO - totales.PARA_MI;
+  // Lo que sobró de Para mí ya salió de lo sin asignar cuando se asignó: solo suma a la bolsa.
+  const paraMiDisponible = totales.PARA_MI + aCentimos(arrastreParaMi);
 
   return {
     ingresos: ingresos / 100,
@@ -30,7 +36,9 @@ export function calcularResumen(sueldo: number, movimientos: MovimientoMinimo[])
     paraMi: totales.PARA_MI / 100,
     ocio: totales.OCIO / 100,
     sinAsignar: sinAsignar / 100,
-    paraMiRestante: (totales.PARA_MI - totales.OCIO) / 100,
+    arrastreParaMi: aCentimos(arrastreParaMi) / 100,
+    paraMiDisponible: paraMiDisponible / 100,
+    paraMiRestante: (paraMiDisponible - totales.OCIO) / 100,
   };
 }
 
@@ -66,6 +74,28 @@ export function validarSalida(tipo: TipoQueResta, monto: number, sinAsignar: num
     return `Solo tienes ${formatearDinero(sinAsignar, moneda)} sin asignar. ${SOLO_ALCANZA[tipo]}`;
   }
   return null;
+}
+
+/**
+ * Lo que no se gastó de la bolsa Para mí pasa al periodo siguiente, como un saldo acumulado.
+ * Se recorren los periodos anteriores a `desdeActual` en orden: saldo = saldo + bolsa − gastos de Para mí.
+ * Si en un periodo se gastó más que la bolsa, el saldo queda en 0 (no se arrastra una deuda).
+ */
+export function arrastreParaMi(
+  movimientos: (MovimientoMinimo & { fecha: string })[],
+  diaPago: number,
+  desdeActual: string,
+): number {
+  const porPeriodo = new Map<string, number>();
+  for (const m of movimientos) {
+    if (m.fecha >= desdeActual || (m.tipo !== "PARA_MI" && m.tipo !== "OCIO")) continue;
+    const inicio = periodoFinanciero(m.fecha, diaPago).desde;
+    const signo = m.tipo === "PARA_MI" ? 1 : -1;
+    porPeriodo.set(inicio, (porPeriodo.get(inicio) ?? 0) + signo * aCentimos(m.monto_base ?? 0));
+  }
+  let saldo = 0;
+  for (const inicio of [...porPeriodo.keys()].sort()) saldo = Math.max(0, saldo + porPeriodo.get(inicio)!);
+  return saldo / 100;
 }
 
 /** Parte (0 a 1) que representa `parte` sobre `total`. */

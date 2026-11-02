@@ -1,7 +1,7 @@
 import { VistaDashboard, type MesGrafico } from "@/components/vistas/VistaDashboard";
 import { generarConsejos } from "@/lib/consejos";
 import { crearRepositorio } from "@/lib/datos/repositorio";
-import { calcularResumen } from "@/lib/dinero";
+import { arrastreParaMi, calcularResumen } from "@/lib/dinero";
 import { etiquetaRango, hoyLima, periodoFinanciero, sumarDias } from "@/lib/fechas";
 import { calendarioDePagos, gastosHormiga, patrimonioPorMes, variacion } from "@/lib/ideas";
 import { estadoTopes } from "@/lib/planificacion";
@@ -48,6 +48,7 @@ export default async function Dashboard({ searchParams }: PageProps<"/dashboard"
     pagosDeudas,
     prestamos,
     usoIA,
+    historialParaMi,
   ] = await Promise.all([
     repo.movimientosEntre(periodo.desde, periodo.hasta),
     repo.gastosPorCategoria(periodo.desde, periodo.hasta),
@@ -64,6 +65,7 @@ export default async function Dashboard({ searchParams }: PageProps<"/dashboard"
     esMes ? nada : repo.prestamos(),
     // Si falla, el resumen arranca desde 0: igual la base hace cumplir el tope al pedirlo.
     conIA ? repo.estadoResumenIA().catch(() => null) : null,
+    esMes ? repo.historialParaMi() : nada,
   ]);
   const activas = new Set(metasActivas.map((m) => m.id));
   const patrimonio = esMes
@@ -76,7 +78,11 @@ export default async function Dashboard({ searchParams }: PageProps<"/dashboard"
       });
   const totalAnterior = new Map(porCategoriaAnterior.map((c) => [c.id ?? "sin", c.total]));
   const pagos = esMes ? calendarioDePagos({ movimientos: recientes, deudas, desde: periodo.desde, hasta: periodo.hasta }) : [];
-  const resumen = calcularResumen(perfil.sueldo_mensual, movimientos);
+  const resumen = calcularResumen(
+    perfil.sueldo_mensual,
+    movimientos,
+    esMes ? arrastreParaMi(historialParaMi, perfil.dia_pago, periodo.desde) : 0,
+  );
   const topePorId = new Map(categorias.map((c) => [c.id, c.tope]));
   const topes = estadoTopes(categorias, movimientos);
 

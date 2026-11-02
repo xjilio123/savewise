@@ -14,7 +14,7 @@ const datos: DatosIA = {
   diasDelPeriodo: 31,
   moneda: "PEN",
   sueldo: 1500,
-  actual: { ingresos: 1500, gastos: 612.345, ahorros: 300, paraMi: 150, ocio: 80, sinAsignar: 507.66, paraMiRestante: 70 },
+  actual: { ingresos: 1500, gastos: 612.345, ahorros: 300, paraMi: 150, ocio: 80, sinAsignar: 507.66, arrastreParaMi: 0, paraMiDisponible: 150, paraMiRestante: 70 },
   anterior: { gastos: 700, ahorros: 250, ocio: 120 },
   categorias: [{ nombre: "Alimentación", total: 320.5, tope: 400 }, { nombre: "Transporte", total: 90 }],
   deudas: { pendiente: 2000, cuotasMensuales: 250 },
