@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { generarConsejos } from "./consejos";
 import {
+  arrastreParaMi,
   calcularResumen,
   cuotaMensual,
   formatearDinero,
@@ -51,6 +52,29 @@ describe("validarSalida (gastos, ahorros y Para mí salen de lo sin asignar)", (
   });
 });
 
+describe("arrastreParaMi (lo que no se gastó pasa al periodo siguiente)", () => {
+  const m = (fecha: string, tipo: "PARA_MI" | "OCIO", monto_base: number) => ({ fecha, tipo, monto_base });
+
+  it("suma lo que sobró en cada periodo anterior", () => {
+    const historial = [m("2026-09-02", "PARA_MI", 400), m("2026-09-10", "OCIO", 250), m("2026-10-01", "PARA_MI", 300), m("2026-10-20", "OCIO", 200)];
+    expect(arrastreParaMi(historial, 1, "2026-11-01")).toBe(250);
+  });
+
+  it("no cuenta el periodo actual", () => {
+    expect(arrastreParaMi([m("2026-11-02", "PARA_MI", 400)], 1, "2026-11-01")).toBe(0);
+  });
+
+  it("si un periodo se gastó de más, el saldo queda en 0 y no se arrastra una deuda", () => {
+    const historial = [m("2026-08-01", "PARA_MI", 100), m("2026-09-01", "PARA_MI", 100), m("2026-09-15", "OCIO", 300), m("2026-10-01", "PARA_MI", 50)];
+    expect(arrastreParaMi(historial, 1, "2026-11-01")).toBe(50);
+  });
+
+  it("respeta el día de pago: cobrando el 15, el 10 de octubre es del periodo de septiembre", () => {
+    const historial = [m("2026-09-20", "PARA_MI", 100), m("2026-10-10", "OCIO", 30)];
+    expect(arrastreParaMi(historial, 15, "2026-10-15")).toBe(70);
+  });
+});
+
 describe("calcularResumen", () => {
   const r = calcularResumen(1500, movimientos);
 
@@ -73,6 +97,14 @@ describe("calcularResumen", () => {
   it("no acumula errores de coma flotante", () => {
     const muchos = Array.from({ length: 10 }, () => ({ tipo: "GASTO" as const, monto_base: 0.1 }));
     expect(calcularResumen(1, muchos).sinAsignar).toBe(0);
+  });
+
+  it("lo que sobró de Para mí suma a la bolsa, pero no a lo sin asignar", () => {
+    const conArrastre = calcularResumen(1500, movimientos, 150);
+    expect(conArrastre.paraMiDisponible).toBe(400);
+    expect(conArrastre.paraMiRestante).toBe(296.5);
+    expect(conArrastre.sinAsignar).toBe(351.88);
+    expect(conArrastre.paraMi).toBe(250);
   });
 });
 

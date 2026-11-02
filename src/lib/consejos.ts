@@ -38,8 +38,8 @@ export function generarConsejos(r: Resumen, mes: RangoMes, moneda = "PEN", topes
     });
   }
 
-  if (r.paraMi > 0) {
-    const usado = fraccion(r.ocio, r.paraMi);
+  if (r.paraMiDisponible > 0) {
+    const usado = fraccion(r.ocio, r.paraMiDisponible);
     const ritmoAlto = usado > mes.fraccionTranscurrida;
     consejos.push({
       id: "ritmo-para-mi",

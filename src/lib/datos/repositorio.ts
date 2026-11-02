@@ -35,6 +35,27 @@ export function crearRepositorio(supabase: SupabaseClient<Database>) {
       return obtener(supabase.from("perfiles").select("*").single());
     },
 
+    /**
+     * Todas las bolsas y gastos de Para mí, para calcular lo que sobró en periodos anteriores.
+     * Se lee por lotes: Supabase entrega como máximo 1000 filas por consulta.
+     */
+    async historialParaMi(): Promise<{ fecha: string; tipo: TipoMovimiento; monto_base: number | null }[]> {
+      const filas: { fecha: string; tipo: TipoMovimiento; monto_base: number | null }[] = [];
+      for (let inicio = 0; ; inicio += 1000) {
+        const lote = await obtener(
+          supabase
+            .from("movimientos")
+            .select("fecha, tipo, monto_base")
+            .in("tipo", ["PARA_MI", "OCIO"])
+            .order("fecha")
+            .order("id")
+            .range(inicio, inicio + 999),
+        );
+        filas.push(...lote);
+        if (lote.length < 1000) return filas;
+      }
+    },
+
     /** Resúmenes con IA usados hoy, segundos que faltan para el próximo y el último resumen de hoy. */
     async estadoResumenIA(): Promise<{ usados: number; espera: number; texto: string | null }> {
       const { data: fila, error } = await supabase.rpc("estado_resumen_ia").single();
