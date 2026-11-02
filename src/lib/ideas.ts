@@ -58,8 +58,12 @@ export type PagoCalendario = {
   /** Tipo del movimiento que se repite (null en cuotas de deudas). */
   tipo: TipoMovimiento | null;
   pagado: boolean;
-  /** Último movimiento de la serie: sirve para dejar de repetirla o borrar el registro del periodo. */
+  /** Último movimiento de la serie: sirve para editarla, dejar de repetirla o borrar el registro del periodo. */
   movimientoId: string | null;
+  /** Pendiente con precio o fecha cambiados desde el calendario. */
+  editado: boolean;
+  /** Fecha del último pago de la serie (null en cuotas de deudas): el próximo tiene que ser después. */
+  ultimoPago: string | null;
 };
 
 type MovimientoReciente = {
@@ -71,6 +75,8 @@ type MovimientoReciente = {
   fecha: string;
   recurrente: boolean;
   deuda_id: string | null;
+  proximo_monto?: number | null;
+  proximo_fecha?: string | null;
 };
 type DeudaCalendario = { id: string; nombre: string; cuota_mensual: number | null; dia_pago: number | null; moneda: string; cerrada: boolean };
 
@@ -102,6 +108,19 @@ function fechasDeDiaDePago(dia: number, desde: string, hasta: string): string[] 
 }
 
 /**
+ * El próximo cobro de algo que se repite: el precio y la fecha editados en el calendario o, si no,
+ * lo mismo un mes después. Una fecha editada que no es posterior al último pago se ignora (igual que el cron).
+ */
+export function proximoPago(m: Pick<MovimientoReciente, "fecha" | "monto" | "proximo_monto" | "proximo_fecha">) {
+  const fechaEditada = m.proximo_fecha && m.proximo_fecha > m.fecha ? m.proximo_fecha : null;
+  return {
+    fecha: fechaEditada ?? unMesDespues(m.fecha),
+    monto: m.proximo_monto ?? m.monto,
+    editado: Boolean(fechaEditada || m.proximo_monto),
+  };
+}
+
+/**
  * Calendario del periodo: lo que se repite cada mes (el último movimiento de cada concepto)
  * y cuotas de deudas abiertas con día de pago. Marca como pagado lo que ya se registró.
  */
@@ -121,10 +140,10 @@ export function calendarioDePagos(datos: {
   }
   for (const m of ultimos.values()) {
     if (!m.recurrente || m.deuda_id) continue; // los pagos de deudas salen como deuda
-    const base = { concepto: m.concepto, monto: m.monto, moneda: m.moneda, origen: "recurrente" as const, tipo: m.tipo, movimientoId: m.id };
-    if (m.fecha >= desde && m.fecha <= hasta) pagos.push({ ...base, fecha: m.fecha, pagado: true });
-    const siguiente = unMesDespues(m.fecha);
-    if (siguiente >= desde && siguiente <= hasta) pagos.push({ ...base, fecha: siguiente, pagado: false });
+    const base = { concepto: m.concepto, moneda: m.moneda, origen: "recurrente" as const, tipo: m.tipo, movimientoId: m.id, ultimoPago: m.fecha };
+    if (m.fecha >= desde && m.fecha <= hasta) pagos.push({ ...base, monto: m.monto, fecha: m.fecha, pagado: true, editado: false });
+    const proximo = proximoPago(m);
+    if (proximo.fecha >= desde && proximo.fecha <= hasta) pagos.push({ ...base, ...proximo, pagado: false });
   }
 
   const deudasPagadas = new Set(
@@ -142,6 +161,8 @@ export function calendarioDePagos(datos: {
         tipo: null,
         pagado: deudasPagadas.has(d.id),
         movimientoId: null,
+        editado: false,
+        ultimoPago: null,
       });
     }
   }

@@ -75,6 +75,9 @@ const esquemaRespaldoArchivo = z.object({
         tipo_cambio: z.coerce.number().positive(),
         recurrente: z.boolean(),
         nota: z.string().max(280).optional(),
+        // Próximo pago editado en el calendario (respaldos anteriores no lo traen).
+        proximo_monto: MONTO.nullable().optional(),
+        proximo_fecha: FECHA.nullable().optional(),
       }),
     )
     .max(50_000),
@@ -191,6 +194,8 @@ export function planRestauracion(r: RespaldoArchivo, existentes: Existentes) {
       tipo_cambio: m.tipo_cambio,
       recurrente: m.recurrente,
       nota: m.nota ?? "",
+      proximo_monto: m.proximo_monto ?? null,
+      proximo_fecha: m.proximo_fecha ?? null,
     });
   }
 

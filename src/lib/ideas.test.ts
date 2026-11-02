@@ -6,6 +6,7 @@ import {
   gastosHormiga,
   objetivoReto,
   patrimonioPorMes,
+  proximoPago,
   semanaDelReto,
   unMesDespues,
   variacion,
@@ -104,6 +105,24 @@ describe("calendarioDePagos", () => {
       ["2026-10-05", "Visa", true],
       ["2026-10-31", "Préstamo", false],
     ]);
+  });
+
+  it("el próximo pago editado usa su nuevo precio y fecha; el ya pagado no cambia", () => {
+    const spotify = { ...m("Spotify", "2026-09-20", true), monto: 8.22, proximo_monto: 9.9, proximo_fecha: "2026-10-25" };
+    const pagos = calendarioDePagos({ ...base, movimientos: [spotify], deudas: [] });
+    expect(pagos).toEqual([
+      expect.objectContaining({ fecha: "2026-10-25", monto: 9.9, pagado: false, editado: true, movimientoId: spotify.id }),
+    ]);
+    const pagado = calendarioDePagos({ desde: "2026-09-01", hasta: "2026-09-30", movimientos: [spotify], deudas: [] });
+    expect(pagado).toEqual([expect.objectContaining({ fecha: "2026-09-20", monto: 8.22, pagado: true, editado: false })]);
+  });
+
+  it("una fecha editada que no es posterior al último pago se ignora", () => {
+    expect(proximoPago({ fecha: "2026-10-20", monto: 30, proximo_fecha: "2026-10-10", proximo_monto: null })).toEqual({
+      fecha: "2026-11-20",
+      monto: 30,
+      editado: false,
+    });
   });
 
   it("un periodo que cruza dos meses (cobras el 15)", () => {
