@@ -99,6 +99,12 @@ export const esquemaPrestamo = z.object({
   fecha: z.iso.date({ error: "Fecha inválida" }),
 });
 
+/** Próximo pago de algo que se repite, editado desde el calendario: nuevo precio y nueva fecha. */
+export const esquemaProximoPago = z.object({
+  monto,
+  fecha: z.iso.date({ error: "Fecha inválida" }),
+});
+
 export const esquemaCategoria = z.object({
   nombre: z.string().trim().min(1, { error: "Ponle un nombre" }).max(40, { error: "Máximo 40 caracteres" }),
   color: z.enum(COLORES_CATEGORIA, { error: "Elige un color" }),

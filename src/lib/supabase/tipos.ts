@@ -158,6 +158,8 @@ export type Database = {
           monto: number;
           monto_base: number | null;
           nota: string;
+          proximo_fecha: string | null;
+          proximo_monto: number | null;
           recurrente: boolean;
           tipo: TipoMovimiento;
           tipo_cambio: number;
@@ -174,6 +176,8 @@ export type Database = {
           moneda?: string;
           monto: number;
           nota?: string;
+          proximo_fecha?: string | null;
+          proximo_monto?: number | null;
           recurrente?: boolean;
           tipo: TipoMovimiento;
           tipo_cambio?: number;
@@ -188,6 +192,8 @@ export type Database = {
           moneda?: string;
           monto?: number;
           nota?: string;
+          proximo_fecha?: string | null;
+          proximo_monto?: number | null;
           recurrente?: boolean;
           tipo?: TipoMovimiento;
           tipo_cambio?: number;

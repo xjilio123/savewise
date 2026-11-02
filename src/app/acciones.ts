@@ -12,7 +12,7 @@ import {
   validarSalida,
   type TipoQueResta,
 } from "@/lib/dinero";
-import { etiquetaRango, hoyLima, periodoFinanciero, sumarDias } from "@/lib/fechas";
+import { etiquetaRango, fechaCorta, hoyLima, periodoFinanciero, sumarDias } from "@/lib/fechas";
 import { pedirResumen } from "@/lib/ia";
 import { mensajeBloqueo, type RespuestaIA } from "@/lib/usoIA";
 import { leerRespaldo, planRestauracion, TAMANO_MAXIMO } from "@/lib/restaurar";
@@ -32,6 +32,7 @@ import {
   esquemaMovimiento,
   esquemaPerfil,
   esquemaPrestamo,
+  esquemaProximoPago,
   esquemaTope,
   pideConfirmarSueldo,
   texto,
@@ -255,6 +256,43 @@ export async function dejarDeRepetir(id: string): Promise<void> {
   }
   revalidatePath("/", "layout");
   redirect("/dashboard");
+}
+
+/**
+ * Cambia el precio o la fecha del próximo cobro de algo que se repite, sin tocar lo ya registrado.
+ * Se guarda en el último movimiento de la serie y el registro automático lo usa una vez: desde ahí
+ * la serie sigue con el nuevo precio y la nueva fecha.
+ */
+export async function editarProximoPago(id: string, _: EstadoFormulario, formData: FormData): Promise<EstadoFormulario> {
+  const { supabase } = await requerirUsuario();
+  if (!esquemaId.safeParse(id).success) return { error: "Pago no encontrado" };
+  const datos = esquemaProximoPago.safeParse({ monto: texto(formData, "monto"), fecha: texto(formData, "fecha") });
+  if (!datos.success) return { errores: erroresPorCampo(datos.error) };
+
+  // RLS: solo aparece si es tuyo.
+  const { data: serie } = await supabase.from("movimientos").select("fecha, recurrente").eq("id", id).maybeSingle();
+  if (!serie?.recurrente) return { error: "Pago no encontrado" };
+  if (datos.data.fecha <= serie.fecha) {
+    return { errores: { fecha: `Elige una fecha después del último pago (${fechaCorta(serie.fecha)})` } };
+  }
+  if (datos.data.fecha > sumarDias(hoyLima(), 92)) return { errores: { fecha: "Elige una fecha dentro de los próximos 3 meses" } };
+
+  const { error } = await supabase
+    .from("movimientos")
+    .update({ proximo_monto: datos.data.monto, proximo_fecha: datos.data.fecha })
+    .eq("id", id);
+  if (error) return { error: ERROR_GENERICO };
+  revalidatePath("/", "layout");
+  return { ok: true };
+}
+
+/** Deshace el cambio: el próximo cobro vuelve a ser igual al último, un mes después. */
+export async function quitarCambioProximoPago(id: string): Promise<void> {
+  const { supabase } = await requerirUsuario();
+  if (esquemaId.safeParse(id).success) {
+    await supabase.from("movimientos").update({ proximo_monto: null, proximo_fecha: null }).eq("id", id);
+  }
+  revalidatePath("/", "layout");
 }
 
 export async function eliminarMovimiento(id: string, volver: string = "/historial"): Promise<void> {
