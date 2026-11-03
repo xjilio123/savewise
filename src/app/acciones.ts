@@ -399,6 +399,7 @@ function leerMeta(formData: FormData) {
     nombre: texto(formData, "nombre"),
     objetivo: texto(formData, "objetivo"),
     fecha_objetivo: texto(formData, "fecha_objetivo"),
+    saldo_inicial: texto(formData, "saldo_inicial"),
   });
 }
 

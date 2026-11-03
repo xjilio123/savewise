@@ -141,7 +141,7 @@ export default async function Vitrina({ searchParams }: PageProps<"/vitrina">) {
         <BorrarDatos />
         <FormularioEditarMeta
           accion={actualizarMeta.bind(null, "vitrina")}
-          inicial={{ nombre: "Navidad", objetivo: "800.00", fecha_objetivo: "2026-12-20" }}
+          inicial={{ nombre: "Navidad", objetivo: "800.00", fecha_objetivo: "2026-12-20", saldo_inicial: "250.00" }}
         />
         <FormularioDeuda
           accion={actualizarDeuda.bind(null, "vitrina")}

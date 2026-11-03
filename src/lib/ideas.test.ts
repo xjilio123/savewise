@@ -206,6 +206,21 @@ describe("patrimonioPorMes", () => {
     ]);
   });
 
+  it("el saldo inicial de una meta cuenta desde el día en que se creó (hora de Lima)", () => {
+    const r = patrimonioPorMes(["2026-09-01", "2026-10-01"], "2026-10-18", {
+      aportes: [{ fecha: "2026-10-05", monto_base: 100 }],
+      // 1 oct 02:00 UTC = 30 sept 21:00 en Lima: cuenta en septiembre.
+      saldosIniciales: [
+        { saldo_inicial: 2000, creado: "2026-10-01T02:00:00Z" },
+        { saldo_inicial: 0, creado: "2026-09-01T12:00:00Z" },
+      ],
+      deudas: [],
+      pagos: [],
+      prestamos: [],
+    });
+    expect(r.map((p) => p.ahorros)).toEqual([2000, 2100]);
+  });
+
   it("un préstamo cobrado deja de contar desde la fecha de cobro; una deuda cerrada no cuenta", () => {
     const r = patrimonioPorMes(["2026-09-01", "2026-10-01"], "2026-10-18", {
       aportes: [],

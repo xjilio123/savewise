@@ -31,6 +31,13 @@ export function FormularioMeta() {
           className="rounded-2xl bg-fondo px-4 py-3 text-[17px] outline-none"
         />
         <MensajeError texto={errores.objetivo} />
+        <input
+          name="saldo_inicial"
+          inputMode="decimal"
+          placeholder="¿Ya tienes algo ahorrado? (opcional)"
+          className="rounded-2xl bg-fondo px-4 py-3 text-[17px] outline-none"
+        />
+        <MensajeError texto={errores.saldo_inicial} />
         <label className="flex items-center justify-between rounded-2xl bg-fondo px-4 py-3 text-[17px]">
           <span>Fecha límite</span>
           <input type="date" name="fecha_objetivo" className="bg-transparent text-right text-texto-2 outline-none" />

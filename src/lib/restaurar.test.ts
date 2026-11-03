@@ -79,6 +79,16 @@ describe("planRestauracion", () => {
     expect(plan.movimientos.map((m) => m.id)).toEqual([U(100), U(101)]);
   });
 
+  it("respaldos sin saldo inicial lo restauran en 0; uno mayor que el objetivo se ajusta", () => {
+    const r = archivo();
+    const vacia = { categorias: [], metas: [], deudas: [] };
+    expect(planRestauracion(r, vacia).metas[0]?.saldo_inicial).toBe(0);
+    const conSaldo = { ...r, metas: r.metas.map((m) => ({ ...m, saldo_inicial: 300 })) };
+    expect(planRestauracion(conSaldo, vacia).metas[0]?.saldo_inicial).toBe(300);
+    const demasiado = { ...r, metas: r.metas.map((m) => ({ ...m, saldo_inicial: 9999 })) };
+    expect(planRestauracion(demasiado, vacia).metas[0]?.saldo_inicial).toBe(800);
+  });
+
   it("un ahorro cuya meta no existe se omite (la base exige meta)", () => {
     const r = archivo();
     const plan = planRestauracion({ ...r, metas: [] }, { categorias: [], metas: [], deudas: [] });

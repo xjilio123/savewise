@@ -15,7 +15,7 @@ export function FormularioEditarMeta({
   inicial,
 }: {
   accion: Accion;
-  inicial: { nombre: string; objetivo: string; fecha_objetivo: string };
+  inicial: { nombre: string; objetivo: string; fecha_objetivo: string; saldo_inicial: string };
 }) {
   const [estado, enviar] = useActionState<EstadoFormulario, FormData>(accion, {});
   const errores = estado.errores ?? {};
@@ -38,11 +38,27 @@ export function FormularioEditarMeta({
           />
         </label>
         <label className={fila}>
+          <span className="text-[17px]">Ya tenías ahorrado</span>
+          <input
+            name="saldo_inicial"
+            inputMode="decimal"
+            placeholder="0.00"
+            defaultValue={inicial.saldo_inicial}
+            className={`${campo} tabular-nums cifra-campo`}
+          />
+        </label>
+        <label className={fila}>
           <span className="text-[17px]">Fecha límite</span>
           <input type="date" name="fecha_objetivo" defaultValue={inicial.fecha_objetivo} className={campo} />
         </label>
       </div>
-      <MensajeError texto={errores.nombre ?? errores.objetivo ?? errores.fecha_objetivo ?? estado.error} />
+      <p className="-mt-2 px-4 text-[13px] leading-snug text-texto-2">
+        «Ya tenías ahorrado» es lo que juntaste antes de crear la meta. Suma a tu avance, pero no sale de tu sueldo
+        ni de «Sin asignar».
+      </p>
+      <MensajeError
+        texto={errores.nombre ?? errores.objetivo ?? errores.saldo_inicial ?? errores.fecha_objetivo ?? estado.error}
+      />
       <BotonEnviar texto="Guardar cambios" />
     </form>
   );
