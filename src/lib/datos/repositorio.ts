@@ -3,6 +3,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { escaparLike, TAMANO_PAGINA, type Filtros } from "@/lib/filtros";
 import type { Categoria, ColorApp, Database, Deuda, Meta, Prestamo, Movimiento, Perfil, TipoMovimiento } from "@/lib/supabase/tipos";
 
+/** `ahorrado` = saldo inicial + aportes. */
 export type MetaConProgreso = Meta & { ahorrado: number };
 export type DeudaConPagos = Deuda & { pagado: number };
 export type Aporte = Pick<Movimiento, "id" | "fecha" | "concepto" | "monto" | "moneda"> & { meta: { nombre: string } | null };
@@ -176,7 +177,8 @@ export function crearRepositorio(supabase: SupabaseClient<Database>) {
       ]);
       if (error) throw new Error("No se pudieron leer los datos");
       if (!meta) return null;
-      const ahorrado = aportes.reduce((s, a) => s + Math.round((a.monto_base ?? 0) * 100), 0) / 100;
+      const enAportes = aportes.reduce((s, a) => s + Math.round((a.monto_base ?? 0) * 100), 0);
+      const ahorrado = (Math.round(meta.saldo_inicial * 100) + enAportes) / 100;
       return { ...meta, ahorrado, aportes: aportes.length };
     },
 
@@ -209,7 +211,8 @@ export function crearRepositorio(supabase: SupabaseClient<Database>) {
         if (!a.meta_id) continue;
         porMeta.set(a.meta_id, (porMeta.get(a.meta_id) ?? 0) + Math.round((a.monto_base ?? 0) * 100));
       }
-      return metas.map((m) => ({ ...m, ahorrado: (porMeta.get(m.id) ?? 0) / 100 }));
+      // Lo ahorrado incluye el saldo inicial (lo que ya tenías al crear la meta).
+      return metas.map((m) => ({ ...m, ahorrado: (Math.round(m.saldo_inicial * 100) + (porMeta.get(m.id) ?? 0)) / 100 }));
     },
 
     /** Deudas con lo pagado: la suma de los gastos vinculados a cada una. */

@@ -34,6 +34,16 @@ const monto = z.preprocess(
     .multipleOf(0.01, { error: "Usa máximo 2 decimales" }),
 );
 
+/** Monto que puede quedar vacío o en 0 (vacío cuenta como 0). */
+const montoOpcional = z.preprocess(
+  (v) => (v == null ? 0 : typeof v === "string" ? normalizarMonto(v) || "0" : v),
+  z.coerce
+    .number({ error: "Escribe un monto válido" })
+    .min(0, { error: "No puede ser negativo" })
+    .max(999_999_999, { error: "El monto es demasiado grande" })
+    .multipleOf(0.01, { error: "Usa máximo 2 decimales" }),
+);
+
 const uuidOpcional = z
   .union([z.uuid({ error: "Opción inválida" }), z.literal("")])
   .transform((v) => (v === "" ? null : v));
@@ -82,11 +92,18 @@ export function pideConfirmarSueldo(sueldo: number, confirmado: string): boolean
   return sueldo < SUELDO_MINIMO_SIN_AVISO && confirmado !== String(sueldo);
 }
 
-export const esquemaMeta = z.object({
-  nombre: z.string().trim().min(1, { error: "Ponle un nombre" }).max(60, { error: "Máximo 60 caracteres" }),
-  objetivo: monto,
-  fecha_objetivo: fechaOpcional,
-});
+export const esquemaMeta = z
+  .object({
+    nombre: z.string().trim().min(1, { error: "Ponle un nombre" }).max(60, { error: "Máximo 60 caracteres" }),
+    objetivo: monto,
+    fecha_objetivo: fechaOpcional,
+    /** Lo que ya tenías ahorrado para esta meta antes de crearla. No es un movimiento. */
+    saldo_inicial: montoOpcional,
+  })
+  .refine((d) => d.saldo_inicial <= d.objetivo, {
+    error: "Lo que ya tienes no puede ser mayor que el objetivo",
+    path: ["saldo_inicial"],
+  });
 
 export const esquemaId = z.uuid({ error: "Movimiento no encontrado" });
 

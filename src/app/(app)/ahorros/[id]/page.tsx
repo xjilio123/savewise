@@ -26,7 +26,12 @@ export default async function EditarMeta({ params }: PageProps<"/ahorros/[id]">)
 
       <FormularioEditarMeta
         accion={actualizarMeta.bind(null, id)}
-        inicial={{ nombre: meta.nombre, objetivo: meta.objetivo.toFixed(2), fecha_objetivo: meta.fecha_objetivo ?? "" }}
+        inicial={{
+          nombre: meta.nombre,
+          objetivo: meta.objetivo.toFixed(2),
+          fecha_objetivo: meta.fecha_objetivo ?? "",
+          saldo_inicial: meta.saldo_inicial > 0 ? meta.saldo_inicial.toFixed(2) : "",
+        }}
       />
 
       <section className="flex flex-col gap-2 rounded-[22px] bg-tarjeta p-4">

@@ -12,6 +12,11 @@ export function hoyLima(ahora: Date = new Date()): string {
   }).format(ahora);
 }
 
+/** Fecha (AAAA-MM-DD) en Lima de un timestamp, por ejemplo el día en que se creó una meta. */
+export function fechaLima(ts: string): string {
+  return hoyLima(new Date(ts));
+}
+
 export type RangoMes = {
   desde: string;
   hasta: string;

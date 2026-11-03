@@ -6,7 +6,7 @@ import { BotonEnviar } from "@/components/BotonEnviar";
 import { Encabezado, Pantalla, Tarjeta } from "@/components/ui";
 import { crearRepositorio } from "@/lib/datos/repositorio";
 import { cuotaMensual, formatearDinero, fraccion } from "@/lib/dinero";
-import { hoyLima } from "@/lib/fechas";
+import { fechaLima, hoyLima } from "@/lib/fechas";
 import { proyectarMeta, sugerirFondoEmergencia } from "@/lib/planificacion";
 import { requerirSesion } from "@/lib/supabase/servidor";
 import { semanaDelReto } from "@/lib/ideas";
@@ -14,9 +14,6 @@ import { FormularioMeta } from "./FormularioMeta";
 import { FormularioReto } from "./FormularioReto";
 import { ListaAportes } from "./ListaAportes";
 import { ConMontos, Monto } from "@/components/Monto";
-
-/** Fecha (AAAA-MM-DD) en Lima de un timestamp: el día en que empezó el reto. */
-const fechaLima = (ts: string) => new Intl.DateTimeFormat("en-CA", { timeZone: "America/Lima" }).format(new Date(ts));
 
 const nombreMes = new Intl.DateTimeFormat("es-PE", { month: "short", year: "numeric", timeZone: "UTC" });
 const etiquetaMes = (aaaamm: string) => nombreMes.format(new Date(`${aaaamm}-15T12:00:00Z`)).replace(".", "");
@@ -121,6 +118,11 @@ export default async function Ahorros() {
               <p className="text-[15px] text-texto-2 tabular-nums">
                 <Monto texto={dinero(m.ahorrado)} /> de <Monto texto={dinero(m.objetivo)} />
               </p>
+              {m.saldo_inicial > 0 && (
+                <p className="text-[13px] text-texto-2">
+                  Incluye <Monto texto={dinero(m.saldo_inicial)} /> que ya tenías
+                </p>
+              )}
               <p className="text-[15px] font-semibold text-verde">
                 <ConMontos
                   texto={falta === 0

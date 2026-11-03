@@ -42,6 +42,8 @@ const esquemaRespaldoArchivo = z.object({
         fecha_objetivo: FECHA.nullable(),
         archivada: z.boolean(),
         reto_base: z.coerce.number().positive().max(1000).nullable().optional(),
+        // Respaldos anteriores no lo traen: cuenta como 0.
+        saldo_inicial: z.coerce.number().min(0).max(999_999_999).optional(),
       }),
     )
     .max(200),
@@ -157,7 +159,9 @@ export function planRestauracion(r: RespaldoArchivo, existentes: Existentes) {
     const igual = existentes.metas.find((e) => e.id === m.id || clave(e.nombre) === clave(m.nombre));
     if (igual) mapaMetas.set(m.id, igual.id);
     else {
-      metas.push({ ...m, reto_base: m.reto_base ?? null });
+      // La base exige 0 ≤ saldo inicial ≤ objetivo y 2 decimales.
+      const saldo = Math.min(Math.round((m.saldo_inicial ?? 0) * 100) / 100, m.objetivo);
+      metas.push({ ...m, reto_base: m.reto_base ?? null, saldo_inicial: saldo });
       mapaMetas.set(m.id, m.id);
     }
   }

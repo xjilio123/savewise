@@ -120,6 +120,7 @@ export type Database = {
           nombre: string;
           objetivo: number;
           reto_base: number | null;
+          saldo_inicial: number;
           user_id: string;
         };
         Insert: {
@@ -131,6 +132,7 @@ export type Database = {
           nombre: string;
           objetivo: number;
           reto_base?: number | null;
+          saldo_inicial?: number;
           user_id?: string;
         };
         Update: {
@@ -141,6 +143,7 @@ export type Database = {
           moneda?: string;
           nombre?: string;
           objetivo?: number;
+          saldo_inicial?: number;
           user_id?: string;
         };
         Relationships: [];

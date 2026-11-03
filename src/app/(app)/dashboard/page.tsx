@@ -72,6 +72,7 @@ export default async function Dashboard({ searchParams }: PageProps<"/dashboard"
     ? undefined
     : patrimonioPorMes(meses, hoy, {
         aportes: aportes.filter((a) => a.meta_id && activas.has(a.meta_id)),
+        saldosIniciales: metasActivas,
         deudas,
         pagos: pagosDeudas,
         prestamos,

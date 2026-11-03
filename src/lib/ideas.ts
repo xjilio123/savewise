@@ -1,7 +1,7 @@
 // Mejoras pequeñas de uso diario: frecuentes, calendario de pagos, comparación por categoría
 // y reto de 52 semanas. Todo son funciones puras: se prueban sin base de datos.
 
-import { sumarDias } from "@/lib/fechas";
+import { fechaLima, sumarDias } from "@/lib/fechas";
 import type { TipoMovimiento } from "@/lib/supabase/tipos";
 
 // ---------- Frecuentes ----------
@@ -234,6 +234,7 @@ const finDeMes = (inicio: string) => {
 
 /**
  * Patrimonio al cierre de cada mes: lo ahorrado en metas activas + lo que te deben − lo que debes.
+ * El saldo inicial de una meta cuenta desde el día en que se creó.
  * El saldo de cada deuda abierta es lo prestado menos los pagos hechos hasta esa fecha.
  */
 export function patrimonioPorMes(
@@ -241,6 +242,7 @@ export function patrimonioPorMes(
   hoy: string,
   datos: {
     aportes: { fecha: string; monto_base: number | null }[];
+    saldosIniciales?: { saldo_inicial: number; creado: string }[];
     deudas: { id: string; monto_total: number; creado: string; cerrada: boolean }[];
     pagos: { deuda_id: string | null; fecha: string; monto_base: number | null }[];
     prestamos: { fecha: string; monto: number; cobrado: boolean; cobrado_en: string | null }[];
@@ -249,7 +251,9 @@ export function patrimonioPorMes(
   const c = (n: number) => Math.round(n * 100);
   return meses.map((inicio) => {
     const fin = finDeMes(inicio) < hoy ? finDeMes(inicio) : hoy;
-    const ahorros = datos.aportes.filter((a) => a.fecha <= fin).reduce((s, a) => s + c(a.monto_base ?? 0), 0);
+    const ahorros =
+      datos.aportes.filter((a) => a.fecha <= fin).reduce((s, a) => s + c(a.monto_base ?? 0), 0) +
+      (datos.saldosIniciales ?? []).filter((m) => fechaLima(m.creado) <= fin).reduce((s, m) => s + c(m.saldo_inicial), 0);
     const teDeben = datos.prestamos
       .filter((p) => p.fecha <= fin && (!p.cobrado || (p.cobrado_en !== null && p.cobrado_en > fin)))
       .reduce((s, p) => s + c(p.monto), 0);

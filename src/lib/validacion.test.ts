@@ -140,4 +140,26 @@ describe("esquemaMeta", () => {
   it("acepta una meta sin fecha", () => {
     expect(esquemaMeta.parse({ nombre: "Navidad", objetivo: "800", fecha_objetivo: "" }).fecha_objetivo).toBeNull();
   });
+
+  const meta = (saldo_inicial: string) => esquemaMeta.safeParse({ nombre: "Viaje", objetivo: "5000", fecha_objetivo: "", saldo_inicial });
+
+  it("sin saldo inicial (vacío o sin el campo) empieza en 0", () => {
+    expect(meta("").data?.saldo_inicial).toBe(0);
+    expect(esquemaMeta.parse({ nombre: "Viaje", objetivo: "5000", fecha_objetivo: "" }).saldo_inicial).toBe(0);
+  });
+
+  it("acepta lo que ya tienes ahorrado, con coma o comas de miles", () => {
+    expect(meta("2000").data?.saldo_inicial).toBe(2000);
+    expect(meta("1500,50").data?.saldo_inicial).toBe(1500.5);
+    expect(meta("1,200.00").data?.saldo_inicial).toBe(1200);
+    expect(meta("5000").data?.saldo_inicial).toBe(5000);
+  });
+
+  it("rechaza saldo negativo, con 3 decimales o mayor que el objetivo", () => {
+    expect(meta("-1").error?.issues[0]?.message).toBe("No puede ser negativo");
+    expect(meta("10.555").error?.issues[0]?.message).toBe("Usa máximo 2 decimales");
+    const mayor = meta("5000.01");
+    expect(mayor.error?.issues[0]?.message).toBe("Lo que ya tienes no puede ser mayor que el objetivo");
+    expect(mayor.error?.issues[0]?.path).toEqual(["saldo_inicial"]);
+  });
 });
