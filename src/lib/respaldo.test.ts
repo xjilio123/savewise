@@ -21,6 +21,11 @@ describe("armarRespaldo", () => {
     expect(r.movimientos[0]).toEqual({ id: "x1", concepto: "Farmacia", monto: 50, categoria_id: "c1" });
   });
 
+  it("guarda el color del perfil (vacío si no hay)", () => {
+    expect(armarRespaldo(base).perfil.color_perfil).toBeNull();
+    expect(armarRespaldo({ ...base, perfil: { ...base.perfil, color_perfil: "verde" } }).perfil.color_perfil).toBe("verde");
+  });
+
   it("no guarda el user_id ni datos de la cuenta", () => {
     const texto = JSON.stringify(armarRespaldo(base));
     expect(texto).not.toContain("user_id");

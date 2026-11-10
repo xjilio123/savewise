@@ -13,7 +13,7 @@ export async function GET() {
   if (errorSesion || !sesion.user) return new Response("No autorizado", { status: 401 });
 
   const [perfil, categorias, metas, deudas, prestamos] = await Promise.all([
-    supabase.from("perfiles").select("sueldo_mensual, moneda_base, moneda_sueldo, dia_pago").single(),
+    supabase.from("perfiles").select("sueldo_mensual, moneda_base, moneda_sueldo, dia_pago, color_perfil").single(),
     supabase.from("categorias").select("*").order("nombre"),
     supabase.from("metas").select("*").order("creado"),
     supabase.from("deudas").select("*").order("creado"),

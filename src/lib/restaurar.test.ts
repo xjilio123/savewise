@@ -37,6 +37,17 @@ describe("leerRespaldo", () => {
     expect("error" in leer({ ...r, movimientos: [{ ...r.movimientos[0], concepto: "x".repeat(500) }] })).toBe(true);
   });
 
+  it("lee el color del perfil; los respaldos anteriores sin color también valen", () => {
+    const r = respaldoDePrueba();
+    const conColor = leer({ ...r, perfil: { ...r.perfil, color_perfil: "turquesa" } });
+    expect("respaldo" in conColor && conColor.respaldo.perfil.color_perfil).toBe("turquesa");
+    const anterior: Record<string, unknown> = { ...r.perfil };
+    delete anterior.color_perfil;
+    const sinColor = leer({ ...r, perfil: anterior });
+    expect("respaldo" in sinColor && sinColor.respaldo.perfil.color_perfil).toBeUndefined();
+    expect("error" in leer({ ...r, perfil: { ...r.perfil, color_perfil: "gris" } })).toBe(true);
+  });
+
   it("ignora campos de más como user_id o monto_base", () => {
     const r = leer(respaldoDePrueba());
     if (!("respaldo" in r)) throw new Error("debía leerse");

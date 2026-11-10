@@ -21,6 +21,8 @@ const esquemaRespaldoArchivo = z.object({
     sueldo_mensual: z.coerce.number().min(0).max(999_999_999),
     moneda_base: MONEDA,
     dia_pago: z.coerce.number().int().min(1).max(31),
+    // Color del círculo de perfil. Respaldos anteriores no lo traen: se deja el que tengas.
+    color_perfil: z.enum(COLORES_CATEGORIA).nullable().optional(),
   }),
   categorias: z
     .array(

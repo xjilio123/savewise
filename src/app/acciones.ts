@@ -26,6 +26,7 @@ import { obtenerTipoCambio } from "@/lib/tipoCambio";
 import {
   erroresPorCampo,
   esquemaCategoria,
+  esquemaColorPerfil,
   esquemaDeuda,
   esquemaId,
   esquemaMeta,
@@ -376,6 +377,19 @@ export async function guardarPerfil(_: EstadoFormulario, formData: FormData): Pr
   redirect("/");
 }
 
+/** Ajustes › color del círculo de tu perfil. Solo cambia tu fila (RLS) y solo acepta colores de la lista. */
+export async function guardarColorPerfil(_: EstadoFormulario, formData: FormData): Promise<EstadoFormulario> {
+  const { supabase, usuario } = await requerirUsuario();
+  const datos = esquemaColorPerfil.safeParse(texto(formData, "color"));
+  if (!datos.success) return { error: "Elige un color" };
+
+  const { error } = await supabase.from("perfiles").update({ color_perfil: datos.data }).eq("id", usuario.id);
+  if (error) return { error: ERROR_GENERICO };
+
+  revalidatePath("/", "layout");
+  return { ok: true };
+}
+
 export async function crearMeta(_: EstadoFormulario, formData: FormData): Promise<EstadoFormulario> {
   const { supabase, usuario } = await requerirUsuario();
 
@@ -588,7 +602,11 @@ export async function restaurarRespaldo(_: EstadoFormulario, formData: FormData)
   }
   await supabase
     .from("perfiles")
-    .update({ sueldo_mensual: r.perfil.sueldo_mensual, dia_pago: r.perfil.dia_pago })
+    .update({
+      sueldo_mensual: r.perfil.sueldo_mensual,
+      dia_pago: r.perfil.dia_pago,
+      ...(r.perfil.color_perfil !== undefined && { color_perfil: r.perfil.color_perfil }),
+    })
     .eq("id", usuario.id);
 
   revalidatePath("/", "layout");
