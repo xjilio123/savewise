@@ -3,6 +3,7 @@ import { cerrarSesion } from "@/app/acciones";
 import { FormularioPerfil } from "@/components/FormularioPerfil";
 import { Icono } from "@/components/Icono";
 import { Encabezado, Pantalla } from "@/components/ui";
+import { comoColorPerfil } from "@/lib/colores";
 import { crearRepositorio } from "@/lib/datos/repositorio";
 import { requerirSesion } from "@/lib/supabase/servidor";
 import { COOKIE_TEMA, leerTema } from "@/lib/tema";
@@ -13,6 +14,7 @@ import { BorrarDatos } from "./BorrarDatos";
 import { EspacioApp } from "./EspacioApp";
 import { TusDatos } from "./TusDatos";
 import { SelectorTema } from "./SelectorTema";
+import { TarjetaPerfil } from "./TarjetaPerfil";
 
 export default async function Ajustes() {
   const { supabase, usuario } = await requerirSesion();
@@ -31,15 +33,12 @@ export default async function Ajustes() {
     <Pantalla>
       <Encabezado titulo="Ajustes" atras={{ href: "/", texto: "Inicio" }} />
 
-      <div className="flex items-center gap-4 rounded-[22px] bg-tarjeta p-4">
-        <div className="grid size-14 shrink-0 place-items-center rounded-full bg-gradient-to-br from-heroe-desde to-heroe-hasta text-[24px] font-bold text-white">
-          {(perfil.nombre || usuario.email || "?").charAt(0).toUpperCase()}
-        </div>
-        <div className="min-w-0">
-          <p className="truncate text-[17px] font-bold">{perfil.nombre || "Tu cuenta"}</p>
-          <p className="truncate text-[15px] text-texto-2">{usuario.email}</p>
-        </div>
-      </div>
+      <TarjetaPerfil
+        inicial={(perfil.nombre || usuario.email || "?").charAt(0).toUpperCase()}
+        nombre={perfil.nombre || "Tu cuenta"}
+        correo={usuario.email ?? ""}
+        color={comoColorPerfil(perfil.color_perfil)}
+      />
 
       <FormularioPerfil
         sueldo={perfil.sueldo_mensual}

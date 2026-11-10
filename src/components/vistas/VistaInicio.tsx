@@ -4,6 +4,7 @@ import { Anillos } from "@/components/Anillos";
 import { Icono } from "@/components/Icono";
 import { AvisoInstalar } from "@/components/pwa/AvisoInstalar";
 import { Pantalla, Tarjeta } from "@/components/ui";
+import { clasesCirculoPerfil, type ColorPerfil } from "@/lib/colores";
 import type { Consejo } from "@/lib/consejos";
 import { formatearDinero, fraccion, type Resumen } from "@/lib/dinero";
 import { ConMontos, Monto } from "@/components/Monto";
@@ -12,6 +13,8 @@ export type DatosInicio = {
   fecha: string;
   periodo: string;
   inicial: string;
+  /** Color del círculo de perfil (Ajustes). Sin color: el degradado de la app. */
+  colorPerfil?: ColorPerfil | null;
   moneda: string;
   resumen: Resumen;
   consejo: Consejo | null;
@@ -22,7 +25,18 @@ export type DatosInicio = {
   privado?: ReactNode;
 };
 
-export function VistaInicio({ fecha, periodo, inicial, moneda, resumen: r, consejo, sinMovimientos, extra, privado }: DatosInicio) {
+export function VistaInicio({
+  fecha,
+  periodo,
+  inicial,
+  colorPerfil = null,
+  moneda,
+  resumen: r,
+  consejo,
+  sinMovimientos,
+  extra,
+  privado,
+}: DatosInicio) {
   const dinero = (n: number) => formatearDinero(n, moneda);
   const partes = [
     { nombre: "Gastos", monto: r.gastos, texto: "text-rojo", anillo: "text-rojo-relleno" },
@@ -43,7 +57,7 @@ export function VistaInicio({ fecha, periodo, inicial, moneda, resumen: r, conse
         <Link
           href="/ajustes"
           aria-label="Ajustes"
-          className="grid size-12 place-items-center rounded-full bg-gradient-to-br from-heroe-desde to-heroe-hasta text-[20px] font-bold text-white"
+          className={`grid size-12 place-items-center rounded-full text-[20px] font-bold ${clasesCirculoPerfil(colorPerfil)}`}
         >
           {inicial}
         </Link>

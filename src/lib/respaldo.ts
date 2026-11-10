@@ -13,7 +13,7 @@ function sinDueno(filas: Fila[]): Fila[] {
 
 export function armarRespaldo(datos: {
   hoy: string;
-  perfil: { sueldo_mensual: number; moneda_base: string; moneda_sueldo: string; dia_pago: number };
+  perfil: { sueldo_mensual: number; moneda_base: string; moneda_sueldo: string; dia_pago: number; color_perfil?: string | null };
   categorias: Fila[];
   metas: Fila[];
   deudas: Fila[];
@@ -29,6 +29,7 @@ export function armarRespaldo(datos: {
       moneda_base: datos.perfil.moneda_base,
       moneda_sueldo: datos.perfil.moneda_sueldo,
       dia_pago: datos.perfil.dia_pago,
+      color_perfil: datos.perfil.color_perfil ?? null,
     },
     cantidades: {
       categorias: datos.categorias.length,

@@ -127,6 +127,11 @@ export const esquemaCategoria = z.object({
   color: z.enum(COLORES_CATEGORIA, { error: "Elige un color" }),
 });
 
+/** Color del círculo de perfil. "original" vuelve al degradado de la app (se guarda como null). */
+export const esquemaColorPerfil = z
+  .enum([...COLORES_CATEGORIA, "original"], { error: "Elige un color" })
+  .transform((c) => (c === "original" ? null : c));
+
 /** Convierte "" en null antes de validar un campo numérico opcional. */
 const opcional = <T extends z.ZodType>(esquema: T) =>
   z.preprocess((v) => (v === "" || v === undefined ? null : v), esquema.nullable());

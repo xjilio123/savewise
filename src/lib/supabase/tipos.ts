@@ -228,6 +228,7 @@ export type Database = {
       perfiles: {
         Row: {
           actualizado: string;
+          color_perfil: ColorApp | null;
           creado: string;
           dia_pago: number;
           espacio_avisado: string | null;
@@ -247,6 +248,7 @@ export type Database = {
           sueldo_mensual?: number;
         };
         Update: {
+          color_perfil?: ColorApp | null;
           dia_pago?: number;
           moneda_base?: string;
           moneda_sueldo?: string;

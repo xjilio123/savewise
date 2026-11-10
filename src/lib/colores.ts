@@ -50,6 +50,30 @@ export const NOMBRE_COLOR: Record<(typeof COLORES_CATEGORIA)[number], string> = 
   negro: "Negro",
 };
 
+/** Color del círculo de perfil: uno de las categorías. `null` es "Original", el degradado de la app. */
+export type ColorPerfil = (typeof COLORES_CATEGORIA)[number];
+
+/** Lo que viene de la base: el gris no se puede elegir (la base lo impide), pero si llegara, cuenta como Original. */
+export function comoColorPerfil(color: ColorApp | null | undefined): ColorPerfil | null {
+  return COLORES_CATEGORIA.find((c) => c === color) ?? null;
+}
+
+/** El fondo del círculo (o de su muestra en el selector). */
+export function fondoColorPerfil(color: ColorPerfil | null): string {
+  return color ? CLASES_COLOR[color].punto : "bg-gradient-to-br from-heroe-desde to-heroe-hasta";
+}
+
+// Colores claros en los que una letra blanca no llega a 3:1 de contraste: ahí la letra va oscura.
+const LETRA_OSCURA: ReadonlySet<ColorPerfil> = new Set(["naranja", "amarillo", "verde", "menta", "turquesa"]);
+
+/** Fondo y color de la letra del círculo de perfil, legibles en modo claro y oscuro. */
+export function clasesCirculoPerfil(color: ColorPerfil | null): string {
+  // "Negro" es gris claro en modo oscuro: la letra toma el color de las tarjetas (blanca en claro, oscura en oscuro).
+  if (color === "negro") return `${fondoColorPerfil(color)} text-tarjeta`;
+  const letra = color && LETRA_OSCURA.has(color) ? "text-[#1d1d1f]" : "text-white";
+  return `${fondoColorPerfil(color)} ${letra}`;
+}
+
 export const COLOR_TIPO: Record<TipoMovimiento, ColorApp> = {
   GASTO: "rojo",
   OCIO: "morado",

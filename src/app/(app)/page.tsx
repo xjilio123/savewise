@@ -3,6 +3,7 @@ import { AvisoEspacio } from "@/components/AvisoEspacio";
 import { BotonPrivado } from "@/components/BotonPrivado";
 import { CierreMes } from "@/components/CierreMes";
 import { VistaInicio } from "@/components/vistas/VistaInicio";
+import { comoColorPerfil } from "@/lib/colores";
 import { generarConsejos } from "@/lib/consejos";
 import { crearRepositorio } from "@/lib/datos/repositorio";
 import { arrastreParaMi, calcularResumen, formatearDinero } from "@/lib/dinero";
@@ -62,6 +63,7 @@ export default async function Inicio() {
       fecha={fechaLarga(hoy)}
       periodo={etiquetaRango(periodo.desde, periodo.hasta)}
       inicial={(perfil.nombre || usuario.email || "?").charAt(0).toUpperCase()}
+      colorPerfil={comoColorPerfil(perfil.color_perfil)}
       moneda={perfil.moneda_base}
       resumen={resumen}
       consejo={generarConsejos(resumen, periodo, perfil.moneda_base, estadoTopes(categorias, movimientos))[0] ?? null}

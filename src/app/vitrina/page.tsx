@@ -11,6 +11,7 @@ import { FormularioEditarMeta } from "@/app/(app)/ahorros/[id]/FormularioEditarM
 import { BorrarDatos } from "@/app/(app)/ajustes/BorrarDatos";
 import { FormularioDeuda } from "@/app/(app)/deudas/FormularioDeuda";
 import { SelectorTema } from "@/app/(app)/ajustes/SelectorTema";
+import { TarjetaPerfil } from "@/app/(app)/ajustes/TarjetaPerfil";
 import { ResumenIA } from "@/app/(app)/dashboard/ResumenIA";
 import { BotonPrivado } from "@/components/BotonPrivado";
 import { CierreMes } from "@/components/CierreMes";
@@ -143,6 +144,27 @@ export default async function Vitrina({ searchParams }: PageProps<"/vitrina">) {
         <EspacioApp bytes={14 * MB} personas={15} />
         <AvisoEspacio bytes={14 * MB} />
       </main>
+    ),
+    // Ajustes › tarjeta del perfil: Original, un color claro (letra oscura) y Negro. «Editar» abre los colores.
+    "color-perfil": (
+      <main className="mx-auto flex min-h-dvh max-w-md flex-col gap-4 px-5 pt-7 pb-36">
+        <TarjetaPerfil inicial="J" nombre="Joaquín" correo="joaquin@ejemplo.com" color={null} />
+        <TarjetaPerfil inicial="J" nombre="Joaquín" correo="joaquin@ejemplo.com" color="turquesa" />
+        <TarjetaPerfil inicial="J" nombre="Joaquín" correo="joaquin@ejemplo.com" color="negro" />
+      </main>
+    ),
+    "inicio-color": (
+      <VistaInicio
+        fecha="Martes 10 de noviembre"
+        periodo="1 nov – 30 nov"
+        inicial="J"
+        colorPerfil="verde"
+        moneda="PEN"
+        resumen={resumen}
+        consejo={consejos[0] ?? null}
+        sinMovimientos={false}
+        privado={<BotonPrivado grande />}
+      />
     ),
     piezas: (
       <main className="mx-auto flex min-h-dvh max-w-md flex-col gap-4 px-5 pt-7 pb-36">
