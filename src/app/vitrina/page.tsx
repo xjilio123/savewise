@@ -3,7 +3,9 @@ import { notFound } from "next/navigation";
 import { BarraPestanas } from "@/components/BarraPestanas";
 import { ListaAportes } from "@/app/(app)/ahorros/ListaAportes";
 import { actualizarDeuda, actualizarMeta, crearCategoria } from "@/app/acciones";
-import { Exportar } from "@/app/(app)/ajustes/Exportar";
+import { EspacioApp } from "@/app/(app)/ajustes/EspacioApp";
+import { TusDatos } from "@/app/(app)/ajustes/TusDatos";
+import { AvisoEspacio } from "@/components/AvisoEspacio";
 import { FormularioCategoria } from "@/app/(app)/categorias/FormularioCategoria";
 import { FormularioEditarMeta } from "@/app/(app)/ahorros/[id]/FormularioEditarMeta";
 import { BorrarDatos } from "@/app/(app)/ajustes/BorrarDatos";
@@ -26,6 +28,10 @@ import * as f from "./datos";
 
 // Vitrina de pantallas con datos FICTICIOS para revisar el diseño sin tocar cuentas reales.
 // No existe en producción: responde 404 y el proxy no la deja pasar.
+const MB = 1024 * 1024;
+const AHORA = new Date("2026-11-10T15:00:00Z");
+const ESPACIO_BIEN = { bytes: 0.6 * MB, movimientos: 1240, metas: 5, deudas: 2, ultimoRespaldo: "2026-10-29T15:00:00Z" };
+
 export default async function Vitrina({ searchParams }: PageProps<"/vitrina">) {
   if (process.env.NODE_ENV === "production") notFound();
   const { p } = await searchParams;
@@ -127,6 +133,17 @@ export default async function Vitrina({ searchParams }: PageProps<"/vitrina">) {
       />
     ),
     deudas: <VistaDeudas deudas={f.DEUDAS} moneda="PEN" />,
+    // Ajustes › Tus datos en sus estados: bien, respaldo viejo, pronto (70%) y casi lleno (90%), más lo del dueño.
+    "tus-datos": (
+      <main className="mx-auto flex min-h-dvh max-w-md flex-col gap-4 px-5 pt-7 pb-36">
+        <TusDatos espacio={ESPACIO_BIEN} ahora={AHORA} />
+        <TusDatos espacio={{ ...ESPACIO_BIEN, ultimoRespaldo: "2026-09-26T15:00:00Z" }} ahora={AHORA} />
+        <TusDatos espacio={{ ...ESPACIO_BIEN, bytes: 11.7 * MB }} ahora={AHORA} />
+        <TusDatos espacio={{ ...ESPACIO_BIEN, bytes: 14 * MB }} ahora={AHORA} />
+        <EspacioApp bytes={14 * MB} personas={15} />
+        <AvisoEspacio bytes={14 * MB} />
+      </main>
+    ),
     piezas: (
       <main className="mx-auto flex min-h-dvh max-w-md flex-col gap-4 px-5 pt-7 pb-36">
         <FormularioPerfil sueldo={1500} moneda="PEN" diaPago={1} textoBoton="Guardar cambios" />
@@ -137,7 +154,7 @@ export default async function Vitrina({ searchParams }: PageProps<"/vitrina">) {
           ocupados={["rojo", "naranja", "verde", "turquesa", "azul", "indigo", "morado", "rosa", "negro"]}
           textoBoton="Crear categoría"
         />
-        <Exportar />
+        <TusDatos espacio={ESPACIO_BIEN} ahora={AHORA} />
         <BorrarDatos />
         <FormularioEditarMeta
           accion={actualizarMeta.bind(null, "vitrina")}

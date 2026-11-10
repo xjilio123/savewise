@@ -10,16 +10,20 @@ import { cookies, headers } from "next/headers";
 import { AtajoSiri } from "./AtajoSiri";
 import { AvisosPush } from "./AvisosPush";
 import { BorrarDatos } from "./BorrarDatos";
-import { Exportar } from "./Exportar";
+import { EspacioApp } from "./EspacioApp";
+import { TusDatos } from "./TusDatos";
 import { SelectorTema } from "./SelectorTema";
 
 export default async function Ajustes() {
   const { supabase, usuario } = await requerirSesion();
-  const [perfil, token, cabeceras, galletas] = await Promise.all([
-    crearRepositorio(supabase).perfil(),
+  const repo = crearRepositorio(supabase);
+  const [perfil, token, cabeceras, galletas, espacio, espacioApp] = await Promise.all([
+    repo.perfil(),
     supabase.from("tokens_atajo").select("creado").maybeSingle(),
     headers(),
     cookies(),
+    repo.espacio(),
+    repo.espacioApp(),
   ]);
   const urlAtajo = `https://${cabeceras.get("host") ?? "savewise-inky.vercel.app"}/api/atajo`;
 
@@ -52,7 +56,8 @@ export default async function Ajustes() {
         Categorías y topes
         <Icono nombre="atras" className="size-5 rotate-180 text-texto-2" />
       </Link>
-      <Exportar />
+      <TusDatos espacio={espacio} />
+      {espacioApp && <EspacioApp bytes={espacioApp.bytes} personas={espacioApp.personas} />}
 
       <BorrarDatos />
 

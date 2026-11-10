@@ -1,5 +1,6 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import type { DatosEspacio } from "@/lib/espacio";
 import { escaparLike, TAMANO_PAGINA, type Filtros } from "@/lib/filtros";
 import type { Categoria, ColorApp, Database, Deuda, Meta, Prestamo, Movimiento, Perfil, TipoMovimiento } from "@/lib/supabase/tipos";
 
@@ -62,6 +63,26 @@ export function crearRepositorio(supabase: SupabaseClient<Database>) {
       const { data: fila, error } = await supabase.rpc("estado_resumen_ia").single();
       if (error || !fila) throw new Error("No se pudieron leer los datos");
       return { usados: fila.usados, espera: fila.espera_segundos, texto: fila.texto };
+    },
+
+    /** Tu espacio aproximado, cuántas cosas guardas y tu último respaldo. Si no se puede medir, null. */
+    async espacio(): Promise<DatosEspacio | null> {
+      const { data: fila, error } = await supabase.rpc("mi_espacio").maybeSingle();
+      if (error || !fila) return null;
+      return {
+        bytes: Number(fila.bytes),
+        movimientos: fila.movimientos,
+        metas: fila.metas,
+        deudas: fila.deudas,
+        ultimoRespaldo: fila.ultimo_respaldo,
+      };
+    },
+
+    /** Total de la base. Solo responde a los dueños de la app; a los demás, null. */
+    async espacioApp(): Promise<{ bytes: number; personas: number } | null> {
+      const { data: fila, error } = await supabase.rpc("espacio_app").maybeSingle();
+      if (error || !fila) return null;
+      return { bytes: Number(fila.bytes), personas: fila.personas };
     },
 
     movimientosEntre(desde: string, hasta: string): Promise<Movimiento[]> {

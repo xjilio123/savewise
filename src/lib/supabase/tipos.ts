@@ -230,11 +230,13 @@ export type Database = {
           actualizado: string;
           creado: string;
           dia_pago: number;
+          espacio_avisado: string | null;
           id: string;
           moneda_base: string;
           moneda_sueldo: string;
           nombre: string;
           sueldo_mensual: number;
+          ultimo_respaldo: string | null;
         };
         Insert: {
           id: string;
@@ -250,6 +252,7 @@ export type Database = {
           moneda_sueldo?: string;
           nombre?: string;
           sueldo_mensual?: number;
+          ultimo_respaldo?: string | null;
         };
         Relationships: [];
       };
@@ -301,6 +304,14 @@ export type Database = {
         Returns: { categoria_id: string; color: ColorApp; nombre: string; total: number }[];
       };
       ping: { Args: never; Returns: number };
+      mi_espacio: {
+        Args: never;
+        Returns: { bytes: number; movimientos: number; metas: number; deudas: number; ultimo_respaldo: string | null }[];
+      };
+      espacio_app: {
+        Args: never;
+        Returns: { bytes: number; personas: number }[];
+      };
       estado_resumen_ia: {
         Args: never;
         Returns: { usados: number; espera_segundos: number; texto: string | null }[];

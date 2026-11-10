@@ -1,10 +1,12 @@
 import { redirect } from "next/navigation";
+import { AvisoEspacio } from "@/components/AvisoEspacio";
 import { BotonPrivado } from "@/components/BotonPrivado";
 import { CierreMes } from "@/components/CierreMes";
 import { VistaInicio } from "@/components/vistas/VistaInicio";
 import { generarConsejos } from "@/lib/consejos";
 import { crearRepositorio } from "@/lib/datos/repositorio";
 import { arrastreParaMi, calcularResumen, formatearDinero } from "@/lib/dinero";
+import { CUPO_PERSONA, estadoEspacio } from "@/lib/espacio";
 import { etiquetaRango, fechaLarga, hoyLima, periodoFinanciero, sumarDias } from "@/lib/fechas";
 import { estadoTopes, sobranteDelPeriodo } from "@/lib/planificacion";
 import { requerirSesion } from "@/lib/supabase/servidor";
@@ -50,6 +52,11 @@ export default async function Inicio() {
     }
   }
 
+  // El aviso diario marca espacio_avisado al pasar el 90%: solo entonces se mide, para no hacerlo en cada visita.
+  const espacio = perfil.espacio_avisado ? await repo.espacio() : null;
+  const avisoEspacio =
+    espacio && estadoEspacio(espacio.bytes, CUPO_PERSONA).nivel === "lleno" ? <AvisoEspacio bytes={espacio.bytes} /> : null;
+
   return (
     <VistaInicio
       fecha={fechaLarga(hoy)}
@@ -59,7 +66,14 @@ export default async function Inicio() {
       resumen={resumen}
       consejo={generarConsejos(resumen, periodo, perfil.moneda_base, estadoTopes(categorias, movimientos))[0] ?? null}
       sinMovimientos={movimientos.length === 0}
-      extra={cierre}
+      extra={
+        avisoEspacio || cierre ? (
+          <>
+            {avisoEspacio}
+            {cierre}
+          </>
+        ) : null
+      }
       privado={<BotonPrivado grande />}
     />
   );

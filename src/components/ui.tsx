@@ -69,11 +69,19 @@ export function MensajeError({ texto }: { texto?: string }) {
 }
 
 /** Aviso destacado, por ejemplo cuando no queda dinero sin asignar. `enTarjeta` si va dentro de otra tarjeta. */
-export function Alerta({ texto, enTarjeta = false }: { texto: string; enTarjeta?: boolean }) {
+export function Alerta({
+  texto,
+  enTarjeta = false,
+  tono = "naranja",
+}: {
+  texto: string;
+  enTarjeta?: boolean;
+  tono?: "naranja" | "rojo";
+}) {
   return (
     <p
       role="alert"
-      className={`flex gap-2.5 rounded-2xl px-4 py-3 text-[15px] font-medium leading-snug text-naranja ${enTarjeta ? "bg-fondo" : "bg-tarjeta"}`}
+      className={`flex gap-2.5 rounded-2xl px-4 py-3 text-[15px] font-medium leading-snug ${tono === "rojo" ? "text-rojo" : "text-naranja"} ${enTarjeta ? "bg-fondo" : "bg-tarjeta"}`}
     >
       <Icono nombre="alerta" className="mt-0.5 size-5 shrink-0" />
       <span>

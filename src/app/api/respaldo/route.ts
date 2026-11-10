@@ -36,6 +36,9 @@ export async function GET() {
     if (!data || data.length < LOTE) break;
   }
 
+  // Fecha del último respaldo (Ajustes › Tus datos y el aviso mensual). Si falla, el respaldo igual se descarga.
+  await supabase.from("perfiles").update({ ultimo_respaldo: new Date().toISOString() }).eq("id", sesion.user.id);
+
   const hoy = hoyLima();
   const respaldo = armarRespaldo({
     hoy,
